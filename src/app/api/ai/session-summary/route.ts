@@ -70,11 +70,13 @@ export async function POST(req: NextRequest) {
     let transcript    = "";
     let appointmentId = "";
     let audioUsed     = false;
+    let preview       = false;   // preview = generate SOAP only, do not save to Firestore
 
     // ── Mode 1: Audio file upload ──────────────────────────────────────────
     if (contentType.includes("multipart/form-data")) {
       const form          = await req.formData();
-      appointmentId       = form.get("appointmentId") as string;
+      appointmentId       = (form.get("appointmentId") as string) ?? "";
+      preview             = form.get("preview") === "true";
       const audioFile     = form.get("audio") as File;
 
       if (!audioFile) {
@@ -100,14 +102,17 @@ export async function POST(req: NextRequest) {
     } else {
       const body    = await req.json();
       transcript    = body.transcript;
-      appointmentId = body.appointmentId;
+      appointmentId = body.appointmentId ?? "";
+      preview       = body.preview === true;
 
       if (!transcript?.trim()) {
         return NextResponse.json({ error: "No transcript provided" }, { status: 400 });
       }
     }
 
-    if (!appointmentId) {
+    // appointmentId is only required when we intend to save a report.
+    // In preview mode (e.g. Doctor Notes AI Assist) we generate SOAP without saving.
+    if (!preview && !appointmentId) {
       return NextResponse.json({ error: "appointmentId required" }, { status: 400 });
     }
 
@@ -127,6 +132,18 @@ export async function POST(req: NextRequest) {
       clinicalReport = JSON.parse(cleaned);
     } catch {
       return NextResponse.json({ error: "AI returned malformed JSON", raw: rawJson }, { status: 500 });
+    }
+
+    // ── Preview mode — return SOAP without persisting anything ─────────────
+    // Used by Doctor Notes "AI Assist": the doctor reviews and saves the note
+    // manually, so we do not write to sessionReports or touch the appointment.
+    if (preview) {
+      return NextResponse.json({
+        success: true,
+        preview: true,
+        transcript,
+        clinicalReport,
+      });
     }
 
     // Load appointment for metadata

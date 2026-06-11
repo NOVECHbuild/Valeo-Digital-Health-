@@ -11,7 +11,40 @@ import {
   FileText, Plus, Search, X, Loader2, Save,
   Edit3, Trash2, ChevronDown, CheckCircle,
   AlertCircle, Lock, Calendar, User,
+  Sparkles, Upload, FileAudio, AlertTriangle,
 } from "lucide-react";
+
+// ── AI report formatter ─────────────────────────────────────────────────────
+// Turns the Gemini clinical report JSON into a readable SOAP note body.
+function formatAIReport(r: any): string {
+  const soap = r?.soap ?? {};
+  const out: string[] = [];
+  if (r?.sessionSummary) out.push(`SUMMARY\n${r.sessionSummary}`);
+  out.push(`SUBJECTIVE\n${soap.subjective || "—"}`);
+  out.push(`OBJECTIVE\n${soap.objective || "—"}`);
+  out.push(`ASSESSMENT\n${soap.assessment || "—"}`);
+  out.push(`PLAN\n${soap.plan || "—"}`);
+  if (Array.isArray(r?.keyThemes) && r.keyThemes.length)
+    out.push(`KEY THEMES\n${r.keyThemes.join(", ")}`);
+  if (Array.isArray(r?.recommendedInterventions) && r.recommendedInterventions.length)
+    out.push(`RECOMMENDED INTERVENTIONS\n${r.recommendedInterventions.join(", ")}`);
+  if (r?.nextSessionFocus) out.push(`NEXT SESSION FOCUS\n${r.nextSessionFocus}`);
+  const rf = r?.riskFlags ?? {};
+  const risks: string[] = [];
+  if (rf.selfHarm)         risks.push("self-harm");
+  if (rf.suicidalIdeation) risks.push("suicidal ideation");
+  if (rf.harmToOthers)     risks.push("harm to others");
+  if (rf.substanceUse)     risks.push("substance use");
+  if (risks.length)
+    out.push(`⚠ RISK FLAGS: ${risks.join(", ")}${rf.details ? ` — ${rf.details}` : ""}`);
+  return out.join("\n\n");
+}
+
+// Returns true if the report contains any active risk flag.
+function reportHasRisk(r: any): boolean {
+  const rf = r?.riskFlags ?? {};
+  return !!(rf.selfHarm || rf.suicidalIdeation || rf.harmToOthers || rf.substanceUse);
+}
 
 interface Client { uid: string; displayName: string; email: string; }
 interface Note {
@@ -57,8 +90,73 @@ function NoteEditor({ note, clients, doctorId, onSave, onClose }: {
   const [saving,      setSaving]      = useState(false);
   const [error,       setError]       = useState<string|null>(null);
 
+  // ── AI Assist state ──────────────────────────────────────────────────────
+  const [aiOpen,       setAiOpen]       = useState(false);
+  const [aiMode,       setAiMode]       = useState<"text"|"audio">("text");
+  const [aiTranscript, setAiTranscript] = useState("");
+  const [aiFile,       setAiFile]       = useState<File|null>(null);
+  const [aiLoading,    setAiLoading]    = useState(false);
+  const [aiError,      setAiError]      = useState<string|null>(null);
+  const [aiDone,       setAiDone]       = useState(false);
+
   const selectedClient = clients.find(c => c.uid === clientId);
   const toggleTag = (t: string) => setTags(prev => prev.includes(t) ? prev.filter(x=>x!==t) : [...prev,t]);
+
+  // ── Call the AI session-summary endpoint in preview mode ──────────────────
+  async function handleGenerateAI() {
+    setAiError(null);
+    if (aiMode === "text" && !aiTranscript.trim()) {
+      setAiError("Paste a session transcript first."); return;
+    }
+    if (aiMode === "audio" && !aiFile) {
+      setAiError("Choose an audio file first."); return;
+    }
+    setAiLoading(true);
+    try {
+      let res: Response;
+      if (aiMode === "audio" && aiFile) {
+        const fd = new FormData();
+        fd.append("audio", aiFile);
+        fd.append("preview", "true");
+        res = await fetch("/api/ai/session-summary", { method: "POST", body: fd });
+      } else {
+        res = await fetch("/api/ai/session-summary", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ transcript: aiTranscript, preview: true }),
+        });
+      }
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "AI generation failed.");
+      }
+
+      const report    = data.clinicalReport;
+      const formatted = formatAIReport(report);
+
+      // Append to existing content (never overwrite the doctor's own writing)
+      setContent(prev => prev.trim() ? `${prev.trim()}\n\n${formatted}` : formatted);
+
+      // Suggest tags: risk → Crisis + Concern, otherwise Progress
+      if (reportHasRisk(report)) {
+        setTags(prev => Array.from(new Set([...prev, "Crisis", "Concern"])));
+      } else {
+        setTags(prev => prev.includes("Progress") ? prev : [...prev, "Progress"]);
+      }
+
+      // Suggest a title if the doctor hasn't written one
+      if (!title.trim() && report?.sessionSummary) {
+        setTitle(report.sessionSummary.split(/[.!?]/)[0].slice(0, 60));
+      }
+
+      setAiDone(true);
+      setAiOpen(false);
+    } catch (e: any) {
+      setAiError(e.message ?? "AI generation failed. Please try again.");
+    } finally {
+      setAiLoading(false);
+    }
+  }
 
   async function handleSave() {
     if (!clientId||!title.trim()||!content.trim()||!sessionDate||!sessionType) {
@@ -151,7 +249,88 @@ function NoteEditor({ note, clients, doctorId, onSave, onClose }: {
             </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color:"#8A9BA8" }}>Session Notes *</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider" style={{ color:"#8A9BA8" }}>Session Notes *</label>
+              <button type="button" onClick={()=>{ setAiOpen(o=>!o); setAiError(null); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                style={{ background: aiOpen ? "rgba(247,148,29,0.12)" : "rgba(141,198,63,0.12)", color: aiOpen ? "#C4700A" : "#6BA028" }}>
+                <Sparkles size={13}/> {aiOpen ? "Close AI Assist" : "Generate with AI"}
+              </button>
+            </div>
+
+            {/* ── AI Assist panel ── */}
+            {aiOpen && (
+              <div className="rounded-xl border mb-3 overflow-hidden"
+                style={{ borderColor:"rgba(141,198,63,0.3)", background:"rgba(141,198,63,0.04)" }}>
+                <div className="px-4 py-3 border-b flex items-center gap-2" style={{ borderColor:"rgba(141,198,63,0.2)" }}>
+                  <Sparkles size={14} style={{ color:"#6BA028" }}/>
+                  <p className="text-xs font-semibold" style={{ color:"#2A4A1A" }}>AI Session Summary</p>
+                  <span className="text-xs" style={{ color:"#8A9BA8" }}>· Draft only — review before saving</span>
+                </div>
+
+                {/* Mode toggle */}
+                <div className="flex gap-2 px-4 pt-3">
+                  {([["text","Paste transcript"],["audio","Upload audio"]] as const).map(([m,lbl])=>(
+                    <button key={m} type="button" onClick={()=>{ setAiMode(m); setAiError(null); }}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-all"
+                      style={{ borderColor: aiMode===m ? "#6BA028" : "rgba(42,74,26,0.12)",
+                        background: aiMode===m ? "rgba(141,198,63,0.12)" : "white",
+                        color: aiMode===m ? "#2A4A1A" : "#8A9BA8" }}>
+                      {lbl}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="p-4">
+                  {aiMode === "text" ? (
+                    <textarea value={aiTranscript} onChange={e=>setAiTranscript(e.target.value)} rows={5}
+                      placeholder={"Paste the session transcript here.\nFor example:\nTHERAPIST: How have you been since last week?\nCLIENT: ..."}
+                      className="w-full px-3 py-2.5 rounded-lg text-sm border resize-none focus:outline-none leading-relaxed"
+                      style={{ borderColor:"rgba(42,74,26,0.15)", background:"white" }}/>
+                  ) : (
+                    <label className="flex items-center gap-3 px-4 py-4 rounded-lg border-2 border-dashed cursor-pointer"
+                      style={{ borderColor:"rgba(42,74,26,0.18)", background:"white" }}>
+                      <Upload size={18} style={{ color:"#6BA028" }}/>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate" style={{ color:"#2A4A1A" }}>
+                          {aiFile ? aiFile.name : "Choose a session recording"}
+                        </p>
+                        <p className="text-xs" style={{ color:"#8A9BA8" }}>MP3, WAV, M4A, OGG or WebM</p>
+                      </div>
+                      <FileAudio size={16} style={{ color:"#8A9BA8" }}/>
+                      <input type="file" accept="audio/*" className="hidden"
+                        onChange={e=>setAiFile(e.target.files?.[0] ?? null)}/>
+                    </label>
+                  )}
+
+                  {aiError && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs mt-3"
+                      style={{ background:"rgba(247,148,29,0.1)", color:"#C4700A" }}>
+                      <AlertTriangle size={13}/>{aiError}
+                    </div>
+                  )}
+
+                  <button type="button" onClick={handleGenerateAI} disabled={aiLoading}
+                    className="w-full mt-3 py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-60 flex items-center justify-center gap-2"
+                    style={{ background:"linear-gradient(135deg, #6BA028, #2A4A1A)" }}>
+                    {aiLoading
+                      ? <><Loader2 size={14} className="animate-spin"/>Analysing session…</>
+                      : <><Sparkles size={14}/>Generate SOAP Note</>}
+                  </button>
+                  <p className="text-xs mt-2 text-center" style={{ color:"#8A9BA8" }}>
+                    AI output is added below your notes. Always review for accuracy before saving.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {aiDone && !aiOpen && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs mb-2"
+                style={{ background:"rgba(141,198,63,0.12)", color:"#6BA028" }}>
+                <CheckCircle size={13}/> AI summary added below. Review and edit before saving.
+              </div>
+            )}
+
             <textarea value={content} onChange={e=>setContent(e.target.value)} rows={8}
               placeholder="Document session observations, progress, interventions, and plans..."
               className="w-full px-4 py-3 rounded-xl text-sm border resize-none focus:outline-none leading-relaxed"

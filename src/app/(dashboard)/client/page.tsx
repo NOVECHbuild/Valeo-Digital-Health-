@@ -13,6 +13,7 @@ import {
   AlertTriangle, Brain,
 } from "lucide-react";
 import Link from "next/link";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 interface ActivityItem {
@@ -319,6 +320,9 @@ export default function ClientDashboard() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+
+      {/* ── Platform announcements ── */}
+      <AnnouncementBanner audience="client" />
 
       {/* ── Welcome banner ── */}
       <div

@@ -49,6 +49,16 @@ export default function AdminLayout({
     router.push("/login");
   }
 
+  // ── Active route + page title using startsWith ──────────────────────────
+  // Original used exact `pathname === href` — any sub-route like
+  // /admin/users/add-doctor showed no active nav item and a blank header title.
+  function isActive(href: string): boolean {
+    if (href === "/admin") return pathname === "/admin";
+    return pathname === href || pathname.startsWith(href + "/");
+  }
+
+  const pageTitle = navItems.find(i => isActive(i.href))?.label ?? "Admin Console";
+
   return (
     <div className="min-h-screen flex overflow-hidden" style={{ background: "#F4F4F6" }}>
 
@@ -121,7 +131,7 @@ export default function AdminLayout({
             Console
           </p>
           {navItems.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href;
+            const active = isActive(href);
             return (
               <Link
                 key={href}
@@ -180,7 +190,7 @@ export default function AdminLayout({
                 className="text-lg font-medium"
                 style={{ fontFamily: "var(--font-dm-serif)", color: "#1E3810" }}
               >
-                {navItems.find(i => i.href === pathname)?.label ?? "Admin Console"}
+                {pageTitle}
               </h1>
             </div>
           </div>

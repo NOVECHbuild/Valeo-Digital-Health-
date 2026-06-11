@@ -66,9 +66,8 @@ export default function HomePage() {
 
         nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; height: 72px; background: rgba(255,253,249,0.92); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(42,74,26,0.08); transition: background 0.3s, box-shadow 0.3s; }
         nav.scrolled { box-shadow: 0 2px 24px rgba(42,74,26,0.1); }
-        .nav-logo { display: flex; flex-direction: column; line-height: 1; text-decoration: none; }
-        .nav-logo .wordmark { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--forest); letter-spacing: -0.3px; }
-        .nav-logo .tagline-sm { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--green); font-weight: 500; margin-top: 2px; }
+        .nav-logo { display: flex; align-items: center; text-decoration: none; }
+        .nav-logo img { height: 48px; width: auto; display: block; }
         .nav-links { display: flex; gap: 36px; list-style: none; }
         .nav-links a { text-decoration: none; color: var(--slate); font-size: 14px; font-weight: 500; letter-spacing: 0.2px; transition: color 0.2s; }
         .nav-links a:hover { color: var(--forest); }
@@ -212,7 +211,7 @@ export default function HomePage() {
 
         footer { background: var(--charcoal); color: white; padding: 80px 80px 40px; }
         .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 64px; }
-        .footer-brand .wordmark-f { font-family: 'DM Serif Display'; font-size: 26px; color: white; margin-bottom: 16px; display: block; }
+        .footer-brand .logo-f { height: 52px; width: auto; display: block; margin-bottom: 16px; }
         .footer-tagline { color: rgba(255,255,255,0.5); font-size: 14px; line-height: 1.7; margin-bottom: 20px; }
         .footer-contact { color: rgba(255,255,255,0.55); font-size: 13px; line-height: 1.8; }
         .footer-contact a { color: var(--green); text-decoration: none; }
@@ -263,8 +262,7 @@ export default function HomePage() {
       {/* NAV */}
       <nav ref={navRef} id="main-nav">
         <Link href="/" className="nav-logo">
-          <span className="wordmark">The Valeo Experience</span>
-          <span className="tagline-sm">Caribbean Mental Health</span>
+          <Image src="/images/logo.png" alt="The Valeo Experience" width={140} height={48} style={{ height: '48px', width: 'auto' }} priority />
         </Link>
         <ul className="nav-links">
           <li><a href="#services">Services</a></li>
@@ -575,7 +573,7 @@ export default function HomePage() {
       <footer id="contact">
         <div className="footer-top">
           <div className="footer-brand">
-            <span className="wordmark-f">The Valeo Experience</span>
+            <Image src="/images/logo.png" alt="The Valeo Experience" width={160} height={52} className="logo-f" style={{ height: "52px", width: "auto" }} />
             <p className="footer-tagline">Transforming lives through culturally-informed, evidence-based mental health care in the heart of the Caribbean.</p>
             <p className="footer-contact">
               Kingstown, St. Vincent &amp; the Grenadines<br />

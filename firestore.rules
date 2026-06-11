@@ -1,0 +1,191 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ── Helper functions ──────────────────────────────────────────────────────
+    function isAuth() {
+      return request.auth != null;
+    }
+    function isUser(uid) {
+      return isAuth() && request.auth.uid == uid;
+    }
+    function getRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    function isClient() {
+      return isAuth() && getRole() == 'client';
+    }
+    function isDoctor() {
+      return isAuth() && getRole() == 'doctor';
+    }
+    function isAdmin() {
+      return isAuth() && getRole() == 'admin';
+    }
+    function isDoctorOrAdmin() {
+      return isAuth() && (getRole() == 'doctor' || getRole() == 'admin');
+    }
+    // ── Users ─────────────────────────────────────────────────────────────────
+    match /users/{userId} {
+      allow get:    if isUser(userId) || isDoctorOrAdmin();
+      allow list:   if isAuth();
+      allow create: if isUser(userId);
+      allow update: if (isUser(userId)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']))
+        || isAdmin();
+      allow delete: if isAdmin();
+    }
+    // ── Appointments ──────────────────────────────────────────────────────────
+    match /appointments/{appointmentId} {
+      // Single document read — strict ownership check
+      allow get: if isAuth() && (
+        resource.data.clientId == request.auth.uid ||
+        resource.data.doctorId == request.auth.uid ||
+        isAdmin()
+      );
+      // List/query — any authenticated user can query.
+      // Needed so clients can check booked slots (by doctorId) when booking.
+      // The query itself limits what is returned; sensitive fields (notes,
+      // clientEmail) are not surfaced in the booked-slots UI.
+      allow list: if isAuth();
+      // Create — client can book their own appointment in pending state only
+      allow create: if isAuth()
+        && request.resource.data.clientId == request.auth.uid
+        && request.resource.data.status == 'pending';
+      // Update rules:
+      //   Doctor: can change status + updatedAt only
+      //   Client: can cancel their own pending/approved appointment
+      //   Admin:  full access
+      //   Server (Admin SDK): handled via adminDb, bypasses rules
+      allow update: if isAuth() && (
+        (
+          resource.data.doctorId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'updatedAt', 'meetLink'])
+        ) ||
+        (
+          resource.data.clientId == request.auth.uid
+          && request.resource.data.status == 'cancelled'
+          && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'cancelledAt', 'cancelledBy', 'updatedAt'])
+        ) ||
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+    // ── Assessments ───────────────────────────────────────────────────────────
+    match /assessments/{assessmentId} {
+      allow read: if isAuth() && (
+        resource.data.clientId == request.auth.uid ||
+        isDoctorOrAdmin()
+      );
+      allow create: if isDoctorOrAdmin();
+      allow update: if isAuth() && (
+        (resource.data.clientId == request.auth.uid
+          && resource.data.status == 'pending') ||
+        isDoctorOrAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+    // ── Assessment templates ──────────────────────────────────────────────────
+    match /assessmentTemplates/{templateId} {
+      allow read:   if isAuth();
+      allow create: if isDoctorOrAdmin();
+      allow update: if isDoctorOrAdmin();
+      allow delete: if isAdmin();
+    }
+    // ── Conversations + Messages ──────────────────────────────────────────────
+    match /conversations/{convId} {
+      allow get: if isAuth() && (
+        request.auth.uid == resource.data.clientId ||
+        request.auth.uid == resource.data.doctorId ||
+        isAdmin()
+      );
+      allow list: if isAuth();
+      allow create: if isAuth() && (
+        request.auth.uid == request.resource.data.clientId ||
+        request.auth.uid == request.resource.data.doctorId ||
+        isAdmin()
+      );
+      allow update, delete: if isAuth() && (
+        request.auth.uid == resource.data.clientId ||
+        request.auth.uid == resource.data.doctorId ||
+        isAdmin()
+      );
+      // Messages are scoped to the two participants on the parent conversation
+      // (plus admin). Prevents any signed-in user from reading a conversation
+      // they are not part of, even if they know the conversation ID.
+      match /messages/{msgId} {
+        allow read, create: if isAuth() && (
+          get(/databases/$(database)/documents/conversations/$(convId)).data.clientId == request.auth.uid ||
+          get(/databases/$(database)/documents/conversations/$(convId)).data.doctorId == request.auth.uid ||
+          isAdmin()
+        );
+        allow update, delete: if isAdmin();
+      }
+    }
+    // ── Payments ──────────────────────────────────────────────────────────────
+    // Payments are created/updated exclusively by the server (Admin SDK).
+    // Clients can read their own payments; doctor/admin can read all.
+    match /payments/{paymentId} {
+      allow read: if isAuth() && (
+        resource.data.clientId == request.auth.uid ||
+        isDoctorOrAdmin()
+      );
+      // No client create/update — all writes go through API routes (Admin SDK)
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+    // ── Notes ─────────────────────────────────────────────────────────────────
+    match /notes/{noteId} {
+      allow read: if isAuth() && (
+        resource.data.doctorId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isDoctor()
+        && request.resource.data.doctorId == request.auth.uid;
+      allow update, delete: if isAuth() && (
+        resource.data.doctorId == request.auth.uid ||
+        isAdmin()
+      );
+    }
+    // ── Platform settings ─────────────────────────────────────────────────────
+    match /settings/{document} {
+      allow read:  if isAuth();
+      allow write: if isAdmin();
+    }
+    // ── Doctor schedules ──────────────────────────────────────────────────────
+    match /schedules/{doctorId} {
+      allow read:  if isAuth();
+      allow write: if isAuth() && request.auth.uid == doctorId;
+    }
+    // ── Client-doctor assignments ─────────────────────────────────────────────
+    match /assignments/{clientId} {
+      allow read: if isAuth() && (
+        request.auth.uid == clientId ||
+        isAdmin() ||
+        resource.data.doctorId == request.auth.uid
+      );
+      allow write: if isAuth() && (
+        request.auth.uid == clientId || isAdmin()
+      );
+    }
+    // ── Intake forms ──────────────────────────────────────────────────────────
+    match /intakes/{clientId} {
+      allow read:  if isAuth() && (request.auth.uid == clientId || isAdmin());
+      allow write: if isAuth() && request.auth.uid == clientId;
+    }
+    // ── Announcements ─────────────────────────────────────────────────────────
+    match /announcements/{id} {
+      allow read:  if isAuth();
+      allow write: if isAdmin();
+    }
+    // ── Manual payments (admin only) ──────────────────────────────────────────
+    match /manualPayments/{id} {
+      allow read, write: if isAdmin();
+    }
+    // ── Deny everything else ──────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

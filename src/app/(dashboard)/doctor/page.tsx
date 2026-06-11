@@ -11,6 +11,7 @@ import {
   MessageCircle, Activity,
 } from "lucide-react";
 import Link from "next/link";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type Appointment = {
@@ -210,6 +211,9 @@ export default function DoctorDashboard() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+
+      {/* Platform announcements */}
+      <AnnouncementBanner audience="doctor" />
 
       {/* Welcome banner */}
       <div className="rounded-2xl p-6 relative overflow-hidden"
