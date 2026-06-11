@@ -723,12 +723,31 @@ export default function DoctorSchedulePage() {
     const appt = appointments.find(a=>a.id===id);
     if (!appt) return;
     setActing(id);
-    try { await updateAppointmentStatus(id, appt.status==="approved"?"completed":"approved"); }
+    try {
+      const becomingApproved = appt.status !== "approved";
+      await updateAppointmentStatus(id, appt.status==="approved"?"completed":"approved");
+      if (becomingApproved) {
+        // Email the client that their session is confirmed (fire-and-forget)
+        fetch("/api/email/appointment", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ appointmentId: id, event: "approved" }),
+        }).catch(() => {});
+      }
+    }
     finally { setActing(null); }
   }
   async function handleReject(id: string) {
     setActing(id);
-    try { await updateAppointmentStatus(id,"rejected"); }
+    try {
+      await updateAppointmentStatus(id,"rejected");
+      // Notify the client their request wasn't confirmed (fire-and-forget)
+      fetch("/api/email/appointment", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ appointmentId: id, event: "cancelled", cancelledBy: "doctor" }),
+      }).catch(() => {});
+    }
     finally { setActing(null); }
   }
 

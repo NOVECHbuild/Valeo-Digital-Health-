@@ -587,6 +587,12 @@ export default function DoctorAssessmentsPage() {
       assignedAt: serverTimestamp(), completedAt: null,
       ...(dueDate ? { dueDate } : {}),
     });
+    // Notify the client by email (fire-and-forget — never block assignment)
+    fetch("/api/email/assessment", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ clientId, title, dueDate: dueDate || "" }),
+    }).catch(() => {});
     // onSnapshot handles the state update automatically
     showToast("success", `Assigned to ${client.displayName}.`);
   }

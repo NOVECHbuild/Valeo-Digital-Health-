@@ -461,6 +461,12 @@ function ClientAppointmentsPageInner() {
         cancelledAt: serverTimestamp(),
         cancelledBy: "client",
       });
+      // Notify the doctor (fire-and-forget)
+      fetch("/api/email/appointment", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ appointmentId: cancelTarget.id, event: "cancelled", cancelledBy: "client" }),
+      }).catch(() => {});
       setToast({ type: "success", msg: "Session cancelled successfully." });
     } catch {
       setToast({ type: "error", msg: "Failed to cancel. Please try again." });
@@ -490,6 +496,13 @@ function ClientAppointmentsPageInner() {
         duration:    selectedTypeObj?.duration ?? 60,
         ...(notes ? { notes } : {}),
       });
+
+      // Notify by email (fire-and-forget — never block booking on email)
+      fetch("/api/email/appointment", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ appointmentId, event: "requested" }),
+      }).catch(() => {});
 
       // Free consultation — skip payment
       if (selectedTypeObj?.price === 0) {
