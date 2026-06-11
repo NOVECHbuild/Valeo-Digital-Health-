@@ -14,7 +14,7 @@ export default function AuthLayout({
       {/* Left panel — branding */}
       <div
         className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12"
-        style={{ background: "linear-gradient(160deg, #0D3B44 0%, #1A535C 100%)" }}
+        style={{ background: "linear-gradient(160deg, #2A4A1A 0%, #3D6B24 100%)" }}
       >
         {/* Logo */}
         <div>

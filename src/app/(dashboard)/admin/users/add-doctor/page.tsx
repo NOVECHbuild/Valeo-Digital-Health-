@@ -68,9 +68,9 @@ function ChipSelect({ options, selected, onChange, max }: {
           <button key={opt} type="button" onClick={() => toggle(opt)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
             style={{
-              background: active ? "rgba(13,59,68,0.1)" : "rgba(13,59,68,0.03)",
-              border:     `1.5px solid ${active ? "#0D3B44" : "rgba(13,59,68,0.12)"}`,
-              color:      active ? "#0D3B44" : "#8A9BA8",
+              background: active ? "rgba(42,74,26,0.1)" : "rgba(42,74,26,0.03)",
+              border:     `1.5px solid ${active ? "#2A4A1A" : "rgba(42,74,26,0.12)"}`,
+              color:      active ? "#2A4A1A" : "#8A9BA8",
             }}>
             {active && <CheckCircle size={11} />}
             {opt}
@@ -87,13 +87,13 @@ function Section({ title, icon: Icon, children }: {
 }) {
   return (
     <div className="rounded-2xl p-6"
-      style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
+      style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
       <div className="flex items-center gap-3 mb-5">
         <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{ background: "rgba(78,205,196,0.1)" }}>
-          <Icon size={15} style={{ color: "#4ECDC4" }} />
+          style={{ background: "rgba(141,198,63,0.1)" }}>
+          <Icon size={15} style={{ color: "#8DC63F" }} />
         </div>
-        <h3 className="text-sm font-semibold" style={{ color: "#0D3B44" }}>{title}</h3>
+        <h3 className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>{title}</h3>
       </div>
       <div className="space-y-4">{children}</div>
     </div>
@@ -107,7 +107,7 @@ function Field({ label, required, hint, children }: {
   return (
     <div>
       <label className="block text-xs font-semibold mb-1.5" style={{ color: "#4A5568" }}>
-        {label} {required && <span style={{ color: "#E8604C" }}>*</span>}
+        {label} {required && <span style={{ color: "#F7941D" }}>*</span>}
       </label>
       {children}
       {hint && <p className="text-xs mt-1" style={{ color: "#8A9BA8" }}>{hint}</p>}
@@ -116,7 +116,7 @@ function Field({ label, required, hint, children }: {
 }
 
 const inputCls = "w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none transition-colors";
-const inputStyle = { borderColor: "rgba(13,59,68,0.15)", background: "#FAFAFA", color: "#22272B" };
+const inputStyle = { borderColor: "rgba(42,74,26,0.15)", background: "#FAFAFA", color: "#22272B" };
 
 // ── Main page ──────────────────────────────────────────────────────────────
 export default function AddDoctorPage() {
@@ -217,7 +217,7 @@ export default function AddDoctorPage() {
           <ArrowLeft size={18} />
         </button>
         <div>
-          <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>
+          <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
             Add New Therapist
           </h2>
           <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>
@@ -229,18 +229,18 @@ export default function AddDoctorPage() {
       {/* Success */}
       {success && (
         <div className="flex items-center gap-3 px-5 py-4 rounded-2xl"
-          style={{ background: "rgba(78,205,196,0.08)", border: "1px solid rgba(78,205,196,0.2)" }}>
-          <CheckCircle size={18} style={{ color: "#4ECDC4" }} />
-          <p className="text-sm font-medium" style={{ color: "#2BA8A0" }}>{success}</p>
+          style={{ background: "rgba(141,198,63,0.08)", border: "1px solid rgba(141,198,63,0.2)" }}>
+          <CheckCircle size={18} style={{ color: "#8DC63F" }} />
+          <p className="text-sm font-medium" style={{ color: "#6BA028" }}>{success}</p>
         </div>
       )}
 
       {/* Error */}
       {error && (
         <div className="flex items-center gap-3 px-5 py-4 rounded-2xl"
-          style={{ background: "rgba(232,96,76,0.08)", border: "1px solid rgba(232,96,76,0.2)" }}>
-          <AlertCircle size={18} style={{ color: "#E8604C" }} />
-          <p className="text-sm font-medium" style={{ color: "#E8604C" }}>{error}</p>
+          style={{ background: "rgba(247,148,29,0.08)", border: "1px solid rgba(247,148,29,0.2)" }}>
+          <AlertCircle size={18} style={{ color: "#F7941D" }} />
+          <p className="text-sm font-medium" style={{ color: "#F7941D" }}>{error}</p>
         </div>
       )}
 
@@ -375,9 +375,9 @@ export default function AddDoctorPage() {
                   onClick={() => set("acceptingClients", !form.acceptingClients)}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all"
                   style={{
-                    borderColor: form.acceptingClients ? "#4ECDC4" : "rgba(13,59,68,0.15)",
-                    background:  form.acceptingClients ? "rgba(78,205,196,0.1)" : "white",
-                    color:       form.acceptingClients ? "#2BA8A0" : "#8A9BA8",
+                    borderColor: form.acceptingClients ? "#8DC63F" : "rgba(42,74,26,0.15)",
+                    background:  form.acceptingClients ? "rgba(141,198,63,0.1)" : "white",
+                    color:       form.acceptingClients ? "#6BA028" : "#8A9BA8",
                   }}>
                   {form.acceptingClients
                     ? <><CheckCircle size={15} /> Accepting</>
@@ -392,12 +392,12 @@ export default function AddDoctorPage() {
         <div className="flex items-center gap-3 justify-end pb-6">
           <button type="button" onClick={() => router.back()}
             className="px-5 py-2.5 rounded-xl text-sm font-semibold border"
-            style={{ borderColor: "rgba(13,59,68,0.15)", color: "#4A5568" }}>
+            style={{ borderColor: "rgba(42,74,26,0.15)", color: "#4A5568" }}>
             Cancel
           </button>
           <button type="submit" disabled={loading}
             className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
-            style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+            style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
             {loading
               ? <><Loader2 size={15} className="animate-spin" /> Creating Account...</>
               : <><Plus size={15} /> Add Therapist</>}

@@ -7,19 +7,19 @@ export default function RegisterPage() {
   return (
     <div
       className="min-h-screen flex items-center justify-center p-4"
-      style={{ background: 'linear-gradient(135deg, #0D3B44 0%, #1A535C 100%)' }}
+      style={{ background: 'linear-gradient(135deg, #2A4A1A 0%, #3D6B24 100%)' }}
     >
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div style={{
           position: 'absolute', top: '-10%', right: '-10%',
           width: '500px', height: '500px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(78,205,196,0.12) 0%, transparent 70%)'
+          background: 'radial-gradient(circle, rgba(141,198,63,0.12) 0%, transparent 70%)'
         }} />
         <div style={{
           position: 'absolute', bottom: '-10%', left: '-5%',
           width: '400px', height: '400px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(232,96,76,0.1) 0%, transparent 70%)'
+          background: 'radial-gradient(circle, rgba(247,148,29,0.1) 0%, transparent 70%)'
         }} />
       </div>
 
@@ -30,7 +30,7 @@ export default function RegisterPage() {
           boxShadow: '0 32px 80px rgba(0,0,0,0.3)'
         }}>
           {/* Top accent */}
-          <div style={{ height: '4px', background: 'linear-gradient(90deg, #4ECDC4, #E8604C)' }} />
+          <div style={{ height: '4px', background: 'linear-gradient(90deg, #8DC63F, #F7941D)' }} />
 
           <div className="p-10">
             {/* Logo */}
@@ -38,12 +38,12 @@ export default function RegisterPage() {
               <p style={{
                 fontFamily: 'var(--font-dm-serif)',
                 fontSize: '24px',
-                color: '#0D3B44',
+                color: '#2A4A1A',
                 marginBottom: '4px'
               }}>
                 The Valeo Experience
               </p>
-              <p style={{ fontSize: '11px', letterSpacing: '2.5px', textTransform: 'uppercase', color: '#4ECDC4', fontWeight: 600 }}>
+              <p style={{ fontSize: '11px', letterSpacing: '2.5px', textTransform: 'uppercase', color: '#8DC63F', fontWeight: 600 }}>
                 Caribbean Mental Health
               </p>
             </div>
@@ -51,10 +51,10 @@ export default function RegisterPage() {
             {/* Icon */}
             <div className="flex justify-center mb-6">
               <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{
-                background: 'linear-gradient(135deg, rgba(13,59,68,0.08), rgba(78,205,196,0.12))',
-                border: '2px solid rgba(78,205,196,0.2)'
+                background: 'linear-gradient(135deg, rgba(42,74,26,0.08), rgba(141,198,63,0.12))',
+                border: '2px solid rgba(141,198,63,0.2)'
               }}>
-                <Shield size={36} style={{ color: '#0D3B44' }} />
+                <Shield size={36} style={{ color: '#2A4A1A' }} />
               </div>
             </div>
 
@@ -63,7 +63,7 @@ export default function RegisterPage() {
               <h1 style={{
                 fontFamily: 'var(--font-dm-serif)',
                 fontSize: '28px',
-                color: '#0D3B44',
+                color: '#2A4A1A',
                 marginBottom: '12px',
                 lineHeight: 1.2
               }}>
@@ -76,10 +76,10 @@ export default function RegisterPage() {
 
             {/* Info box */}
             <div className="rounded-xl p-4 mb-8" style={{
-              background: 'rgba(78,205,196,0.06)',
-              border: '1px solid rgba(78,205,196,0.2)'
+              background: 'rgba(141,198,63,0.06)',
+              border: '1px solid rgba(141,198,63,0.2)'
             }}>
-              <p className="text-sm font-semibold mb-2" style={{ color: '#0D3B44' }}>
+              <p className="text-sm font-semibold mb-2" style={{ color: '#2A4A1A' }}>
                 Already have an account?
               </p>
               <p className="text-sm" style={{ color: '#4A5568', lineHeight: 1.6 }}>
@@ -89,20 +89,20 @@ export default function RegisterPage() {
 
             {/* Contact box */}
             <div className="rounded-xl p-4 mb-8" style={{
-              background: 'rgba(232,96,76,0.05)',
-              border: '1px solid rgba(232,96,76,0.15)'
+              background: 'rgba(247,148,29,0.05)',
+              border: '1px solid rgba(247,148,29,0.15)'
             }}>
               <div className="flex items-start gap-3">
-                <Mail size={18} style={{ color: '#E8604C', flexShrink: 0, marginTop: '1px' }} />
+                <Mail size={18} style={{ color: '#F7941D', flexShrink: 0, marginTop: '1px' }} />
                 <div>
-                  <p className="text-sm font-semibold mb-1" style={{ color: '#0D3B44' }}>
+                  <p className="text-sm font-semibold mb-1" style={{ color: '#2A4A1A' }}>
                     Want access?
                   </p>
                   <p className="text-sm" style={{ color: '#4A5568', lineHeight: 1.6 }}>
                     Reach out to us at{' '}
                     <a
                       href="mailto:info@valeoexperience.com"
-                      style={{ color: '#E8604C', fontWeight: 600, textDecoration: 'none' }}
+                      style={{ color: '#F7941D', fontWeight: 600, textDecoration: 'none' }}
                     >
                       info@valeoexperience.com
                     </a>
@@ -118,9 +118,9 @@ export default function RegisterPage() {
                 href="/login"
                 className="block w-full text-center py-3.5 rounded-xl text-sm font-semibold transition-all"
                 style={{
-                  background: 'linear-gradient(135deg, #0D3B44, #1A535C)',
+                  background: 'linear-gradient(135deg, #2A4A1A, #3D6B24)',
                   color: 'white',
-                  boxShadow: '0 4px 16px rgba(13,59,68,0.3)',
+                  boxShadow: '0 4px 16px rgba(42,74,26,0.3)',
                   textDecoration: 'none'
                 }}
               >

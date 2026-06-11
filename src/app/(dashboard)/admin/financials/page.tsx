@@ -43,9 +43,9 @@ const PAYMENT_METHODS = ["Cash", "Bank Transfer", "Zelle", "PayPal", "Cheque", "
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 const STATUS_CONFIG: Record<PaymentStatus, { label: string; bg: string; color: string; Icon: any }> = {
-  completed: { label: "Paid",      bg: "rgba(78,205,196,0.12)",  color: "#2BA8A0", Icon: CheckCircle  },
-  pending:   { label: "Pending",   bg: "rgba(212,168,83,0.12)",  color: "#B8860B", Icon: Clock        },
-  failed:    { label: "Failed",    bg: "rgba(232,96,76,0.12)",   color: "#E8604C", Icon: XCircle      },
+  completed: { label: "Paid",      bg: "rgba(141,198,63,0.12)",  color: "#6BA028", Icon: CheckCircle  },
+  pending:   { label: "Pending",   bg: "rgba(247,148,29,0.12)",  color: "#C4700A", Icon: Clock        },
+  failed:    { label: "Failed",    bg: "rgba(247,148,29,0.12)",   color: "#F7941D", Icon: XCircle      },
   refunded:  { label: "Refunded",  bg: "rgba(138,155,168,0.12)", color: "#8A9BA8", Icon: ArrowUpRight },
   cancelled: { label: "Cancelled", bg: "rgba(138,155,168,0.12)", color: "#8A9BA8", Icon: XCircle      },
 };
@@ -65,8 +65,8 @@ function SourceBadge({ source }: { source: PaymentSource }) {
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium"
       style={{
-        background: source === "manual" ? "rgba(212,168,83,0.1)" : "rgba(13,59,68,0.06)",
-        color:      source === "manual" ? "#B8860B" : "#4A5568",
+        background: source === "manual" ? "rgba(247,148,29,0.1)" : "rgba(42,74,26,0.06)",
+        color:      source === "manual" ? "#C4700A" : "#4A5568",
       }}>
       {source === "manual" ? <Banknote size={10} /> : <Globe size={10} />}
       {source === "manual" ? "Manual" : "Online"}
@@ -107,15 +107,15 @@ function RevenueChart({ transactions }: { transactions: Transaction[] }) {
   const max = Math.max(...months.map(m => m.total), 1);
 
   return (
-    <div className="rounded-2xl p-5" style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
+    <div className="rounded-2xl p-5" style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
       <div className="flex items-center justify-between mb-5">
         <div>
-          <p className="text-sm font-semibold" style={{ color: "#0D3B44" }}>Monthly Revenue</p>
+          <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>Monthly Revenue</p>
           <p className="text-xs" style={{ color: "#8A9BA8" }}>Last 6 months — all completed payments</p>
         </div>
         <div className="flex items-center gap-4 text-xs" style={{ color: "#8A9BA8" }}>
-          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: "#4ECDC4" }} /> Online</span>
-          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: "#D4A853" }} /> Manual</span>
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: "#8DC63F" }} /> Online</span>
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: "#F7941D" }} /> Manual</span>
         </div>
       </div>
       <div className="flex items-end gap-3 justify-between">
@@ -123,10 +123,10 @@ function RevenueChart({ transactions }: { transactions: Transaction[] }) {
           <div key={m.label} className="flex-1 flex flex-col items-center gap-1">
             <p className="text-xs font-medium" style={{ color: "#8A9BA8" }}>{m.total > 0 ? fmt(m.total) : ""}</p>
             <div className="w-full flex flex-col rounded-t-lg overflow-hidden"
-              style={{ height: "60px", background: "rgba(13,59,68,0.04)", justifyContent: "flex-end" }}>
+              style={{ height: "60px", background: "rgba(42,74,26,0.04)", justifyContent: "flex-end" }}>
               <div style={{ height: `${(m.total / max) * 100}%`, minHeight: m.total > 0 ? "4px" : "0", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
-                {m.manual > 0 && <div style={{ height: `${(m.manual / m.total) * 100}%`, background: "#D4A853", minHeight: "3px" }} />}
-                {m.online > 0 && <div style={{ height: `${(m.online / m.total) * 100}%`, background: "linear-gradient(180deg, #4ECDC4, #0D3B44)", minHeight: "3px" }} />}
+                {m.manual > 0 && <div style={{ height: `${(m.manual / m.total) * 100}%`, background: "#F7941D", minHeight: "3px" }} />}
+                {m.online > 0 && <div style={{ height: `${(m.online / m.total) * 100}%`, background: "linear-gradient(180deg, #8DC63F, #2A4A1A)", minHeight: "3px" }} />}
               </div>
             </div>
             <span className="text-xs" style={{ color: "#C4C4C4" }}>{m.label}</span>
@@ -186,16 +186,16 @@ function ManualPaymentDrawer({ clients, onClose, onSave }: {
   }
 
   const inputCls = "w-full px-4 py-3 rounded-xl text-sm outline-none";
-  const inputStyle = { background: "#F8F9FA", border: "1px solid rgba(26,26,46,0.1)", color: "#1A1A2E" };
+  const inputStyle = { background: "#F8F9FA", border: "1px solid rgba(30,56,16,0.1)", color: "#1E3810" };
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative w-full max-w-md h-full flex flex-col"
         style={{ background: "white", boxShadow: "-8px 0 32px rgba(0,0,0,0.15)" }}>
-        <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: "rgba(26,26,46,0.08)" }}>
+        <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: "rgba(30,56,16,0.08)" }}>
           <div>
-            <h3 style={{ fontFamily: "var(--font-dm-serif)", fontSize: "20px", color: "#1A1A2E" }}>Record Manual Payment</h3>
+            <h3 style={{ fontFamily: "var(--font-dm-serif)", fontSize: "20px", color: "#1E3810" }}>Record Manual Payment</h3>
             <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>Log a cash or offline payment</p>
           </div>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-black/5"><X size={18} style={{ color: "#8A9BA8" }} /></button>
@@ -203,7 +203,7 @@ function ManualPaymentDrawer({ clients, onClose, onSave }: {
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {error && (
             <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-medium"
-              style={{ background: "rgba(232,96,76,0.08)", color: "#E8604C", border: "1px solid rgba(232,96,76,0.2)" }}>
+              style={{ background: "rgba(247,148,29,0.08)", color: "#F7941D", border: "1px solid rgba(247,148,29,0.2)" }}>
               <AlertCircle size={13} /> {error}
             </div>
           )}
@@ -218,10 +218,10 @@ function ManualPaymentDrawer({ clients, onClose, onSave }: {
                 className={inputCls} style={{ ...inputStyle, paddingLeft: "40px" }} />
               {search && !form.clientId && filteredClients.length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-1 rounded-xl overflow-hidden z-30 py-1"
-                  style={{ background: "white", boxShadow: "0 4px 20px rgba(26,26,46,0.15)", maxHeight: "180px", overflowY: "auto" }}>
+                  style={{ background: "white", boxShadow: "0 4px 20px rgba(30,56,16,0.15)", maxHeight: "180px", overflowY: "auto" }}>
                   {filteredClients.map(c => (
                     <button key={c.uid} onClick={() => selectClient(c)} className="w-full text-left px-4 py-3 hover:bg-black/5">
-                      <p className="text-sm font-medium" style={{ color: "#1A1A2E" }}>{c.displayName}</p>
+                      <p className="text-sm font-medium" style={{ color: "#1E3810" }}>{c.displayName}</p>
                       <p className="text-xs" style={{ color: "#8A9BA8" }}>{c.email}</p>
                     </button>
                   ))}
@@ -230,9 +230,9 @@ function ManualPaymentDrawer({ clients, onClose, onSave }: {
             </div>
             {form.clientId && (
               <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg"
-                style={{ background: "rgba(78,205,196,0.06)", border: "1px solid rgba(78,205,196,0.2)" }}>
-                <CheckCircle size={13} style={{ color: "#4ECDC4" }} />
-                <span className="text-xs font-medium" style={{ color: "#2BA8A0" }}>{form.clientName}</span>
+                style={{ background: "rgba(141,198,63,0.06)", border: "1px solid rgba(141,198,63,0.2)" }}>
+                <CheckCircle size={13} style={{ color: "#8DC63F" }} />
+                <span className="text-xs font-medium" style={{ color: "#6BA028" }}>{form.clientName}</span>
               </div>
             )}
           </div>
@@ -291,12 +291,12 @@ function ManualPaymentDrawer({ clients, onClose, onSave }: {
             </div>
           </div>
         </div>
-        <div className="px-6 py-4 border-t flex gap-3" style={{ borderColor: "rgba(26,26,46,0.08)" }}>
+        <div className="px-6 py-4 border-t flex gap-3" style={{ borderColor: "rgba(30,56,16,0.08)" }}>
           <button onClick={onClose} className="flex-1 py-3 rounded-xl text-sm font-semibold"
-            style={{ background: "rgba(26,26,46,0.05)", color: "#4A5568" }}>Cancel</button>
+            style={{ background: "rgba(30,56,16,0.05)", color: "#4A5568" }}>Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white"
-            style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)", opacity: saving ? 0.7 : 1 }}>
+            style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)", opacity: saving ? 0.7 : 1 }}>
             {saving ? <Loader2 size={15} className="animate-spin" /> : <CreditCard size={15} />}
             {saving ? "Saving…" : "Record Payment"}
           </button>
@@ -422,18 +422,18 @@ export default function AdminFinancialsPage() {
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#1A1A2E" }}>Financials</h2>
+          <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#1E3810" }}>Financials</h2>
           <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>Platform revenue, transactions, and billing overview</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => exportCSV(filtered)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border hover:-translate-y-0.5 transition-all"
-            style={{ borderColor: "rgba(26,26,46,0.15)", color: "#1A1A2E", background: "white" }}>
+            style={{ borderColor: "rgba(30,56,16,0.15)", color: "#1E3810", background: "white" }}>
             <Download size={14} /> Export CSV
           </button>
           <button onClick={() => setShowDrawer(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white hover:-translate-y-0.5 transition-all"
-            style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+            style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
             <Plus size={14} /> Record Payment
           </button>
         </div>
@@ -442,23 +442,23 @@ export default function AdminFinancialsPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: "Total Revenue",  value: fmt(revenue),   sub: `${fmt(thisM)} this month`, accent: "#0D3B44", Icon: DollarSign, trend: growth },
-          { label: "Pending",        value: fmt(pending),   sub: `${transactions.filter(t=>t.status==="pending").length} transactions`, accent: "#D4A853", Icon: Clock, trend: null },
-          { label: "Online Revenue", value: fmt(onlineRev), sub: `${completed.filter(t=>t.source==="online").length} transactions`, accent: "#4ECDC4", Icon: Globe,    trend: null },
-          { label: "Manual Revenue", value: fmt(manualRev), sub: `${completed.filter(t=>t.source==="manual").length} transactions`, accent: "#B8860B", Icon: Banknote, trend: null },
+          { label: "Total Revenue",  value: fmt(revenue),   sub: `${fmt(thisM)} this month`, accent: "#2A4A1A", Icon: DollarSign, trend: growth },
+          { label: "Pending",        value: fmt(pending),   sub: `${transactions.filter(t=>t.status==="pending").length} transactions`, accent: "#F7941D", Icon: Clock, trend: null },
+          { label: "Online Revenue", value: fmt(onlineRev), sub: `${completed.filter(t=>t.source==="online").length} transactions`, accent: "#8DC63F", Icon: Globe,    trend: null },
+          { label: "Manual Revenue", value: fmt(manualRev), sub: `${completed.filter(t=>t.source==="manual").length} transactions`, accent: "#C4700A", Icon: Banknote, trend: null },
         ].map(({ label, value, sub, accent, Icon, trend }) => (
-          <div key={label} className="rounded-2xl p-5" style={{ background: "white", boxShadow: "0 1px 4px rgba(26,26,46,0.07)" }}>
+          <div key={label} className="rounded-2xl p-5" style={{ background: "white", boxShadow: "0 1px 4px rgba(30,56,16,0.07)" }}>
             <div className="flex items-start justify-between mb-3">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: accent + "12" }}>
                 <Icon size={16} style={{ color: accent }} />
               </div>
               {trend !== null && (
-                <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: trend >= 0 ? "#2BA8A0" : "#E8604C" }}>
+                <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: trend >= 0 ? "#6BA028" : "#F7941D" }}>
                   {trend >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}{Math.abs(trend)}%
                 </span>
               )}
             </div>
-            <p className="text-2xl font-bold" style={{ fontFamily: "var(--font-dm-serif)", color: "#1A1A2E" }}>{value}</p>
+            <p className="text-2xl font-bold" style={{ fontFamily: "var(--font-dm-serif)", color: "#1E3810" }}>{value}</p>
             <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>{label}</p>
             <p className="text-xs mt-1" style={{ color: "#C4C4C4" }}>{sub}</p>
           </div>
@@ -476,23 +476,23 @@ export default function AdminFinancialsPage() {
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Search by client, session type, or reference..."
               className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm border focus:outline-none"
-              style={{ borderColor: "rgba(26,26,46,0.12)", background: "white" }} />
+              style={{ borderColor: "rgba(30,56,16,0.12)", background: "white" }} />
             {search && <button onClick={() => setSearch("")} className="absolute right-3.5 top-1/2 -translate-y-1/2"><X size={13} style={{ color: "#8A9BA8" }} /></button>}
           </div>
           <button onClick={() => setShowFilters(!showFilters)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all"
-            style={{ borderColor: showFilters ? "#1A1A2E" : "rgba(26,26,46,0.12)", background: showFilters ? "rgba(26,26,46,0.04)" : "white", color: "#1A1A2E" }}>
-            <Filter size={14} /> Filters {hasFilters && <span className="w-2 h-2 rounded-full" style={{ background: "#E8604C" }} />}
+            style={{ borderColor: showFilters ? "#1E3810" : "rgba(30,56,16,0.12)", background: showFilters ? "rgba(30,56,16,0.04)" : "white", color: "#1E3810" }}>
+            <Filter size={14} /> Filters {hasFilters && <span className="w-2 h-2 rounded-full" style={{ background: "#F7941D" }} />}
           </button>
         </div>
         {showFilters && (
-          <div className="flex flex-wrap gap-4 p-4 rounded-2xl" style={{ background: "white", boxShadow: "0 1px 4px rgba(26,26,46,0.07)" }}>
+          <div className="flex flex-wrap gap-4 p-4 rounded-2xl" style={{ background: "white", boxShadow: "0 1px 4px rgba(30,56,16,0.07)" }}>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#8A9BA8" }}>Status</p>
               <div className="flex gap-2 flex-wrap">
                 {(["all","completed","pending","failed","refunded"] as const).map(f => (
                   <button key={f} onClick={() => setFilter(f)} className="px-3 py-1.5 rounded-lg text-xs font-semibold capitalize"
-                    style={{ background: filter === f ? "#1A1A2E" : "rgba(26,26,46,0.04)", color: filter === f ? "white" : "#4A5568" }}>{f}</button>
+                    style={{ background: filter === f ? "#1E3810" : "rgba(30,56,16,0.04)", color: filter === f ? "white" : "#4A5568" }}>{f}</button>
                 ))}
               </div>
             </div>
@@ -501,7 +501,7 @@ export default function AdminFinancialsPage() {
               <div className="flex gap-2">
                 {(["all","online","manual"] as const).map(s => (
                   <button key={s} onClick={() => setSourceFilter(s)} className="px-3 py-1.5 rounded-lg text-xs font-semibold capitalize"
-                    style={{ background: sourceFilter === s ? "#1A1A2E" : "rgba(26,26,46,0.04)", color: sourceFilter === s ? "white" : "#4A5568" }}>{s}</button>
+                    style={{ background: sourceFilter === s ? "#1E3810" : "rgba(30,56,16,0.04)", color: sourceFilter === s ? "white" : "#4A5568" }}>{s}</button>
                 ))}
               </div>
             </div>
@@ -509,18 +509,18 @@ export default function AdminFinancialsPage() {
               <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#8A9BA8" }}>Date From</p>
               <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
                 className="px-3 py-1.5 rounded-lg text-xs border focus:outline-none"
-                style={{ borderColor: "rgba(26,26,46,0.12)", background: "#FAFAFA" }} />
+                style={{ borderColor: "rgba(30,56,16,0.12)", background: "#FAFAFA" }} />
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#8A9BA8" }}>Date To</p>
               <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
                 className="px-3 py-1.5 rounded-lg text-xs border focus:outline-none"
-                style={{ borderColor: "rgba(26,26,46,0.12)", background: "#FAFAFA" }} />
+                style={{ borderColor: "rgba(30,56,16,0.12)", background: "#FAFAFA" }} />
             </div>
             {hasFilters && (
               <div className="flex items-end">
                 <button onClick={() => { setSearch(""); setFilter("all"); setSourceFilter("all"); setDateFrom(""); setDateTo(""); }}
-                  className="text-xs font-semibold hover:underline" style={{ color: "#E8604C" }}>Clear all</button>
+                  className="text-xs font-semibold hover:underline" style={{ color: "#F7941D" }}>Clear all</button>
               </div>
             )}
           </div>
@@ -528,13 +528,13 @@ export default function AdminFinancialsPage() {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: "white", boxShadow: "0 1px 4px rgba(26,26,46,0.07)" }}>
+      <div className="rounded-2xl overflow-hidden" style={{ background: "white", boxShadow: "0 1px 4px rgba(30,56,16,0.07)" }}>
         {loading ? (
-          <div className="flex items-center justify-center py-16"><Loader2 size={28} className="animate-spin" style={{ color: "#4ECDC4" }} /></div>
+          <div className="flex items-center justify-center py-16"><Loader2 size={28} className="animate-spin" style={{ color: "#8DC63F" }} /></div>
         ) : filtered.length === 0 ? (
           <div className="py-16 text-center">
             <Receipt size={24} className="mx-auto mb-3" style={{ color: "#C4C4C4" }} />
-            <p className="text-sm font-medium" style={{ color: "#1A1A2E" }}>No transactions found</p>
+            <p className="text-sm font-medium" style={{ color: "#1E3810" }}>No transactions found</p>
             <p className="text-xs mt-1" style={{ color: "#8A9BA8" }}>Try adjusting your filters.</p>
           </div>
         ) : (
@@ -542,7 +542,7 @@ export default function AdminFinancialsPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr style={{ borderBottom: "1px solid rgba(26,26,46,0.07)" }}>
+                  <tr style={{ borderBottom: "1px solid rgba(30,56,16,0.07)" }}>
                     {[
                       { label: "Client",   cls: "" },
                       { label: "Session",  cls: "hidden sm:table-cell" },
@@ -562,15 +562,15 @@ export default function AdminFinancialsPage() {
                     const d = getDate(t);
                     return (
                       <tr key={t.id} className="border-b hover:bg-black/[0.015] transition-colors"
-                        style={{ borderColor: "rgba(26,26,46,0.05)" }}>
+                        style={{ borderColor: "rgba(30,56,16,0.05)" }}>
                         <td className="py-3.5 px-5">
                           <div className="flex items-center gap-2.5">
                             <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
-                              style={{ background: "rgba(13,59,68,0.07)", color: "#0D3B44" }}>
+                              style={{ background: "rgba(42,74,26,0.07)", color: "#2A4A1A" }}>
                               {(t.clientName ?? "?")[0]?.toUpperCase()}
                             </div>
                             <div>
-                              <p className="text-sm font-medium" style={{ color: "#1A1A2E" }}>{t.clientName}</p>
+                              <p className="text-sm font-medium" style={{ color: "#1E3810" }}>{t.clientName}</p>
                               <p className="text-xs" style={{ color: "#C4C4C4" }}>{t.clientEmail}</p>
                             </div>
                           </div>
@@ -586,7 +586,7 @@ export default function AdminFinancialsPage() {
                         </td>
                         <td className="py-3.5 px-4">
                           <p className="text-sm font-semibold"
-                            style={{ color: t.status === "refunded" ? "#8A9BA8" : "#1A1A2E", textDecoration: t.status === "refunded" ? "line-through" : "none" }}>
+                            style={{ color: t.status === "refunded" ? "#8A9BA8" : "#1E3810", textDecoration: t.status === "refunded" ? "line-through" : "none" }}>
                             {fmtFull(t.amount)}
                           </p>
                         </td>
@@ -605,12 +605,12 @@ export default function AdminFinancialsPage() {
               </table>
             </div>
             <div className="px-5 py-3.5 border-t flex items-center justify-between flex-wrap gap-2"
-              style={{ borderColor: "rgba(26,26,46,0.06)" }}>
+              style={{ borderColor: "rgba(30,56,16,0.06)" }}>
               <p className="text-xs" style={{ color: "#8A9BA8" }}>
                 {filtered.length} transaction{filtered.length !== 1 ? "s" : ""} {hasFilters ? "· filtered" : "· all time"}
               </p>
-              <p className="text-sm font-semibold" style={{ color: "#1A1A2E" }}>
-                Filtered revenue: <span style={{ color: "#2BA8A0" }}>{fmt(filteredRevenue)}</span>
+              <p className="text-sm font-semibold" style={{ color: "#1E3810" }}>
+                Filtered revenue: <span style={{ color: "#6BA028" }}>{fmt(filteredRevenue)}</span>
               </p>
             </div>
           </>

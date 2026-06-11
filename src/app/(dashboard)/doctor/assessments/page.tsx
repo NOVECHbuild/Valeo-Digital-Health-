@@ -70,9 +70,9 @@ function ScoreBar({ label, score, max, color }: { label: string; score: number; 
     <div>
       <div className="flex justify-between mb-1">
         <span className="text-xs" style={{ color: "#4A5568" }}>{label}</span>
-        <span className="text-xs font-semibold" style={{ color: "#0D3B44" }}>{score}/{max}</span>
+        <span className="text-xs font-semibold" style={{ color: "#2A4A1A" }}>{score}/{max}</span>
       </div>
-      <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(13,59,68,0.06)" }}>
+      <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(42,74,26,0.06)" }}>
         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
       </div>
     </div>
@@ -92,20 +92,20 @@ function ScoringPanel({ assessment, template }: {
 
   return (
     <div className="rounded-2xl p-5 space-y-4"
-      style={{ background: "rgba(13,59,68,0.02)", border: "1px solid rgba(13,59,68,0.08)" }}>
+      style={{ background: "rgba(42,74,26,0.02)", border: "1px solid rgba(42,74,26,0.08)" }}>
       <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#8A9BA8" }}>
         Scoring Summary
       </p>
       <div className="flex items-center gap-4">
         <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
-          style={{ background: range ? range.color + "15" : "rgba(13,59,68,0.06)" }}>
+          style={{ background: range ? range.color + "15" : "rgba(42,74,26,0.06)" }}>
           <span className="text-2xl font-bold"
-            style={{ fontFamily: "var(--font-dm-serif)", color: range?.color ?? "#0D3B44" }}>
+            style={{ fontFamily: "var(--font-dm-serif)", color: range?.color ?? "#2A4A1A" }}>
             {score}
           </span>
         </div>
         <div>
-          <p className="text-sm font-semibold" style={{ color: range?.color ?? "#0D3B44" }}>
+          <p className="text-sm font-semibold" style={{ color: range?.color ?? "#2A4A1A" }}>
             {range?.label ?? "—"}
           </p>
           <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>
@@ -113,14 +113,14 @@ function ScoringPanel({ assessment, template }: {
           </p>
         </div>
       </div>
-      <ScoreBar label={template.shortName} score={score} max={template.scoring.maxScore} color={range?.color ?? "#4ECDC4"} />
+      <ScoreBar label={template.shortName} score={score} max={template.scoring.maxScore} color={range?.color ?? "#8DC63F"} />
       {range && (
         <div className="rounded-xl px-4 py-3" style={{ background: range.color + "10" }}>
           <p className="text-xs leading-relaxed" style={{ color: "#4A5568" }}>{range.description}</p>
         </div>
       )}
       {isPID5 && domainScores && (
-        <div className="space-y-2 pt-2 border-t" style={{ borderColor: "rgba(13,59,68,0.08)" }}>
+        <div className="space-y-2 pt-2 border-t" style={{ borderColor: "rgba(42,74,26,0.08)" }}>
           <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#8A9BA8" }}>
             Domain Scores (0–3)
           </p>
@@ -128,18 +128,18 @@ function ScoringPanel({ assessment, template }: {
             <div key={domain} className="flex items-center justify-between">
               <span className="text-xs" style={{ color: "#4A5568" }}>{domain}</span>
               <div className="flex items-center gap-2">
-                <div className="w-24 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(13,59,68,0.06)" }}>
+                <div className="w-24 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(42,74,26,0.06)" }}>
                   <div className="h-full rounded-full"
-                    style={{ width: `${(avg / 3) * 100}%`, background: avg > 2 ? "#E8604C" : avg > 1 ? "#D4A853" : "#4ECDC4" }} />
+                    style={{ width: `${(avg / 3) * 100}%`, background: avg > 2 ? "#F7941D" : avg > 1 ? "#F7941D" : "#8DC63F" }} />
                 </div>
-                <span className="text-xs font-semibold w-6 text-right" style={{ color: "#0D3B44" }}>{avg}</span>
+                <span className="text-xs font-semibold w-6 text-right" style={{ color: "#2A4A1A" }}>{avg}</span>
               </div>
             </div>
           ))}
         </div>
       )}
       {template.scoring.notes && (
-        <div className="flex items-start gap-2 pt-2 border-t" style={{ borderColor: "rgba(13,59,68,0.08)" }}>
+        <div className="flex items-start gap-2 pt-2 border-t" style={{ borderColor: "rgba(42,74,26,0.08)" }}>
           <Lock size={11} className="flex-shrink-0 mt-0.5" style={{ color: "#8A9BA8" }} />
           <p className="text-xs leading-relaxed whitespace-pre-line" style={{ color: "#8A9BA8" }}>
             {template.scoring.notes}
@@ -167,12 +167,12 @@ function ResponseViewer({ assessment, customTemplate, systemTemplate, onClose }:
       style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="w-full max-w-2xl rounded-3xl overflow-hidden max-h-[88vh] flex flex-col"
-        style={{ background: "#FAF8F3" }}>
+        style={{ background: "#F6FAF0" }}>
 
         <div className="flex items-center justify-between px-6 py-5 border-b flex-shrink-0"
-          style={{ borderColor: "rgba(13,59,68,0.08)" }}>
+          style={{ borderColor: "rgba(42,74,26,0.08)" }}>
           <div>
-            <h3 className="font-semibold" style={{ color: "#0D3B44" }}>{title}</h3>
+            <h3 className="font-semibold" style={{ color: "#2A4A1A" }}>{title}</h3>
             {/* FIX: completedAt handled with toDate() helper — no crash on ISO strings */}
             <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>
               {assessment.clientName} · Completed {fmtDate(assessment.completedAt)}
@@ -187,10 +187,10 @@ function ResponseViewer({ assessment, customTemplate, systemTemplate, onClose }:
           {systemTemplate && <ScoringPanel assessment={assessment} template={systemTemplate} />}
           {questions.map((q: any, i: number) => (
             <div key={q.id} className="rounded-2xl p-5"
-              style={{ background: "white", boxShadow: "0 1px 3px rgba(13,59,68,0.06)" }}>
+              style={{ background: "white", boxShadow: "0 1px 3px rgba(42,74,26,0.06)" }}>
               <p className="text-xs font-semibold mb-1" style={{ color: "#8A9BA8" }}>Q{i + 1}</p>
-              <p className="text-sm font-medium mb-3" style={{ color: "#0D3B44" }}>{q.label}</p>
-              <div className="px-4 py-3 rounded-xl" style={{ background: "rgba(13,59,68,0.03)" }}>
+              <p className="text-sm font-medium mb-3" style={{ color: "#2A4A1A" }}>{q.label}</p>
+              <div className="px-4 py-3 rounded-xl" style={{ background: "rgba(42,74,26,0.03)" }}>
                 <p className="text-sm" style={{ color: "#22272B" }}>
                   {assessment.responses[q.id] !== undefined
                     ? String(assessment.responses[q.id])
@@ -201,9 +201,9 @@ function ResponseViewer({ assessment, customTemplate, systemTemplate, onClose }:
           ))}
         </div>
 
-        <div className="px-6 py-4 border-t flex-shrink-0" style={{ borderColor: "rgba(13,59,68,0.08)" }}>
+        <div className="px-6 py-4 border-t flex-shrink-0" style={{ borderColor: "rgba(42,74,26,0.08)" }}>
           <button onClick={onClose} className="w-full py-3 rounded-xl text-sm font-semibold border-2"
-            style={{ borderColor: "rgba(13,59,68,0.15)", color: "#0D3B44" }}>Close</button>
+            style={{ borderColor: "rgba(42,74,26,0.15)", color: "#2A4A1A" }}>Close</button>
         </div>
       </div>
     </div>
@@ -219,20 +219,20 @@ function ConfirmDialog({ message, onConfirm, onCancel }: {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4"
       style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
-      <div className="w-full max-w-sm rounded-2xl p-6 space-y-4" style={{ background: "#FAF8F3" }}>
+      <div className="w-full max-w-sm rounded-2xl p-6 space-y-4" style={{ background: "#F6FAF0" }}>
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: "rgba(232,96,76,0.1)" }}>
-            <AlertCircle size={18} style={{ color: "#E8604C" }} />
+            style={{ background: "rgba(247,148,29,0.1)" }}>
+            <AlertCircle size={18} style={{ color: "#F7941D" }} />
           </div>
-          <p className="text-sm mt-2" style={{ color: "#0D3B44" }}>{message}</p>
+          <p className="text-sm mt-2" style={{ color: "#2A4A1A" }}>{message}</p>
         </div>
         <div className="flex gap-3">
           <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border-2"
-            style={{ borderColor: "rgba(13,59,68,0.15)", color: "#0D3B44" }}>Cancel</button>
+            style={{ borderColor: "rgba(42,74,26,0.15)", color: "#2A4A1A" }}>Cancel</button>
           <button onClick={onConfirm}
             className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white"
-            style={{ background: "#E8604C" }}>Delete</button>
+            style={{ background: "#F7941D" }}>Delete</button>
         </div>
       </div>
     </div>
@@ -280,10 +280,10 @@ function TemplateBuilder({ onSave, onClose, doctorId }: {
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-10"
       style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
       <div className="w-full max-w-2xl rounded-3xl overflow-hidden max-h-[85vh] flex flex-col"
-        style={{ background: "#FAF8F3" }}>
+        style={{ background: "#F6FAF0" }}>
         <div className="flex items-center justify-between px-6 py-5 border-b flex-shrink-0"
-          style={{ borderColor: "rgba(13,59,68,0.08)" }}>
-          <h3 className="font-semibold" style={{ color: "#0D3B44" }}>Build Custom Template</h3>
+          style={{ borderColor: "rgba(42,74,26,0.08)" }}>
+          <h3 className="font-semibold" style={{ color: "#2A4A1A" }}>Build Custom Template</h3>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-black/5">
             <X size={18} style={{ color: "#4A5568" }} />
           </button>
@@ -291,7 +291,7 @@ function TemplateBuilder({ onSave, onClose, doctorId }: {
         <div className="overflow-y-auto flex-1 p-6 space-y-5">
           {error && (
             <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm"
-              style={{ background: "rgba(232,96,76,0.08)", color: "#E8604C" }}>
+              style={{ background: "rgba(247,148,29,0.08)", color: "#F7941D" }}>
               <AlertCircle size={14} />{error}
             </div>
           )}
@@ -301,14 +301,14 @@ function TemplateBuilder({ onSave, onClose, doctorId }: {
             <input type="text" value={title} onChange={e => setTitle(e.target.value)}
               placeholder="e.g. Initial Wellbeing Check"
               className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none"
-              style={{ borderColor: "rgba(13,59,68,0.15)", background: "white" }} />
+              style={{ borderColor: "rgba(42,74,26,0.15)", background: "white" }} />
           </div>
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
               style={{ color: "#8A9BA8" }}>Description</label>
             <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2}
               className="w-full px-3 py-2.5 rounded-xl text-sm border resize-none focus:outline-none"
-              style={{ borderColor: "rgba(13,59,68,0.15)", background: "white" }} />
+              style={{ borderColor: "rgba(42,74,26,0.15)", background: "white" }} />
           </div>
           <div>
             <div className="flex items-center justify-between mb-3">
@@ -316,18 +316,18 @@ function TemplateBuilder({ onSave, onClose, doctorId }: {
                 style={{ color: "#8A9BA8" }}>Questions ({questions.length})</label>
               <button onClick={addQ}
                 className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg text-white"
-                style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+                style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
                 <Plus size={12} />Add Question
               </button>
             </div>
             <div className="space-y-3">
               {questions.map((q, i) => (
                 <div key={q.id} className="rounded-2xl p-4"
-                  style={{ background: "white", boxShadow: "0 1px 3px rgba(13,59,68,0.06)" }}>
+                  style={{ background: "white", boxShadow: "0 1px 3px rgba(42,74,26,0.06)" }}>
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs font-semibold" style={{ color: "#8A9BA8" }}>Q{i + 1}</span>
                     <button onClick={() => removeQ(q.id)} className="p-1 rounded hover:bg-red-50">
-                      <Trash2 size={13} style={{ color: "#E8604C" }} />
+                      <Trash2 size={13} style={{ color: "#F7941D" }} />
                     </button>
                   </div>
                   <div className="grid grid-cols-2 gap-3 mb-3">
@@ -335,7 +335,7 @@ function TemplateBuilder({ onSave, onClose, doctorId }: {
                       <label className="block text-xs mb-1" style={{ color: "#8A9BA8" }}>Type</label>
                       <select value={q.type} onChange={e => updateQ(q.id, { type: e.target.value as QuestionType })}
                         className="w-full px-3 py-2 rounded-xl text-xs border focus:outline-none"
-                        style={{ borderColor: "rgba(13,59,68,0.15)", background: "#FAFAFA" }}>
+                        style={{ borderColor: "rgba(42,74,26,0.15)", background: "#FAFAFA" }}>
                         <option value="text">Short Text</option>
                         <option value="textarea">Long Text</option>
                         <option value="scale">Scale (1–10)</option>
@@ -353,7 +353,7 @@ function TemplateBuilder({ onSave, onClose, doctorId }: {
                   <input type="text" value={q.label} onChange={e => updateQ(q.id, { label: e.target.value })}
                     placeholder="Question label..."
                     className="w-full px-3 py-2 rounded-xl text-xs border focus:outline-none"
-                    style={{ borderColor: "rgba(13,59,68,0.15)", background: "#FAFAFA" }} />
+                    style={{ borderColor: "rgba(42,74,26,0.15)", background: "#FAFAFA" }} />
                   {q.type === "multiChoice" && (
                     <div className="mt-3">
                       <label className="block text-xs mb-1" style={{ color: "#8A9BA8" }}>Options (one per line)</label>
@@ -361,14 +361,14 @@ function TemplateBuilder({ onSave, onClose, doctorId }: {
                         onChange={e => updateQ(q.id, { options: e.target.value.split("\n").filter(Boolean) })}
                         rows={3} placeholder={"Option 1\nOption 2"}
                         className="w-full px-3 py-2 rounded-xl text-xs border resize-none focus:outline-none"
-                        style={{ borderColor: "rgba(13,59,68,0.15)", background: "#FAFAFA" }} />
+                        style={{ borderColor: "rgba(42,74,26,0.15)", background: "#FAFAFA" }} />
                     </div>
                   )}
                 </div>
               ))}
               {questions.length === 0 && (
                 <div className="py-8 text-center rounded-2xl"
-                  style={{ background: "rgba(13,59,68,0.02)", border: "2px dashed rgba(13,59,68,0.1)" }}>
+                  style={{ background: "rgba(42,74,26,0.02)", border: "2px dashed rgba(42,74,26,0.1)" }}>
                   <p className="text-sm" style={{ color: "#8A9BA8" }}>No questions yet — click Add Question</p>
                 </div>
               )}
@@ -376,12 +376,12 @@ function TemplateBuilder({ onSave, onClose, doctorId }: {
           </div>
         </div>
         <div className="flex gap-3 px-6 py-4 border-t flex-shrink-0"
-          style={{ borderColor: "rgba(13,59,68,0.08)" }}>
+          style={{ borderColor: "rgba(42,74,26,0.08)" }}>
           <button onClick={onClose} className="flex-1 py-3 rounded-xl text-sm font-semibold border-2"
-            style={{ borderColor: "rgba(13,59,68,0.15)", color: "#0D3B44" }}>Cancel</button>
+            style={{ borderColor: "rgba(42,74,26,0.15)", color: "#2A4A1A" }}>Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="flex-1 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-60 flex items-center justify-center gap-2"
-            style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+            style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
             {saving ? <><Loader2 size={14} className="animate-spin" />Saving...</> : "Save Template"}
           </button>
         </div>
@@ -426,10 +426,10 @@ function AssignModal({ allTemplates, systemTemplates, clients, doctorId,
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="w-full max-w-md rounded-3xl overflow-hidden" style={{ background: "#FAF8F3" }}>
+      <div className="w-full max-w-md rounded-3xl overflow-hidden" style={{ background: "#F6FAF0" }}>
         <div className="flex items-center justify-between px-6 py-5 border-b"
-          style={{ borderColor: "rgba(13,59,68,0.08)" }}>
-          <h3 className="font-semibold" style={{ color: "#0D3B44" }}>Assign Assessment</h3>
+          style={{ borderColor: "rgba(42,74,26,0.08)" }}>
+          <h3 className="font-semibold" style={{ color: "#2A4A1A" }}>Assign Assessment</h3>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-black/5">
             <X size={18} style={{ color: "#4A5568" }} />
           </button>
@@ -437,7 +437,7 @@ function AssignModal({ allTemplates, systemTemplates, clients, doctorId,
         <div className="p-6 space-y-4">
           {error && (
             <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm"
-              style={{ background: "rgba(232,96,76,0.08)", color: "#E8604C" }}>
+              style={{ background: "rgba(247,148,29,0.08)", color: "#F7941D" }}>
               <AlertCircle size={14} />{error}
             </div>
           )}
@@ -446,7 +446,7 @@ function AssignModal({ allTemplates, systemTemplates, clients, doctorId,
               style={{ color: "#8A9BA8" }}>Template *</label>
             <select value={templateId} onChange={e => setTemplateId(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none"
-              style={{ borderColor: "rgba(13,59,68,0.15)", background: "white", color: templateId ? "#22272B" : "#8A9BA8" }}>
+              style={{ borderColor: "rgba(42,74,26,0.15)", background: "white", color: templateId ? "#22272B" : "#8A9BA8" }}>
               <option value="">Select template</option>
               <optgroup label="── Clinical Library">
                 {systemTemplates.map(t => (
@@ -465,7 +465,7 @@ function AssignModal({ allTemplates, systemTemplates, clients, doctorId,
               style={{ color: "#8A9BA8" }}>Client *</label>
             <select value={clientId} onChange={e => setClientId(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none"
-              style={{ borderColor: "rgba(13,59,68,0.15)", background: "white", color: clientId ? "#22272B" : "#8A9BA8" }}>
+              style={{ borderColor: "rgba(42,74,26,0.15)", background: "white", color: clientId ? "#22272B" : "#8A9BA8" }}>
               <option value="">Select client</option>
               {clients.map(c => <option key={c.uid} value={c.uid}>{c.displayName}</option>)}
             </select>
@@ -475,15 +475,15 @@ function AssignModal({ allTemplates, systemTemplates, clients, doctorId,
               style={{ color: "#8A9BA8" }}>Due Date (optional)</label>
             <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none"
-              style={{ borderColor: "rgba(13,59,68,0.15)", background: "white" }} />
+              style={{ borderColor: "rgba(42,74,26,0.15)", background: "white" }} />
           </div>
         </div>
-        <div className="flex gap-3 px-6 py-4 border-t" style={{ borderColor: "rgba(13,59,68,0.08)" }}>
+        <div className="flex gap-3 px-6 py-4 border-t" style={{ borderColor: "rgba(42,74,26,0.08)" }}>
           <button onClick={onClose} className="flex-1 py-3 rounded-xl text-sm font-semibold border-2"
-            style={{ borderColor: "rgba(13,59,68,0.15)", color: "#0D3B44" }}>Cancel</button>
+            style={{ borderColor: "rgba(42,74,26,0.15)", color: "#2A4A1A" }}>Cancel</button>
           <button onClick={handleAssign} disabled={saving}
             className="flex-1 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-60 flex items-center justify-center gap-2"
-            style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+            style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
             {saving ? <><Loader2 size={14} className="animate-spin" />Sending...</> : <><Send size={14} />Assign</>}
           </button>
         </div>
@@ -636,7 +636,7 @@ export default function DoctorAssessmentsPage() {
       {/* Toast */}
       {toast && (
         <div className="fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg text-sm font-medium"
-          style={{ background: toast.type === "success" ? "#0D3B44" : "#E8604C", color: "white" }}>
+          style={{ background: toast.type === "success" ? "#2A4A1A" : "#F7941D", color: "white" }}>
           {toast.type === "success" ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
           {toast.msg}
         </div>
@@ -661,7 +661,7 @@ export default function DoctorAssessmentsPage() {
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>
+          <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
             Assessments
           </h2>
           <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>
@@ -671,13 +671,13 @@ export default function DoctorAssessmentsPage() {
         <div className="flex gap-2">
           <button onClick={() => setShowBuilder(true)}
             className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold border-2"
-            style={{ borderColor: "rgba(13,59,68,0.15)", color: "#0D3B44" }}>
+            style={{ borderColor: "rgba(42,74,26,0.15)", color: "#2A4A1A" }}>
             <FileText size={14} /> Custom
           </button>
           {/* FIX: disabled only when no clients — canAssign had dead `|| true` logic */}
           <button onClick={() => openAssignFor(undefined)} disabled={clients.length === 0}
             className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40 hover:-translate-y-0.5 transition-all"
-            style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}
+            style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
             title={clients.length === 0 ? "No clients yet — clients appear once they book a session" : ""}>
             <Send size={14} /> Assign
           </button>
@@ -687,20 +687,20 @@ export default function DoctorAssessmentsPage() {
       {/* Stats */}
       <div className="grid grid-cols-4 gap-3">
         {[
-          { label: "Library",   value: SYSTEM_TEMPLATES.length, accent: "#0D3B44", Icon: BookOpen },
-          { label: "Assigned",  value: assessments.length,      accent: "#4ECDC4", Icon: Users },
-          { label: "Pending",   value: pendingCount,            accent: "#D4A853", Icon: Clock },
-          { label: "Completed", value: completedCount,          accent: "#2BA8A0", Icon: CheckCircle },
+          { label: "Library",   value: SYSTEM_TEMPLATES.length, accent: "#2A4A1A", Icon: BookOpen },
+          { label: "Assigned",  value: assessments.length,      accent: "#8DC63F", Icon: Users },
+          { label: "Pending",   value: pendingCount,            accent: "#F7941D", Icon: Clock },
+          { label: "Completed", value: completedCount,          accent: "#6BA028", Icon: CheckCircle },
         ].map(({ label, value, accent, Icon }) => (
           <div key={label} className="rounded-2xl p-4 flex items-center gap-3"
-            style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
+            style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
             <div className="w-8 h-8 rounded-xl flex items-center justify-center"
               style={{ background: accent + "12" }}>
               <Icon size={15} style={{ color: accent }} />
             </div>
             <div>
               <p className="text-xl font-semibold leading-none"
-                style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>{value}</p>
+                style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>{value}</p>
               <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>{label}</p>
             </div>
           </div>
@@ -708,7 +708,7 @@ export default function DoctorAssessmentsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: "rgba(13,59,68,0.06)" }}>
+      <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: "rgba(42,74,26,0.06)" }}>
         {([
           { key: "responses", label: "Client Responses" },
           { key: "library",   label: "Clinical Library" },
@@ -718,14 +718,14 @@ export default function DoctorAssessmentsPage() {
             className="px-4 py-2 rounded-lg text-xs font-semibold transition-all relative"
             style={{
               background: tab === key ? "white"   : "transparent",
-              color:      tab === key ? "#0D3B44" : "#8A9BA8",
-              boxShadow:  tab === key ? "0 1px 3px rgba(13,59,68,0.1)" : "none",
+              color:      tab === key ? "#2A4A1A" : "#8A9BA8",
+              boxShadow:  tab === key ? "0 1px 3px rgba(42,74,26,0.1)" : "none",
             }}>
             {label}
             {/* Live badge on responses tab */}
             {key === "responses" && pendingCount > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-white"
-                style={{ background: "#E8604C", fontSize: "9px", fontWeight: 700 }}>
+                style={{ background: "#F7941D", fontSize: "9px", fontWeight: 700 }}>
                 {pendingCount}
               </span>
             )}
@@ -736,7 +736,7 @@ export default function DoctorAssessmentsPage() {
       {/* ── Tab content ───────────────────────────────────────────────────── */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 size={28} className="animate-spin" style={{ color: "#4ECDC4" }} />
+          <Loader2 size={28} className="animate-spin" style={{ color: "#8DC63F" }} />
         </div>
 
       ) : tab === "responses" ? (
@@ -749,7 +749,7 @@ export default function DoctorAssessmentsPage() {
               <input type="text" value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Search by client or assessment..."
                 className="w-full pl-10 pr-10 py-2.5 rounded-xl text-sm border focus:outline-none"
-                style={{ borderColor: "rgba(13,59,68,0.12)", background: "white" }} />
+                style={{ borderColor: "rgba(42,74,26,0.12)", background: "white" }} />
               {search && (
                 <button onClick={() => setSearch("")} className="absolute right-3.5 top-1/2 -translate-y-1/2">
                   <X size={13} style={{ color: "#8A9BA8" }} />
@@ -757,14 +757,14 @@ export default function DoctorAssessmentsPage() {
               )}
             </div>
             {/* FIX: Status filter — original had no way to quickly view just pending or completed */}
-            <div className="flex gap-1 p-1 rounded-xl" style={{ background: "rgba(13,59,68,0.06)" }}>
+            <div className="flex gap-1 p-1 rounded-xl" style={{ background: "rgba(42,74,26,0.06)" }}>
               {(["all", "pending", "completed"] as const).map(f => (
                 <button key={f} onClick={() => setResponseFilter(f)}
                   className="px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all"
                   style={{
                     background: responseFilter === f ? "white"   : "transparent",
-                    color:      responseFilter === f ? "#0D3B44" : "#8A9BA8",
-                    boxShadow:  responseFilter === f ? "0 1px 3px rgba(13,59,68,0.1)" : "none",
+                    color:      responseFilter === f ? "#2A4A1A" : "#8A9BA8",
+                    boxShadow:  responseFilter === f ? "0 1px 3px rgba(42,74,26,0.1)" : "none",
                   }}>
                   {f}
                 </button>
@@ -774,9 +774,9 @@ export default function DoctorAssessmentsPage() {
 
           {displayed.length === 0 ? (
             <div className="rounded-2xl p-12 text-center"
-              style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
-              <ClipboardList size={24} className="mx-auto mb-3" style={{ color: "#4ECDC4" }} />
-              <p className="text-sm font-medium" style={{ color: "#0D3B44" }}>
+              style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
+              <ClipboardList size={24} className="mx-auto mb-3" style={{ color: "#8DC63F" }} />
+              <p className="text-sm font-medium" style={{ color: "#2A4A1A" }}>
                 {search ? "No results found" : responseFilter !== "all" ? `No ${responseFilter} assessments` : "No assessments assigned yet"}
               </p>
               <p className="text-xs mt-1" style={{ color: "#8A9BA8" }}>
@@ -788,12 +788,12 @@ export default function DoctorAssessmentsPage() {
               {displayed.map(a => {
                 const isOverdue  = a.status === "pending" && isDueOverdue(a.dueDate);
                 const isPending  = a.status === "pending";
-                const accentColor = isPending ? "#D4A853" : "#2BA8A0";
-                const accentBg    = isPending ? "rgba(212,168,83,0.1)" : "rgba(78,205,196,0.1)";
+                const accentColor = isPending ? "#F7941D" : "#6BA028";
+                const accentBg    = isPending ? "rgba(247,148,29,0.1)" : "rgba(141,198,63,0.1)";
 
                 return (
                   <div key={a.id} className="rounded-xl p-4 flex items-center gap-4"
-                    style={{ background: "white", boxShadow: "0 1px 3px rgba(13,59,68,0.06)" }}>
+                    style={{ background: "white", boxShadow: "0 1px 3px rgba(42,74,26,0.06)" }}>
                     {/* Avatar */}
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
                       style={{ background: accentBg, color: accentColor }}>
@@ -802,14 +802,14 @@ export default function DoctorAssessmentsPage() {
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium" style={{ color: "#0D3B44" }}>{a.templateTitle}</p>
+                      <p className="text-sm font-medium" style={{ color: "#2A4A1A" }}>{a.templateTitle}</p>
                       <div className="flex items-center gap-2 flex-wrap mt-0.5">
                         <span className="text-xs" style={{ color: "#8A9BA8" }}>{a.clientName}</span>
                         {/* FIX: completedAt/assignedAt date uses toDate() helper — no crash on ISO strings */}
                         {isPending ? (
                           a.dueDate && (
                             <span className="text-xs flex items-center gap-1"
-                              style={{ color: isOverdue ? "#E8604C" : "#8A9BA8" }}>
+                              style={{ color: isOverdue ? "#F7941D" : "#8A9BA8" }}>
                               <Clock size={10} />
                               {isOverdue ? "Overdue · " : "Due "}
                               {new Date(a.dueDate + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
@@ -822,7 +822,7 @@ export default function DoctorAssessmentsPage() {
                         )}
                         {a.isSystem && (
                           <span className="px-1.5 py-0.5 rounded text-xs"
-                            style={{ background: "rgba(13,59,68,0.06)", color: "#8A9BA8" }}>Clinical</span>
+                            style={{ background: "rgba(42,74,26,0.06)", color: "#8A9BA8" }}>Clinical</span>
                         )}
                       </div>
                     </div>
@@ -847,7 +847,7 @@ export default function DoctorAssessmentsPage() {
                       ) : (
                         <button onClick={() => setViewing(a)}
                           className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg"
-                          style={{ background: "rgba(13,59,68,0.06)", color: "#0D3B44" }}>
+                          style={{ background: "rgba(42,74,26,0.06)", color: "#2A4A1A" }}>
                           <Eye size={12} /> View + Score
                         </button>
                       )}
@@ -863,7 +863,7 @@ export default function DoctorAssessmentsPage() {
         /* ── Clinical Library ── */
         <div className="space-y-3">
           <div className="rounded-xl p-3 flex items-start gap-2.5"
-            style={{ background: "rgba(13,59,68,0.03)", border: "1px solid rgba(13,59,68,0.07)" }}>
+            style={{ background: "rgba(42,74,26,0.03)", border: "1px solid rgba(42,74,26,0.07)" }}>
             <Lock size={13} className="flex-shrink-0 mt-0.5" style={{ color: "#8A9BA8" }} />
             <p className="text-xs" style={{ color: "#8A9BA8" }}>
               These are validated, publicly available clinical instruments. Scores are automatically
@@ -871,16 +871,16 @@ export default function DoctorAssessmentsPage() {
             </p>
           </div>
           {SYSTEM_TEMPLATES.map(t => {
-            const cat = CATEGORY_COLORS[t.category] ?? { bg: "rgba(13,59,68,0.06)", color: "#4A5568" };
+            const cat = CATEGORY_COLORS[t.category] ?? { bg: "rgba(42,74,26,0.06)", color: "#4A5568" };
             return (
               <div key={t.id} className="rounded-2xl p-5"
-                style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
+                style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
                     <span className="inline-flex px-2.5 py-1 rounded-lg text-xs font-bold flex-shrink-0"
                       style={{ background: cat.bg, color: cat.color }}>{t.shortName}</span>
                     <div>
-                      <p className="text-sm font-semibold" style={{ color: "#0D3B44" }}>{t.title}</p>
+                      <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>{t.title}</p>
                       <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>{t.description}</p>
                       <div className="flex items-center gap-3 mt-2 flex-wrap">
                         <span className="text-xs px-2 py-0.5 rounded-full"
@@ -899,7 +899,7 @@ export default function DoctorAssessmentsPage() {
                     onClick={() => clients.length > 0 ? openAssignFor(t.id) : undefined}
                     disabled={clients.length === 0}
                     className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl text-white flex-shrink-0 disabled:opacity-40"
-                    style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}
+                    style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
                     title={clients.length === 0 ? "No clients yet" : `Assign ${t.shortName}`}>
                     <Send size={12} /> Assign
                   </button>
@@ -925,25 +925,25 @@ export default function DoctorAssessmentsPage() {
         <div className="space-y-3">
           {templates.length === 0 ? (
             <div className="rounded-2xl p-12 text-center"
-              style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
-              <FileText size={24} className="mx-auto mb-3" style={{ color: "#4ECDC4" }} />
-              <p className="text-sm font-medium mb-1" style={{ color: "#0D3B44" }}>No custom templates</p>
+              style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
+              <FileText size={24} className="mx-auto mb-3" style={{ color: "#8DC63F" }} />
+              <p className="text-sm font-medium mb-1" style={{ color: "#2A4A1A" }}>No custom templates</p>
               <p className="text-xs mb-4" style={{ color: "#8A9BA8" }}>
                 Build your own forms to supplement the clinical library.
               </p>
               <button onClick={() => setShowBuilder(true)}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-                style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+                style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
                 <Plus size={14} /> Create Template
               </button>
             </div>
           ) : (
             templates.map(t => (
               <div key={t.id} className="rounded-2xl p-5"
-                style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
+                style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
-                    <p className="text-sm font-semibold" style={{ color: "#0D3B44" }}>{t.title}</p>
+                    <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>{t.title}</p>
                     {t.description && (
                       <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>{t.description}</p>
                     )}
@@ -954,13 +954,13 @@ export default function DoctorAssessmentsPage() {
                   <div className="flex items-center gap-2">
                     <button onClick={() => openAssignFor(t.id)} disabled={clients.length === 0}
                       className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-40"
-                      style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+                      style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
                       <Send size={12} /> Assign
                     </button>
                     <button
                       onClick={() => setConfirmDelete({ id: t.id, label: `Delete template "${t.title}"? This cannot be undone.` })}
                       className="p-1.5 rounded-lg hover:bg-red-50">
-                      <Trash2 size={14} style={{ color: "#E8604C" }} />
+                      <Trash2 size={14} style={{ color: "#F7941D" }} />
                     </button>
                   </div>
                 </div>

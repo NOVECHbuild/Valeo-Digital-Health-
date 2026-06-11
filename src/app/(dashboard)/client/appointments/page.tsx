@@ -100,19 +100,19 @@ function ConfirmDialog({
       <div className="w-full max-w-sm rounded-2xl p-6"
         style={{ background: "white", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
         <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
-          style={{ background: "rgba(232,96,76,0.1)" }}>
-          <AlertTriangle size={22} style={{ color: "#E8604C" }} />
+          style={{ background: "rgba(247,148,29,0.1)" }}>
+          <AlertTriangle size={22} style={{ color: "#F7941D" }} />
         </div>
         <p className="text-sm text-center mb-5" style={{ color: "#22272B" }}>{message}</p>
         <div className="flex gap-3">
           <button onClick={onCancel}
             className="flex-1 py-2.5 rounded-xl text-sm font-semibold border"
-            style={{ borderColor: "rgba(13,59,68,0.15)", color: "#4A5568" }}>
+            style={{ borderColor: "rgba(42,74,26,0.15)", color: "#4A5568" }}>
             Keep it
           </button>
           <button onClick={onConfirm} disabled={loading}
             className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60 flex items-center justify-center gap-2"
-            style={{ background: "#E8604C" }}>
+            style={{ background: "#F7941D" }}>
             {loading ? <Loader2 size={14} className="animate-spin" /> : <Ban size={14} />}
             Cancel Session
           </button>
@@ -125,10 +125,10 @@ function ConfirmDialog({
 // ── Status badge ───────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: Appointment["status"] }) {
   const styles: Record<string, { bg: string; color: string; label: string; Icon: any }> = {
-    pending:   { bg: "rgba(212,168,83,0.12)",  color: "#B8860B", label: "Pending Review", Icon: Clock },
-    approved:  { bg: "rgba(78,205,196,0.12)",  color: "#2BA8A0", label: "Confirmed",      Icon: CheckCircle },
-    rejected:  { bg: "rgba(232,96,76,0.12)",   color: "#E8604C", label: "Declined",       Icon: XCircle },
-    completed: { bg: "rgba(13,59,68,0.08)",    color: "#0D3B44", label: "Completed",      Icon: CheckCircle },
+    pending:   { bg: "rgba(247,148,29,0.12)",  color: "#C4700A", label: "Pending Review", Icon: Clock },
+    approved:  { bg: "rgba(141,198,63,0.12)",  color: "#6BA028", label: "Confirmed",      Icon: CheckCircle },
+    rejected:  { bg: "rgba(247,148,29,0.12)",   color: "#F7941D", label: "Declined",       Icon: XCircle },
+    completed: { bg: "rgba(42,74,26,0.08)",    color: "#2A4A1A", label: "Completed",      Icon: CheckCircle },
     cancelled: { bg: "rgba(138,155,168,0.12)", color: "#8A9BA8", label: "Cancelled",      Icon: XCircle },
   };
   const s = styles[status] ?? styles.pending;
@@ -155,15 +155,15 @@ function AppointmentCard({
 
   return (
     <div className="rounded-2xl p-5 transition-all"
-      style={{ background: "white", boxShadow: "0 1px 3px rgba(13,59,68,0.06)" }}>
+      style={{ background: "white", boxShadow: "0 1px 3px rgba(42,74,26,0.06)" }}>
       <div className="flex items-start gap-4">
         {/* Date badge */}
         <div className="w-12 h-12 rounded-xl flex flex-col items-center justify-center flex-shrink-0"
-          style={{ background: showJoin ? "rgba(78,205,196,0.12)" : "rgba(13,59,68,0.06)" }}>
-          <span className="text-xs font-bold" style={{ color: showJoin ? "#2BA8A0" : "#0D3B44" }}>
+          style={{ background: showJoin ? "rgba(141,198,63,0.12)" : "rgba(42,74,26,0.06)" }}>
+          <span className="text-xs font-bold" style={{ color: showJoin ? "#6BA028" : "#2A4A1A" }}>
             {new Date(appt.date + "T12:00:00").toLocaleDateString("en-US", { month: "short" })}
           </span>
-          <span className="text-lg font-bold leading-none" style={{ color: showJoin ? "#2BA8A0" : "#0D3B44" }}>
+          <span className="text-lg font-bold leading-none" style={{ color: showJoin ? "#6BA028" : "#2A4A1A" }}>
             {new Date(appt.date + "T12:00:00").getDate()}
           </span>
         </div>
@@ -171,7 +171,7 @@ function AppointmentCard({
         {/* Details */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <p className="font-semibold text-sm" style={{ color: "#0D3B44" }}>{appt.type}</p>
+            <p className="font-semibold text-sm" style={{ color: "#2A4A1A" }}>{appt.type}</p>
             <StatusBadge status={appt.status} />
           </div>
           <p className="text-xs mb-2" style={{ color: "#8A9BA8" }}>{DOCTOR_NAME}</p>
@@ -192,11 +192,11 @@ function AppointmentCard({
       {/* FIX 5: Action row for approved sessions with Meet link */}
       {(showJoin || canCancel) && (
         <div className="flex items-center gap-2 mt-4 pt-4 border-t"
-          style={{ borderColor: "rgba(13,59,68,0.06)" }}>
+          style={{ borderColor: "rgba(42,74,26,0.06)" }}>
           {showJoin && (
             <a href={meetLink} target="_blank" rel="noopener noreferrer"
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-0.5"
-              style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+              style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
               <ExternalLink size={14} /> Join Google Meet
             </a>
           )}
@@ -205,7 +205,7 @@ function AppointmentCard({
             <button
               onClick={() => onCancel(appt)}
               className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors hover:bg-red-50"
-              style={{ color: "#E8604C", border: "1px solid rgba(232,96,76,0.2)" }}>
+              style={{ color: "#F7941D", border: "1px solid rgba(247,148,29,0.2)" }}>
               <Ban size={13} /> Cancel
             </button>
           )}
@@ -232,8 +232,8 @@ function MiniCalendar({ selected, onSelect }: { selected: string; onSelect: (d: 
 
   if (!viewDate) return (
     <div className="rounded-2xl p-4 h-48 flex items-center justify-center"
-      style={{ background: "white", boxShadow: "0 1px 3px rgba(13,59,68,0.06)" }}>
-      <Loader2 size={20} className="animate-spin" style={{ color: "#4ECDC4" }} />
+      style={{ background: "white", boxShadow: "0 1px 3px rgba(42,74,26,0.06)" }}>
+      <Loader2 size={20} className="animate-spin" style={{ color: "#8DC63F" }} />
     </div>
   );
 
@@ -244,13 +244,13 @@ function MiniCalendar({ selected, onSelect }: { selected: string; onSelect: (d: 
 
   return (
     <div className="rounded-2xl p-4"
-      style={{ background: "white", boxShadow: "0 1px 3px rgba(13,59,68,0.06)" }}>
+      style={{ background: "white", boxShadow: "0 1px 3px rgba(42,74,26,0.06)" }}>
       <div className="flex items-center justify-between mb-4">
         <button onClick={() => setViewDate(new Date(year, month - 1, 1))}
           className="p-1 rounded-lg hover:bg-black/5">
           <ChevronLeft size={16} style={{ color: "#4A5568" }} />
         </button>
-        <span className="text-sm font-semibold" style={{ color: "#0D3B44" }}>
+        <span className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>
           {viewDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
         </span>
         <button onClick={() => setViewDate(new Date(year, month + 1, 1))}
@@ -277,11 +277,11 @@ function MiniCalendar({ selected, onSelect }: { selected: string; onSelect: (d: 
             <button key={day} disabled={disabled} onClick={() => onSelect(dateStr)}
               className="aspect-square flex items-center justify-center text-xs rounded-lg transition-all relative"
               style={{
-                background: isSelected ? "#0D3B44" : "transparent",
+                background: isSelected ? "#2A4A1A" : "transparent",
                 color:      isSelected ? "white" : disabled ? "#C4C4C4" : "#22272B",
                 cursor:     disabled ? "not-allowed" : "pointer",
                 fontWeight: isSelected || isToday ? 700 : 400,
-                outline:    isToday && !isSelected ? "2px solid rgba(78,205,196,0.5)" : "none",
+                outline:    isToday && !isSelected ? "2px solid rgba(141,198,63,0.5)" : "none",
               }}>
               {day}
             </button>
@@ -311,21 +311,21 @@ function FilterTabs({ active, onChange, counts }: {
     { id: "cancelled", label: "Cancelled" },
   ];
   return (
-    <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: "rgba(13,59,68,0.06)" }}>
+    <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: "rgba(42,74,26,0.06)" }}>
       {tabs.map(t => (
         <button key={t.id} onClick={() => onChange(t.id)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
           style={{
             background: active === t.id ? "white" : "transparent",
-            color:      active === t.id ? "#0D3B44" : "#8A9BA8",
-            boxShadow:  active === t.id ? "0 1px 3px rgba(13,59,68,0.1)" : "none",
+            color:      active === t.id ? "#2A4A1A" : "#8A9BA8",
+            boxShadow:  active === t.id ? "0 1px 3px rgba(42,74,26,0.1)" : "none",
           }}>
           {t.label}
           {counts[t.id] > 0 && (
             <span className="rounded-full w-4 h-4 flex items-center justify-center text-[10px]"
               style={{
-                background: active === t.id ? "rgba(13,59,68,0.1)" : "rgba(13,59,68,0.06)",
-                color: "#0D3B44",
+                background: active === t.id ? "rgba(42,74,26,0.1)" : "rgba(42,74,26,0.06)",
+                color: "#2A4A1A",
               }}>
               {counts[t.id]}
             </span>
@@ -535,7 +535,7 @@ setRedirecting(false);
       {toast && (
         <div
           className="fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg text-sm font-medium max-w-sm"
-          style={{ background: toast.type === "success" ? "#0D3B44" : "#E8604C", color: "white" }}>
+          style={{ background: toast.type === "success" ? "#2A4A1A" : "#F7941D", color: "white" }}>
           {toast.type === "success" ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
           {toast.msg}
         </div>
@@ -544,7 +544,7 @@ setRedirecting(false);
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>
+          <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
             Appointments
           </h2>
           <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>
@@ -554,7 +554,7 @@ setRedirecting(false);
         <button
           onClick={() => { setShowBooking(true); setStep(1); }}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-0.5"
-          style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+          style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
           <Plus size={16} /> Book Session
         </button>
       </div>
@@ -565,16 +565,16 @@ setRedirecting(false);
       {/* Sessions list */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 size={28} className="animate-spin" style={{ color: "#4ECDC4" }} />
+          <Loader2 size={28} className="animate-spin" style={{ color: "#8DC63F" }} />
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-2xl p-10 text-center"
-          style={{ background: "white", boxShadow: "0 1px 3px rgba(13,59,68,0.06)" }}>
+          style={{ background: "white", boxShadow: "0 1px 3px rgba(42,74,26,0.06)" }}>
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
-            style={{ background: "rgba(78,205,196,0.08)" }}>
-            <Calendar size={24} style={{ color: "#4ECDC4" }} />
+            style={{ background: "rgba(141,198,63,0.08)" }}>
+            <Calendar size={24} style={{ color: "#8DC63F" }} />
           </div>
-          <p className="text-sm font-medium mb-1" style={{ color: "#0D3B44" }}>
+          <p className="text-sm font-medium mb-1" style={{ color: "#2A4A1A" }}>
             {filter === "all" ? "No sessions yet" : `No ${filter} sessions`}
           </p>
           <p className="text-xs mb-4" style={{ color: "#8A9BA8" }}>
@@ -585,7 +585,7 @@ setRedirecting(false);
           {(filter === "all" || filter === "upcoming") && (
             <button onClick={() => { setShowBooking(true); setStep(1); }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white"
-              style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+              style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
               <Plus size={14} /> Book Session
             </button>
           )}
@@ -607,13 +607,13 @@ setRedirecting(false);
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
           <div className="w-full max-w-2xl rounded-3xl overflow-hidden"
-            style={{ background: "#FAF8F3", maxHeight: "90vh", overflowY: "auto" }}>
+            style={{ background: "#F6FAF0", maxHeight: "90vh", overflowY: "auto" }}>
 
             {/* Modal header */}
             <div className="flex items-center justify-between px-6 py-5 border-b"
-              style={{ borderColor: "rgba(13,59,68,0.08)" }}>
+              style={{ borderColor: "rgba(42,74,26,0.08)" }}>
               <div>
-                <h3 className="text-xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>
+                <h3 className="text-xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
                   {step === 4 ? "Processing Payment…" : "Book a Session"}
                 </h3>
                 {step !== 4 && (
@@ -622,14 +622,14 @@ setRedirecting(false);
                       <div key={s} className="flex items-center gap-1">
                         <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold"
                           style={{
-                            background: step >= s ? "#0D3B44" : "rgba(13,59,68,0.1)",
+                            background: step >= s ? "#2A4A1A" : "rgba(42,74,26,0.1)",
                             color:      step >= s ? "white" : "#8A9BA8",
                           }}>
                           {step > s ? "✓" : s}
                         </div>
                         {s < 3 && (
                           <div className="w-6 h-0.5 rounded"
-                            style={{ background: step > s ? "#0D3B44" : "rgba(13,59,68,0.1)" }} />
+                            style={{ background: step > s ? "#2A4A1A" : "rgba(42,74,26,0.1)" }} />
                         )}
                       </div>
                     ))}
@@ -652,12 +652,12 @@ setRedirecting(false);
               {step === 4 && (
                 <div className="text-center py-10">
                   <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-                    style={{ background: "rgba(13,59,68,0.06)" }}>
+                    style={{ background: "rgba(42,74,26,0.06)" }}>
                     {redirecting
-                      ? <Loader2 size={28} className="animate-spin" style={{ color: "#0D3B44" }} />
-                      : <CreditCard size={28} style={{ color: "#0D3B44" }} />}
+                      ? <Loader2 size={28} className="animate-spin" style={{ color: "#2A4A1A" }} />
+                      : <CreditCard size={28} style={{ color: "#2A4A1A" }} />}
                   </div>
-                  <h4 className="text-xl mb-2" style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>
+                  <h4 className="text-xl mb-2" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
                     {redirecting ? "Redirecting to payment…" : "Ready to pay"}
                   </h4>
                   <p className="text-sm mb-1" style={{ color: "#4A5568" }}>
@@ -671,7 +671,7 @@ setRedirecting(false);
                   </p>
                   {error && (
                     <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm mt-4"
-                      style={{ background: "rgba(232,96,76,0.08)", color: "#E8604C" }}>
+                      style={{ background: "rgba(247,148,29,0.08)", color: "#F7941D" }}>
                       <AlertCircle size={15} />{error}
                     </div>
                   )}
@@ -685,21 +685,21 @@ setRedirecting(false);
                     <button key={type.id} onClick={() => setSelectedType(type.id)}
                       className="w-full text-left p-4 rounded-xl border-2 transition-all"
                       style={{
-                        borderColor: selectedType === type.id ? "#0D3B44" : "rgba(13,59,68,0.1)",
-                        background:  selectedType === type.id ? "rgba(13,59,68,0.04)" : "white",
+                        borderColor: selectedType === type.id ? "#2A4A1A" : "rgba(42,74,26,0.1)",
+                        background:  selectedType === type.id ? "rgba(42,74,26,0.04)" : "white",
                       }}>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-semibold" style={{ color: "#0D3B44" }}>{type.label}</p>
+                          <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>{type.label}</p>
                           <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>{type.description} · {type.duration} min</p>
                         </div>
                         {/* FIX 4: USD throughout */}
                         <div className="text-right flex-shrink-0 ml-4">
-                          <p className="text-sm font-bold" style={{ color: "#0D3B44" }}>
+                          <p className="text-sm font-bold" style={{ color: "#2A4A1A" }}>
                             {type.price === 0 ? "Free" : `USD $${type.price}`}
                           </p>
                           {type.price === 0 && (
-                            <p className="text-xs" style={{ color: "#4ECDC4" }}>No payment needed</p>
+                            <p className="text-xs" style={{ color: "#8DC63F" }}>No payment needed</p>
                           )}
                         </div>
                       </div>
@@ -707,7 +707,7 @@ setRedirecting(false);
                   ))}
                   <button disabled={!selectedType} onClick={() => setStep(2)}
                     className="w-full py-3 rounded-xl text-sm font-semibold text-white mt-2 disabled:opacity-40"
-                    style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+                    style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
                     Continue
                   </button>
                 </div>
@@ -738,8 +738,8 @@ setRedirecting(false);
                               disabled={isBooked}
                               className="py-2 rounded-lg text-xs font-medium border-2 transition-all relative"
                               style={{
-                                borderColor: isSel ? "#0D3B44" : isBooked ? "rgba(13,59,68,0.06)" : "rgba(13,59,68,0.12)",
-                                background:  isSel ? "#0D3B44" : isBooked ? "rgba(13,59,68,0.03)" : "white",
+                                borderColor: isSel ? "#2A4A1A" : isBooked ? "rgba(42,74,26,0.06)" : "rgba(42,74,26,0.12)",
+                                background:  isSel ? "#2A4A1A" : isBooked ? "rgba(42,74,26,0.03)" : "white",
                                 color:       isSel ? "white" : isBooked ? "#C4C4C4" : "#22272B",
                                 cursor:      isBooked ? "not-allowed" : "pointer",
                                 textDecoration: isBooked ? "line-through" : "none",
@@ -758,12 +758,12 @@ setRedirecting(false);
                   <div className="flex gap-3">
                     <button onClick={() => setStep(1)}
                       className="flex-1 py-3 rounded-xl text-sm font-semibold border-2"
-                      style={{ borderColor: "rgba(13,59,68,0.15)", color: "#0D3B44" }}>
+                      style={{ borderColor: "rgba(42,74,26,0.15)", color: "#2A4A1A" }}>
                       Back
                     </button>
                     <button disabled={!selectedDate || !selectedTime} onClick={() => setStep(3)}
                       className="flex-1 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-40"
-                      style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+                      style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
                       Continue
                     </button>
                   </div>
@@ -774,7 +774,7 @@ setRedirecting(false);
               {step === 3 && (
                 <div className="space-y-4">
                   <div className="rounded-2xl p-5 space-y-3"
-                    style={{ background: "white", border: "1px solid rgba(13,59,68,0.08)" }}>
+                    style={{ background: "white", border: "1px solid rgba(42,74,26,0.08)" }}>
                     <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#8A9BA8" }}>
                       Booking Summary
                     </p>
@@ -786,15 +786,15 @@ setRedirecting(false);
                       { label: "Duration", value: `${selectedTypeObj?.duration} minutes` },
                     ].map(({ label, value }) => (
                       <div key={label} className="flex items-center justify-between py-2 border-b last:border-0"
-                        style={{ borderColor: "rgba(13,59,68,0.06)" }}>
+                        style={{ borderColor: "rgba(42,74,26,0.06)" }}>
                         <span className="text-xs" style={{ color: "#8A9BA8" }}>{label}</span>
-                        <span className="text-sm font-medium" style={{ color: "#0D3B44" }}>{value}</span>
+                        <span className="text-sm font-medium" style={{ color: "#2A4A1A" }}>{value}</span>
                       </div>
                     ))}
                     {/* FIX 4: USD currency */}
                     <div className="flex items-center justify-between pt-2">
-                      <span className="text-sm font-bold" style={{ color: "#0D3B44" }}>Total</span>
-                      <span className="text-lg font-bold" style={{ color: "#0D3B44" }}>
+                      <span className="text-sm font-bold" style={{ color: "#2A4A1A" }}>Total</span>
+                      <span className="text-lg font-bold" style={{ color: "#2A4A1A" }}>
                         {selectedTypeObj?.price === 0 ? "Free" : `USD $${selectedTypeObj?.price}`}
                       </span>
                     </div>
@@ -803,13 +803,13 @@ setRedirecting(false);
                   <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3}
                     placeholder="Anything Dr. Miller should know before your session (optional)…"
                     className="w-full px-4 py-3 rounded-xl text-sm border resize-none focus:outline-none"
-                    style={{ borderColor: "rgba(13,59,68,0.15)", background: "white" }} />
+                    style={{ borderColor: "rgba(42,74,26,0.15)", background: "white" }} />
 
                   {/* FIX 3 + 4: Payment notice only shown for paid sessions */}
                   {selectedTypeObj && selectedTypeObj.price > 0 && (
                     <div className="flex items-start gap-3 p-4 rounded-xl"
-                      style={{ background: "rgba(78,205,196,0.06)", border: "1px solid rgba(78,205,196,0.2)" }}>
-                      <Lock size={14} className="flex-shrink-0 mt-0.5" style={{ color: "#4ECDC4" }} />
+                      style={{ background: "rgba(141,198,63,0.06)", border: "1px solid rgba(141,198,63,0.2)" }}>
+                      <Lock size={14} className="flex-shrink-0 mt-0.5" style={{ color: "#8DC63F" }} />
                       <p className="text-xs" style={{ color: "#4A5568" }}>
                         You will be redirected to <strong>WiPay</strong> to securely complete your payment of{" "}
                         <strong>USD ${selectedTypeObj.price}</strong>. Your session will be confirmed upon payment.
@@ -820,8 +820,8 @@ setRedirecting(false);
                   {/* Free session info box */}
                   {selectedTypeObj?.price === 0 && (
                     <div className="flex items-start gap-3 p-4 rounded-xl"
-                      style={{ background: "rgba(78,205,196,0.06)", border: "1px solid rgba(78,205,196,0.2)" }}>
-                      <CheckCircle size={14} className="flex-shrink-0 mt-0.5" style={{ color: "#4ECDC4" }} />
+                      style={{ background: "rgba(141,198,63,0.06)", border: "1px solid rgba(141,198,63,0.2)" }}>
+                      <CheckCircle size={14} className="flex-shrink-0 mt-0.5" style={{ color: "#8DC63F" }} />
                       <p className="text-xs" style={{ color: "#4A5568" }}>
                         No payment required. Dr. Miller will review and confirm your free consultation shortly.
                       </p>
@@ -830,7 +830,7 @@ setRedirecting(false);
 
                   {error && (
                     <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm"
-                      style={{ background: "rgba(232,96,76,0.08)", color: "#E8604C" }}>
+                      style={{ background: "rgba(247,148,29,0.08)", color: "#F7941D" }}>
                       <AlertCircle size={15} />{error}
                     </div>
                   )}
@@ -838,12 +838,12 @@ setRedirecting(false);
                   <div className="flex gap-3">
                     <button onClick={() => setStep(2)}
                       className="flex-1 py-3 rounded-xl text-sm font-semibold border-2"
-                      style={{ borderColor: "rgba(13,59,68,0.15)", color: "#0D3B44" }}>
+                      style={{ borderColor: "rgba(42,74,26,0.15)", color: "#2A4A1A" }}>
                       Back
                     </button>
                     <button disabled={submitting || !doctorId} onClick={handleSubmit}
                       className="flex-1 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-60 flex items-center justify-center gap-2"
-                      style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+                      style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
                       {submitting
                         ? <><Loader2 size={15} className="animate-spin" /> Processing…</>
                         : selectedTypeObj?.price === 0
@@ -867,7 +867,7 @@ export default function ClientAppointmentsPage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center py-24">
-        <Loader2 size={28} className="animate-spin" style={{ color: "#4ECDC4" }} />
+        <Loader2 size={28} className="animate-spin" style={{ color: "#8DC63F" }} />
       </div>
     }>
       <ClientAppointmentsPageInner />

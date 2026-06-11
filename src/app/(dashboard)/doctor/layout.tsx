@@ -130,7 +130,7 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
           "lg:!translate-x-0 lg:static lg:z-auto",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
-        style={{ width: "256px", minWidth: "256px", background: "#0A2E35" }}
+        style={{ width: "256px", minWidth: "256px", background: "#1E3810" }}
       >
         {/* Logo */}
         <div className="flex items-center justify-between px-6 py-6 border-b border-white/10">
@@ -138,7 +138,7 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
             <span className="text-white text-lg block" style={{ fontFamily: "var(--font-dm-serif)" }}>
               Valeo
             </span>
-            <span className="text-xs tracking-widest uppercase" style={{ color: "#4ECDC4" }}>
+            <span className="text-xs tracking-widest uppercase" style={{ color: "#8DC63F" }}>
               Doctor Portal
             </span>
           </div>
@@ -154,7 +154,7 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
         <div className="mx-4 mt-5 mb-2 rounded-xl p-3 flex items-center gap-3"
           style={{ background: "rgba(255,255,255,0.07)" }}>
           <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
-            style={{ background: "linear-gradient(135deg, #4ECDC4, #2BA8A0)", color: "#0A2E35", fontFamily: "var(--font-dm-serif)" }}>
+            style={{ background: "linear-gradient(135deg, #8DC63F, #6BA028)", color: "#1E3810", fontFamily: "var(--font-dm-serif)" }}>
             {cleanName[0]?.toUpperCase() ?? "D"}
           </div>
           <div className="overflow-hidden">
@@ -186,7 +186,7 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
                   active ? "" : "text-white/60 hover:text-white hover:bg-white/5"
                 )}
-                style={active ? { background: "#4ECDC4", color: "#0A2E35" } : {}}>
+                style={active ? { background: "#8DC63F", color: "#1E3810" } : {}}>
                 <Icon size={17} />
                 <span className="flex-1">{label}</span>
 
@@ -195,7 +195,7 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
                   <span
                     className="flex items-center justify-center rounded-full text-xs font-bold min-w-[18px] h-[18px] px-1"
                     style={{
-                      background: active ? "#0A2E35" : "#E8604C",
+                      background: active ? "#1E3810" : "#F7941D",
                       color: "white",
                       fontSize: "10px",
                     }}>
@@ -229,21 +229,21 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
           style={{
             background: "rgba(240,244,244,0.92)",
             backdropFilter: "blur(12px)",
-            borderColor: "rgba(10,46,53,0.08)",
+            borderColor: "rgba(30,56,16,0.08)",
           }}>
 
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden p-2 rounded-lg hover:bg-black/5"
-              style={{ color: "#0A2E35" }}
+              style={{ color: "#1E3810" }}
               aria-label="Open sidebar">
               <Menu size={20} />
             </button>
             {/* FIX 6: Header title uses startsWith-aware activeItem */}
             <h1
               className="text-lg font-medium"
-              style={{ fontFamily: "var(--font-dm-serif)", color: "#0A2E35" }}>
+              style={{ fontFamily: "var(--font-dm-serif)", color: "#1E3810" }}>
               {pageTitle}
             </h1>
           </div>
@@ -258,7 +258,7 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
               {(notifCount > 0 || unreadMessages > 0) && (
                 <span
                   className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
-                  style={{ background: "#E8604C" }}
+                  style={{ background: "#F7941D" }}
                 />
               )}
             </button>
@@ -266,7 +266,7 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
             {/* Doctor badge in header */}
             <div
               className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium"
-              style={{ background: "rgba(78,205,196,0.12)", color: "#0A2E35" }}>
+              style={{ background: "rgba(141,198,63,0.12)", color: "#1E3810" }}>
               <Stethoscope size={14} />
               Dr. {firstName}
             </div>

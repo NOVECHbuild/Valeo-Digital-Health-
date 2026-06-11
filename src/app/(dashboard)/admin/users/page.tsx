@@ -28,9 +28,9 @@ interface PlatformUser {
 // ── Role Badge ────────────────────────────────────────────────────────────────
 function RoleBadge({ role }: { role: Role }) {
   const map = {
-    client: { bg: "rgba(78,205,196,0.12)",  color: "#2BA8A0" },
-    doctor: { bg: "rgba(212,168,83,0.12)",  color: "#B8860B" },
-    admin:  { bg: "rgba(232,96,76,0.12)",   color: "#E8604C" },
+    client: { bg: "rgba(141,198,63,0.12)",  color: "#6BA028" },
+    doctor: { bg: "rgba(247,148,29,0.12)",  color: "#C4700A" },
+    admin:  { bg: "rgba(247,148,29,0.12)",   color: "#F7941D" },
   };
   const s = map[role];
   return (
@@ -68,9 +68,9 @@ function EditUserDrawer({ user, onClose, onSave }: {
         style={{ background: "white", boxShadow: "-8px 0 32px rgba(0,0,0,0.15)" }}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b"
-          style={{ borderColor: "rgba(26,26,46,0.08)" }}>
+          style={{ borderColor: "rgba(30,56,16,0.08)" }}>
           <div>
-            <h3 style={{ fontFamily: "var(--font-dm-serif)", fontSize: "20px", color: "#1A1A2E" }}>Edit User</h3>
+            <h3 style={{ fontFamily: "var(--font-dm-serif)", fontSize: "20px", color: "#1E3810" }}>Edit User</h3>
             <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>{user.email}</p>
           </div>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-black/5">
@@ -86,7 +86,7 @@ function EditUserDrawer({ user, onClose, onSave }: {
               <input type="text" value={form.displayName}
                 onChange={e => setForm(f => ({ ...f, displayName: e.target.value }))}
                 className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none"
-                style={{ background: "#F8F9FA", border: "1px solid rgba(26,26,46,0.1)", color: "#1A1A2E" }} />
+                style={{ background: "#F8F9FA", border: "1px solid rgba(30,56,16,0.1)", color: "#1E3810" }} />
             </div>
           </div>
           <div>
@@ -97,7 +97,7 @@ function EditUserDrawer({ user, onClose, onSave }: {
                 onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
                 placeholder="+1 (784) 000-0000"
                 className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none"
-                style={{ background: "#F8F9FA", border: "1px solid rgba(26,26,46,0.1)", color: "#1A1A2E" }} />
+                style={{ background: "#F8F9FA", border: "1px solid rgba(30,56,16,0.1)", color: "#1E3810" }} />
             </div>
           </div>
           <div>
@@ -107,9 +107,9 @@ function EditUserDrawer({ user, onClose, onSave }: {
                 <button key={r} onClick={() => setForm(f => ({ ...f, role: r }))}
                   className="py-2.5 rounded-xl text-xs font-semibold capitalize transition-all"
                   style={{
-                    background: form.role === r ? "linear-gradient(135deg, #1A1A2E, #2D2D4E)" : "rgba(26,26,46,0.04)",
+                    background: form.role === r ? "linear-gradient(135deg, #1E3810, #2D2D4E)" : "rgba(30,56,16,0.04)",
                     color: form.role === r ? "white" : "#4A5568",
-                    border: form.role === r ? "none" : "1px solid rgba(26,26,46,0.1)",
+                    border: form.role === r ? "none" : "1px solid rgba(30,56,16,0.1)",
                   }}>
                   {r}
                 </button>
@@ -123,20 +123,20 @@ function EditUserDrawer({ user, onClose, onSave }: {
               <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "#C4C4C4" }} />
               <input type="email" value={user.email} disabled
                 className="w-full pl-10 pr-4 py-3 rounded-xl text-sm"
-                style={{ background: "rgba(26,26,46,0.03)", border: "1px solid rgba(26,26,46,0.06)", color: "#C4C4C4", cursor: "not-allowed" }} />
+                style={{ background: "rgba(30,56,16,0.03)", border: "1px solid rgba(30,56,16,0.06)", color: "#C4C4C4", cursor: "not-allowed" }} />
             </div>
             <p className="text-xs mt-1" style={{ color: "#8A9BA8" }}>Email cannot be changed.</p>
           </div>
         </div>
         {/* Footer */}
-        <div className="px-6 py-4 border-t flex gap-3" style={{ borderColor: "rgba(26,26,46,0.08)" }}>
+        <div className="px-6 py-4 border-t flex gap-3" style={{ borderColor: "rgba(30,56,16,0.08)" }}>
           <button onClick={onClose} className="flex-1 py-3 rounded-xl text-sm font-semibold"
-            style={{ background: "rgba(26,26,46,0.05)", color: "#4A5568" }}>
+            style={{ background: "rgba(30,56,16,0.05)", color: "#4A5568" }}>
             Cancel
           </button>
           <button onClick={handleSave} disabled={saving}
             className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all"
-            style={{ background: "linear-gradient(135deg, #1A1A2E, #2D2D4E)", opacity: saving ? 0.7 : 1 }}>
+            style={{ background: "linear-gradient(135deg, #1E3810, #2D2D4E)", opacity: saving ? 0.7 : 1 }}>
             {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
             {saving ? "Saving…" : "Save Changes"}
           </button>
@@ -162,17 +162,17 @@ function UserRow({ user, onToggleActive, onChangeRole, onResetPassword, onEdit, 
 
   return (
     <tr className="border-b transition-colors hover:bg-black/[0.015]"
-      style={{ borderColor: "rgba(13,59,68,0.06)" }}>
+      style={{ borderColor: "rgba(42,74,26,0.06)" }}>
 
       {/* User */}
       <td className="py-4 px-5">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #1A1A2E, #2D2D4E)", color: "white" }}>
+            style={{ background: "linear-gradient(135deg, #1E3810, #2D2D4E)", color: "white" }}>
             {user.displayName?.[0]?.toUpperCase() ?? "U"}
           </div>
           <div>
-            <p className="text-sm font-semibold" style={{ color: "#1A1A2E" }}>{user.displayName}</p>
+            <p className="text-sm font-semibold" style={{ color: "#1E3810" }}>{user.displayName}</p>
             <p className="text-xs" style={{ color: "#8A9BA8" }}>{user.email}</p>
             {user.phone && <p className="text-xs" style={{ color: "#C4C4C4" }}>{user.phone}</p>}
           </div>
@@ -189,7 +189,7 @@ function UserRow({ user, onToggleActive, onChangeRole, onResetPassword, onEdit, 
           </button>
           {roleOpen && (
             <div className="absolute top-8 left-0 z-30 rounded-xl overflow-hidden py-1"
-              style={{ background: "white", boxShadow: "0 4px 16px rgba(13,59,68,0.14)", minWidth: "130px" }}>
+              style={{ background: "white", boxShadow: "0 4px 16px rgba(42,74,26,0.14)", minWidth: "130px" }}>
               {(["client","doctor","admin"] as Role[]).filter(r => r !== user.role).map(r => (
                 <button key={r} disabled={isActing}
                   onClick={() => { onChangeRole(user.uid, r); setRoleOpen(false); }}
@@ -206,9 +206,9 @@ function UserRow({ user, onToggleActive, onChangeRole, onResetPassword, onEdit, 
       {/* Status */}
       <td className="py-4 px-4">
         <span className="inline-flex items-center gap-1.5 text-xs font-medium"
-          style={{ color: user.isActive !== false ? "#2BA8A0" : "#8A9BA8" }}>
+          style={{ color: user.isActive !== false ? "#6BA028" : "#8A9BA8" }}>
           <span className="w-2 h-2 rounded-full"
-            style={{ background: user.isActive !== false ? "#4ECDC4" : "#C4C4C4" }} />
+            style={{ background: user.isActive !== false ? "#8DC63F" : "#C4C4C4" }} />
           {user.isActive !== false ? "Active" : "Inactive"}
         </span>
       </td>
@@ -217,10 +217,10 @@ function UserRow({ user, onToggleActive, onChangeRole, onResetPassword, onEdit, 
       <td className="py-4 px-4 hidden lg:table-cell">
         {user.role === "client" ? (
           user.onboarded
-            ? <span className="flex items-center gap-1 text-xs" style={{ color: "#2BA8A0" }}>
+            ? <span className="flex items-center gap-1 text-xs" style={{ color: "#6BA028" }}>
                 <CheckCircle size={11} /> Done
               </span>
-            : <span className="flex items-center gap-1 text-xs" style={{ color: "#D4A853" }}>
+            : <span className="flex items-center gap-1 text-xs" style={{ color: "#F7941D" }}>
                 <AlertCircle size={11} /> Pending
               </span>
         ) : (
@@ -243,7 +243,7 @@ function UserRow({ user, onToggleActive, onChangeRole, onResetPassword, onEdit, 
       <td className="py-4 px-5">
         <div className="relative flex justify-end">
           {isActing
-            ? <Loader2 size={15} className="animate-spin" style={{ color: "#4ECDC4" }} />
+            ? <Loader2 size={15} className="animate-spin" style={{ color: "#8DC63F" }} />
             : (
               <button onClick={() => { setMenuOpen(!menuOpen); setRoleOpen(false); }}
                 className="p-1.5 rounded-lg hover:bg-black/5">
@@ -252,32 +252,32 @@ function UserRow({ user, onToggleActive, onChangeRole, onResetPassword, onEdit, 
             )}
           {menuOpen && (
             <div className="absolute top-8 right-0 z-30 rounded-xl overflow-hidden py-1"
-              style={{ background: "white", boxShadow: "0 4px 20px rgba(13,59,68,0.16)", minWidth: "190px" }}>
+              style={{ background: "white", boxShadow: "0 4px 20px rgba(42,74,26,0.16)", minWidth: "190px" }}>
 
               {/* Edit */}
               <button onClick={() => { onEdit(user); setMenuOpen(false); }}
                 className="w-full text-left px-4 py-2.5 text-xs flex items-center gap-2 hover:bg-black/5"
-                style={{ color: "#1A1A2E" }}>
-                <Pencil size={13} style={{ color: "#4ECDC4" }} /> Edit Details
+                style={{ color: "#1E3810" }}>
+                <Pencil size={13} style={{ color: "#8DC63F" }} /> Edit Details
               </button>
 
               {/* Reset Password */}
               <button onClick={() => { onResetPassword(user.uid, user.email); setMenuOpen(false); }}
                 className="w-full text-left px-4 py-2.5 text-xs flex items-center gap-2 hover:bg-black/5"
-                style={{ color: "#1A1A2E" }}>
-                <KeyRound size={13} style={{ color: "#D4A853" }} /> Reset Password
+                style={{ color: "#1E3810" }}>
+                <KeyRound size={13} style={{ color: "#F7941D" }} /> Reset Password
               </button>
 
               {/* View Appointments (clients only) */}
               {user.role === "client" && (
                 <button onClick={() => { onViewAppointments(user.uid); setMenuOpen(false); }}
                   className="w-full text-left px-4 py-2.5 text-xs flex items-center gap-2 hover:bg-black/5"
-                  style={{ color: "#1A1A2E" }}>
-                  <Calendar size={13} style={{ color: "#0D3B44" }} /> View Appointments
+                  style={{ color: "#1E3810" }}>
+                  <Calendar size={13} style={{ color: "#2A4A1A" }} /> View Appointments
                 </button>
               )}
 
-              <div style={{ height: "1px", background: "rgba(26,26,46,0.06)", margin: "4px 0" }} />
+              <div style={{ height: "1px", background: "rgba(30,56,16,0.06)", margin: "4px 0" }} />
 
               {/* Copy Email */}
               <button onClick={() => { navigator.clipboard.writeText(user.email); setMenuOpen(false); }}
@@ -289,7 +289,7 @@ function UserRow({ user, onToggleActive, onChangeRole, onResetPassword, onEdit, 
               {/* Deactivate / Reactivate */}
               <button onClick={() => { onToggleActive(user.uid, user.isActive === false); setMenuOpen(false); }}
                 className="w-full text-left px-4 py-2.5 text-xs flex items-center gap-2 hover:bg-black/5"
-                style={{ color: user.isActive !== false ? "#E8604C" : "#2BA8A0" }}>
+                style={{ color: user.isActive !== false ? "#F7941D" : "#6BA028" }}>
                 {user.isActive !== false
                   ? <><UserX size={13} /> Deactivate</>
                   : <><UserCheck size={13} /> Reactivate</>}
@@ -448,7 +448,7 @@ export default function AdminUsersPage() {
       {/* Toast */}
       {toast && (
         <div className="fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg text-sm font-medium"
-          style={{ background: toast.type === "success" ? "#1A1A2E" : "#E8604C", color: "white" }}>
+          style={{ background: toast.type === "success" ? "#1E3810" : "#F7941D", color: "white" }}>
           {toast.type === "success" ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
           {toast.msg}
         </div>
@@ -457,41 +457,41 @@ export default function AdminUsersPage() {
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#1A1A2E" }}>Users</h2>
+          <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#1E3810" }}>Users</h2>
           <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>Manage all platform accounts and roles</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {/* Export CSV */}
           <button onClick={handleExportCSV} disabled={exporting}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:-translate-y-0.5"
-            style={{ background: "white", color: "#4A5568", border: "1px solid rgba(26,26,46,0.12)", boxShadow: "0 1px 3px rgba(26,26,46,0.07)" }}>
-            <Download size={15} style={{ color: "#4ECDC4" }} />
+            style={{ background: "white", color: "#4A5568", border: "1px solid rgba(30,56,16,0.12)", boxShadow: "0 1px 3px rgba(30,56,16,0.07)" }}>
+            <Download size={15} style={{ color: "#8DC63F" }} />
             {exporting ? "Exporting…" : "Export CSV"}
           </button>
           {/* Announcement */}
           <button onClick={() => router.push("/admin/announcements")}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:-translate-y-0.5"
-            style={{ background: "white", color: "#4A5568", border: "1px solid rgba(26,26,46,0.12)", boxShadow: "0 1px 3px rgba(26,26,46,0.07)" }}>
-            <Send size={15} style={{ color: "#D4A853" }} />
+            style={{ background: "white", color: "#4A5568", border: "1px solid rgba(30,56,16,0.12)", boxShadow: "0 1px 3px rgba(30,56,16,0.07)" }}>
+            <Send size={15} style={{ color: "#F7941D" }} />
             Announce
           </button>
           {/* Manual Payment */}
           <button onClick={() => router.push("/admin/payments/manual")}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:-translate-y-0.5"
-            style={{ background: "white", color: "#4A5568", border: "1px solid rgba(26,26,46,0.12)", boxShadow: "0 1px 3px rgba(26,26,46,0.07)" }}>
-            <CreditCard size={15} style={{ color: "#E8604C" }} />
+            style={{ background: "white", color: "#4A5568", border: "1px solid rgba(30,56,16,0.12)", boxShadow: "0 1px 3px rgba(30,56,16,0.07)" }}>
+            <CreditCard size={15} style={{ color: "#F7941D" }} />
             Manual Payment
           </button>
           {/* Add Doctor */}
           <button onClick={() => router.push("/admin/users/add-doctor")}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white hover:-translate-y-0.5 transition-all"
-            style={{ background: "linear-gradient(135deg, #1A1A2E, #2D2D4E)" }}>
+            style={{ background: "linear-gradient(135deg, #1E3810, #2D2D4E)" }}>
             <Plus size={15} /> Add Doctor
           </button>
           {/* Create Account */}
           <button onClick={() => router.push("/admin/users/create")}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white hover:-translate-y-0.5 transition-all"
-            style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+            style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
             <Plus size={15} /> Create Account
           </button>
         </div>
@@ -500,20 +500,20 @@ export default function AdminUsersPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: "Total Users", value: counts.all,    accent: "#1A1A2E", Icon: Users },
-          { label: "Clients",     value: counts.client, accent: "#4ECDC4", Icon: Users },
-          { label: "Doctors",     value: counts.doctor, accent: "#D4A853", Icon: Shield },
-          { label: "Active",      value: counts.active, accent: "#2BA8A0", Icon: CheckCircle },
+          { label: "Total Users", value: counts.all,    accent: "#1E3810", Icon: Users },
+          { label: "Clients",     value: counts.client, accent: "#8DC63F", Icon: Users },
+          { label: "Doctors",     value: counts.doctor, accent: "#F7941D", Icon: Shield },
+          { label: "Active",      value: counts.active, accent: "#6BA028", Icon: CheckCircle },
         ].map(({ label, value, accent, Icon }) => (
           <div key={label} className="rounded-2xl p-4 flex items-center gap-3"
-            style={{ background: "white", boxShadow: "0 1px 4px rgba(26,26,46,0.07)" }}>
+            style={{ background: "white", boxShadow: "0 1px 4px rgba(30,56,16,0.07)" }}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
               style={{ background: accent + "15" }}>
               <Icon size={16} style={{ color: accent }} />
             </div>
             <div>
               <p className="text-2xl font-semibold leading-none"
-                style={{ fontFamily: "var(--font-dm-serif)", color: "#1A1A2E" }}>{value}</p>
+                style={{ fontFamily: "var(--font-dm-serif)", color: "#1E3810" }}>{value}</p>
               <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>{label}</p>
             </div>
           </div>
@@ -527,9 +527,9 @@ export default function AdminUsersPage() {
             <button key={f} onClick={() => setFilter(f)}
               className="px-3 py-2 rounded-xl text-xs font-semibold capitalize transition-all"
               style={{
-                background: filter === f ? "#1A1A2E" : "white",
+                background: filter === f ? "#1E3810" : "white",
                 color:      filter === f ? "white" : "#4A5568",
-                boxShadow:  filter === f ? "none" : "0 1px 3px rgba(26,26,46,0.07)",
+                boxShadow:  filter === f ? "none" : "0 1px 3px rgba(30,56,16,0.07)",
               }}>
               {f === "all" ? `All (${counts.all})` : `${f.charAt(0).toUpperCase() + f.slice(1)}s (${counts[f as Role]})`}
             </button>
@@ -540,7 +540,7 @@ export default function AdminUsersPage() {
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search by name or email..."
             className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm border focus:outline-none"
-            style={{ borderColor: "rgba(26,26,46,0.12)", background: "white" }} />
+            style={{ borderColor: "rgba(30,56,16,0.12)", background: "white" }} />
           {search && (
             <button onClick={() => setSearch("")} className="absolute right-3.5 top-1/2 -translate-y-1/2">
               <X size={13} style={{ color: "#8A9BA8" }} />
@@ -551,18 +551,18 @@ export default function AdminUsersPage() {
 
       {/* Table */}
       <div className="rounded-2xl overflow-hidden"
-        style={{ background: "white", boxShadow: "0 1px 4px rgba(26,26,46,0.07)" }}>
+        style={{ background: "white", boxShadow: "0 1px 4px rgba(30,56,16,0.07)" }}>
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 size={28} className="animate-spin" style={{ color: "#4ECDC4" }} />
+            <Loader2 size={28} className="animate-spin" style={{ color: "#8DC63F" }} />
           </div>
         ) : filtered.length === 0 ? (
           <div className="py-16 text-center">
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
-              style={{ background: "rgba(78,205,196,0.08)" }}>
-              <Users size={24} style={{ color: "#4ECDC4" }} />
+              style={{ background: "rgba(141,198,63,0.08)" }}>
+              <Users size={24} style={{ color: "#8DC63F" }} />
             </div>
-            <p className="text-sm font-medium" style={{ color: "#1A1A2E" }}>No users found</p>
+            <p className="text-sm font-medium" style={{ color: "#1E3810" }}>No users found</p>
             <p className="text-xs mt-1" style={{ color: "#8A9BA8" }}>
               {search ? "Try a different search term." : "Users appear here after registration."}
             </p>
@@ -571,7 +571,7 @@ export default function AdminUsersPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr style={{ borderBottom: "1px solid rgba(26,26,46,0.07)" }}>
+                <tr style={{ borderBottom: "1px solid rgba(30,56,16,0.07)" }}>
                   {[
                     { label: "User",       cls: "" },
                     { label: "Role",       cls: "" },
@@ -604,13 +604,13 @@ export default function AdminUsersPage() {
         )}
         {filtered.length > 0 && (
           <div className="px-5 py-3 border-t flex items-center justify-between"
-            style={{ borderColor: "rgba(26,26,46,0.06)" }}>
+            style={{ borderColor: "rgba(30,56,16,0.06)" }}>
             <p className="text-xs" style={{ color: "#8A9BA8" }}>
               Showing {filtered.length} of {users.length} users
             </p>
             {search && (
               <button onClick={() => setSearch("")} className="text-xs font-medium hover:underline"
-                style={{ color: "#1A1A2E" }}>Clear search</button>
+                style={{ color: "#1E3810" }}>Clear search</button>
             )}
           </div>
         )}

@@ -103,7 +103,7 @@ export default function LoginPage() {
       <div className="lg:hidden mb-8">
         <span
           className="text-2xl"
-          style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}
+          style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}
         >
           The Valeo Experience
         </span>
@@ -111,7 +111,7 @@ export default function LoginPage() {
 
       <h1
         className="text-4xl mb-2"
-        style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}
+        style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}
       >
         Welcome back
       </h1>
@@ -156,7 +156,7 @@ export default function LoginPage() {
             <Link
               href="/forgot-password"
               className="text-xs hover:underline"
-              style={{ color: "#4ECDC4" }}
+              style={{ color: "#8DC63F" }}
             >
               Forgot password?
             </Link>
@@ -181,7 +181,7 @@ export default function LoginPage() {
           disabled={loading}
           className="w-full py-3 px-6 rounded-lg text-white font-semibold text-sm
                      transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-          style={{ background: loading ? "#8A9BA8" : "linear-gradient(135deg, #0D3B44, #1A535C)" }}
+          style={{ background: loading ? "#8A9BA8" : "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
         >
           {loading ? "Signing in..." : "Sign In"}
         </button>
@@ -194,7 +194,7 @@ export default function LoginPage() {
         <Link
           href="/register"
           className="font-semibold hover:underline"
-          style={{ color: "#0D3B44" }}
+          style={{ color: "#2A4A1A" }}
         >
           Create one
         </Link>

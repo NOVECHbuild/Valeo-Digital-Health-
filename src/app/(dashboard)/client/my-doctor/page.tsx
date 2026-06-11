@@ -69,7 +69,7 @@ function Toast({ msg, type }: { msg: string; type: "success" | "error" }) {
   return (
     <div
       className="fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg text-sm font-medium max-w-sm"
-      style={{ background: type === "success" ? "#0D3B44" : "#E8604C", color: "white" }}
+      style={{ background: type === "success" ? "#2A4A1A" : "#F7941D", color: "white" }}
     >
       {type === "success" ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
       {msg}
@@ -186,7 +186,7 @@ export default function MyDoctorPage() {
   // ── Loading ────────────────────────────────────────────────────────────
   if (loading) return (
     <div className="flex items-center justify-center py-24">
-      <Loader2 size={28} className="animate-spin" style={{ color: "#4ECDC4" }} />
+      <Loader2 size={28} className="animate-spin" style={{ color: "#8DC63F" }} />
     </div>
   );
 
@@ -194,12 +194,12 @@ export default function MyDoctorPage() {
   if (fetchError) return (
     <div className="max-w-3xl mx-auto">
       <div className="rounded-2xl p-10 text-center"
-        style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
+        style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
         <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3"
-          style={{ background: "rgba(232,96,76,0.08)" }}>
-          <AlertTriangle size={22} style={{ color: "#E8604C" }} />
+          style={{ background: "rgba(247,148,29,0.08)" }}>
+          <AlertTriangle size={22} style={{ color: "#F7941D" }} />
         </div>
-        <p className="text-sm font-semibold mb-1" style={{ color: "#0D3B44" }}>Something went wrong</p>
+        <p className="text-sm font-semibold mb-1" style={{ color: "#2A4A1A" }}>Something went wrong</p>
         <p className="text-xs" style={{ color: "#8A9BA8" }}>{fetchError}</p>
       </div>
     </div>
@@ -212,7 +212,7 @@ export default function MyDoctorPage() {
 
       {/* Header */}
       <div>
-        <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>
+        <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
           My Therapist
         </h2>
         <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>
@@ -223,12 +223,12 @@ export default function MyDoctorPage() {
       {/* No assignment yet */}
       {!assignment && (
         <div className="rounded-2xl p-10 text-center"
-          style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
+          style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
-            style={{ background: "rgba(78,205,196,0.08)" }}>
-            <Users size={24} style={{ color: "#4ECDC4" }} />
+            style={{ background: "rgba(141,198,63,0.08)" }}>
+            <Users size={24} style={{ color: "#8DC63F" }} />
           </div>
-          <p className="text-sm font-semibold mb-1" style={{ color: "#0D3B44" }}>
+          <p className="text-sm font-semibold mb-1" style={{ color: "#2A4A1A" }}>
             No therapist assigned yet
           </p>
           <p className="text-xs mb-4" style={{ color: "#8A9BA8" }}>
@@ -237,7 +237,7 @@ export default function MyDoctorPage() {
           <Link
             href="/onboarding/intake"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
-            style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}
+            style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
           >
             Complete Intake <ChevronRight size={14} />
           </Link>
@@ -247,9 +247,9 @@ export default function MyDoctorPage() {
       {/* S3: Assignment exists but doctor doc is gone/deleted */}
       {assignment && doctorMissing && (
         <div className="rounded-2xl p-10 text-center"
-          style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
+          style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
           <UserX size={28} className="mx-auto mb-3" style={{ color: "#8A9BA8" }} />
-          <p className="text-sm font-semibold mb-1" style={{ color: "#0D3B44" }}>
+          <p className="text-sm font-semibold mb-1" style={{ color: "#2A4A1A" }}>
             Therapist profile unavailable
           </p>
           <p className="text-xs" style={{ color: "#8A9BA8" }}>
@@ -264,10 +264,10 @@ export default function MyDoctorPage() {
           {/* Switch request pending banner — driven by Firestore (FIX 13) */}
           {assignment.switchRequested && (
             <div className="rounded-2xl p-4 flex items-start gap-3"
-              style={{ background: "rgba(212,168,83,0.08)", border: "1px solid rgba(212,168,83,0.2)" }}>
-              <AlertCircle size={16} className="flex-shrink-0 mt-0.5" style={{ color: "#D4A853" }} />
+              style={{ background: "rgba(247,148,29,0.08)", border: "1px solid rgba(247,148,29,0.2)" }}>
+              <AlertCircle size={16} className="flex-shrink-0 mt-0.5" style={{ color: "#F7941D" }} />
               <div className="min-w-0">
-                <p className="text-sm font-semibold" style={{ color: "#B8860B" }}>
+                <p className="text-sm font-semibold" style={{ color: "#C4700A" }}>
                   Switch request pending
                 </p>
                 <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>
@@ -276,7 +276,7 @@ export default function MyDoctorPage() {
                 {/* S4: Reflect the submitted reason back */}
                 {assignment.switchReason && (
                   <p className="text-xs mt-2 italic px-3 py-2 rounded-lg"
-                    style={{ background: "rgba(212,168,83,0.06)", color: "#8A9BA8" }}>
+                    style={{ background: "rgba(247,148,29,0.06)", color: "#8A9BA8" }}>
                     Your reason: &ldquo;{assignment.switchReason}&rdquo;
                   </p>
                 )}
@@ -287,13 +287,13 @@ export default function MyDoctorPage() {
           {/* S1: Next session banner */}
           {nextSession && (
             <div className="rounded-2xl p-4 flex items-center gap-4 flex-wrap"
-              style={{ background: "rgba(78,205,196,0.06)", border: "1px solid rgba(78,205,196,0.2)" }}>
+              style={{ background: "rgba(141,198,63,0.06)", border: "1px solid rgba(141,198,63,0.2)" }}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: "rgba(78,205,196,0.15)" }}>
-                <Calendar size={18} style={{ color: "#4ECDC4" }} />
+                style={{ background: "rgba(141,198,63,0.15)" }}>
+                <Calendar size={18} style={{ color: "#8DC63F" }} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold" style={{ color: "#0D3B44" }}>
+                <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>
                   Next Session — {nextSession.type}
                 </p>
                 <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>
@@ -306,7 +306,7 @@ export default function MyDoctorPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white flex-shrink-0 transition-all hover:-translate-y-0.5"
-                  style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}
+                  style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
                 >
                   <ExternalLink size={14} /> Join Meet
                 </a>
@@ -314,7 +314,7 @@ export default function MyDoctorPage() {
                 <Link
                   href="/client/appointments"
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border flex-shrink-0"
-                  style={{ borderColor: "rgba(13,59,68,0.15)", color: "#0D3B44" }}
+                  style={{ borderColor: "rgba(42,74,26,0.15)", color: "#2A4A1A" }}
                 >
                   View Details
                 </Link>
@@ -324,17 +324,17 @@ export default function MyDoctorPage() {
 
           {/* ── Doctor card ───────────────────────────────────────────────── */}
           <div className="rounded-2xl overflow-hidden"
-            style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
+            style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
 
             {/* Gradient header */}
             <div className="p-6 pb-16 relative"
-              style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+              style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
               <div className="absolute right-0 top-0 w-48 h-full opacity-10"
-                style={{ background: "radial-gradient(circle at 80% 50%, #4ECDC4, transparent 70%)" }} />
+                style={{ background: "radial-gradient(circle at 80% 50%, #8DC63F, transparent 70%)" }} />
               <div className="flex items-start justify-between relative z-10">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-widest mb-1"
-                    style={{ color: "rgba(78,205,196,0.8)" }}>
+                    style={{ color: "rgba(141,198,63,0.8)" }}>
                     Your Therapist
                   </p>
                   {/* FIX 4: Render title only when it exists */}
@@ -352,9 +352,9 @@ export default function MyDoctorPage() {
                 {/* FIX 5: Only show match badge when matchPercent is a positive number */}
                 {(assignment.matchPercent ?? 0) > 0 && (
                   <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full flex-shrink-0"
-                    style={{ background: "rgba(78,205,196,0.15)" }}>
-                    <Heart size={12} style={{ color: "#4ECDC4" }} />
-                    <span className="text-xs font-semibold" style={{ color: "#4ECDC4" }}>
+                    style={{ background: "rgba(141,198,63,0.15)" }}>
+                    <Heart size={12} style={{ color: "#8DC63F" }} />
+                    <span className="text-xs font-semibold" style={{ color: "#8DC63F" }}>
                       {assignment.matchPercent}% match
                     </span>
                   </div>
@@ -373,7 +373,7 @@ export default function MyDoctorPage() {
               ) : (
                 <div
                   className="w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-bold border-4 border-white shadow-md"
-                  style={{ background: "rgba(78,205,196,0.15)", color: "#0D3B44" }}
+                  style={{ background: "rgba(141,198,63,0.15)", color: "#2A4A1A" }}
                 >
                   {/* FIX 3: Safe character access — no crash on empty/undefined displayName */}
                   {doctor.displayName?.[0]?.toUpperCase() ?? "D"}
@@ -423,11 +423,11 @@ export default function MyDoctorPage() {
                   },
                 ].map(({ label, value, Icon }) => (
                   <div key={label} className="rounded-xl p-3 flex items-center gap-3"
-                    style={{ background: "rgba(13,59,68,0.03)" }}>
-                    <Icon size={14} style={{ color: "#4ECDC4" }} />
+                    style={{ background: "rgba(42,74,26,0.03)" }}>
+                    <Icon size={14} style={{ color: "#8DC63F" }} />
                     <div>
                       <p className="text-xs" style={{ color: "#8A9BA8" }}>{label}</p>
-                      <p className="text-sm font-semibold" style={{ color: "#0D3B44" }}>{value}</p>
+                      <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>{value}</p>
                     </div>
                   </div>
                 ))}
@@ -444,9 +444,9 @@ export default function MyDoctorPage() {
                     {((doctor as any).specializations as string[]).map(s => (
                       <span key={s} className="text-xs px-2.5 py-1 rounded-full font-medium"
                         style={{
-                          background: "rgba(78,205,196,0.08)",
-                          color: "#0D3B44",
-                          border: "1px solid rgba(78,205,196,0.2)",
+                          background: "rgba(141,198,63,0.08)",
+                          color: "#2A4A1A",
+                          border: "1px solid rgba(141,198,63,0.2)",
                         }}>
                         {s}
                       </span>
@@ -465,7 +465,7 @@ export default function MyDoctorPage() {
                   <div className="flex flex-wrap gap-1.5">
                     {((doctor as any).approaches as string[]).map(a => (
                       <span key={a} className="text-xs px-2.5 py-1 rounded-full font-medium"
-                        style={{ background: "rgba(13,59,68,0.05)", color: "#4A5568" }}>
+                        style={{ background: "rgba(42,74,26,0.05)", color: "#4A5568" }}>
                         {a}
                       </span>
                     ))}
@@ -474,18 +474,18 @@ export default function MyDoctorPage() {
               )}
 
               {/* Action buttons — FIX 8: Next.js <Link> */}
-              <div className="flex gap-3 pt-4 border-t" style={{ borderColor: "rgba(13,59,68,0.06)" }}>
+              <div className="flex gap-3 pt-4 border-t" style={{ borderColor: "rgba(42,74,26,0.06)" }}>
                 <Link
                   href="/client/messages"
                   className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-0.5"
-                  style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}
+                  style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
                 >
                   <MessageCircle size={15} /> Message
                 </Link>
                 <Link
                   href="/client/appointments"
                   className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold"
-                  style={{ background: "rgba(78,205,196,0.1)", color: "#2BA8A0" }}
+                  style={{ background: "rgba(141,198,63,0.1)", color: "#6BA028" }}
                 >
                   <Calendar size={15} /> Book Session
                 </Link>
@@ -496,11 +496,11 @@ export default function MyDoctorPage() {
           {/* ── Request switch card — FIX 13: gated on Firestore flag only ── */}
           {!assignment.switchRequested && (
             <div className="rounded-2xl p-5"
-              style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
+              style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
               {!showSwitch ? (
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-sm font-semibold" style={{ color: "#0D3B44" }}>
+                    <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>
                       Not the right fit?
                     </p>
                     <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>
@@ -510,14 +510,14 @@ export default function MyDoctorPage() {
                   <button
                     onClick={() => setShowSwitch(true)}
                     className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border flex-shrink-0"
-                    style={{ borderColor: "rgba(13,59,68,0.15)", color: "#0D3B44" }}
+                    style={{ borderColor: "rgba(42,74,26,0.15)", color: "#2A4A1A" }}
                   >
                     <RefreshCw size={14} /> Request Switch
                   </button>
                 </div>
               ) : (
                 <div>
-                  <p className="text-sm font-semibold mb-1" style={{ color: "#0D3B44" }}>
+                  <p className="text-sm font-semibold mb-1" style={{ color: "#2A4A1A" }}>
                     Request a different therapist
                   </p>
                   <p className="text-xs mb-3" style={{ color: "#8A9BA8" }}>
@@ -529,13 +529,13 @@ export default function MyDoctorPage() {
                     rows={3}
                     placeholder="e.g. I feel I need someone who specialises more in anxiety..."
                     className="w-full px-4 py-3 rounded-xl text-sm border focus:outline-none resize-none mb-3"
-                    style={{ borderColor: "rgba(13,59,68,0.15)", background: "#FAFAFA", color: "#22272B" }}
+                    style={{ borderColor: "rgba(42,74,26,0.15)", background: "#FAFAFA", color: "#22272B" }}
                   />
                   <div className="flex gap-2">
                     <button
                       onClick={() => { setShowSwitch(false); setReason(""); }}
                       className="flex-1 py-2.5 rounded-xl text-sm font-semibold border"
-                      style={{ borderColor: "rgba(13,59,68,0.12)", color: "#8A9BA8" }}
+                      style={{ borderColor: "rgba(42,74,26,0.12)", color: "#8A9BA8" }}
                     >
                       Cancel
                     </button>
@@ -543,7 +543,7 @@ export default function MyDoctorPage() {
                       onClick={handleSwitchRequest}
                       disabled={!reason.trim() || submitting}
                       className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
-                      style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}
+                      style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
                     >
                       {submitting
                         ? <Loader2 size={14} className="animate-spin" />

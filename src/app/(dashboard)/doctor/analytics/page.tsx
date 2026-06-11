@@ -63,7 +63,7 @@ const MONTH_LABELS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct
 // ══════════════════════════════════════════════════════════════
 
 /** Vertical bar chart — values[], labels[], color */
-function BarChart({ values, labels, color = "#4ECDC4", height = 90 }: {
+function BarChart({ values, labels, color = "#8DC63F", height = 90 }: {
   values: number[]; labels: string[]; color?: string; height?: number;
 }) {
   const max = Math.max(...values, 1);
@@ -92,7 +92,7 @@ function BarChart({ values, labels, color = "#4ECDC4", height = 90 }: {
 }
 
 /** Smooth sparkline */
-function Sparkline({ values, color = "#4ECDC4", height = 36 }: {
+function Sparkline({ values, color = "#8DC63F", height = 36 }: {
   values: number[]; color?: string; height?: number;
 }) {
   if (values.length < 2) return null;
@@ -163,8 +163,8 @@ function KpiCard({ label, value, sub, trend, sparkValues, color, Icon }: {
   color: string; Icon: any;
 }) {
   const trendColor = trend === null || trend === undefined ? "#C4C4C4"
-                   : trend > 0  ? "#2BA8A0"
-                   : trend < 0  ? "#E8604C"
+                   : trend > 0  ? "#6BA028"
+                   : trend < 0  ? "#F7941D"
                    : "#8A9BA8";
   const TrendIcon = trend === null || trend === undefined ? Minus
                   : trend > 0  ? TrendingUp
@@ -173,7 +173,7 @@ function KpiCard({ label, value, sub, trend, sparkValues, color, Icon }: {
 
   return (
     <div className="rounded-2xl p-5 flex flex-col justify-between"
-      style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)", minHeight: 130 }}>
+      style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)", minHeight: 130 }}>
       <div className="flex items-start justify-between mb-2">
         <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
           style={{ background: color + "15" }}>
@@ -187,7 +187,7 @@ function KpiCard({ label, value, sub, trend, sparkValues, color, Icon }: {
       </div>
       <div>
         <p className="text-2xl font-semibold"
-          style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>{value}</p>
+          style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>{value}</p>
         <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>{label}</p>
         {(trend !== undefined || sub) && (
           <div className="flex items-center gap-1.5 mt-2">
@@ -350,7 +350,7 @@ export default function DoctorAnalyticsPage() {
       // ── Session type breakdown ────────────────────────────────────────────
       const typeMap: Record<string, number> = {};
       appts.forEach(a => { typeMap[a.type] = (typeMap[a.type] || 0) + 1; });
-      const typeColors = ["#0D3B44","#4ECDC4","#D4A853","#E8604C","#8E44AD","#2980B9"];
+      const typeColors = ["#2A4A1A","#8DC63F","#F7941D","#F7941D","#8E44AD","#2980B9"];
       const slices = Object.entries(typeMap)
         .sort((a, b) => b[1] - a[1])
         .map(([label, value], i) => ({ label, value, color: typeColors[i % typeColors.length] }));
@@ -409,7 +409,7 @@ export default function DoctorAnalyticsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center" style={{ height: "60vh" }}>
-        <Loader2 size={32} className="animate-spin" style={{ color: "#4ECDC4" }} />
+        <Loader2 size={32} className="animate-spin" style={{ color: "#8DC63F" }} />
       </div>
     );
   }
@@ -419,7 +419,7 @@ export default function DoctorAnalyticsPage() {
 
       {/* Header */}
       <div>
-        <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>
+        <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
           Practice Analytics
         </h2>
         <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>
@@ -435,7 +435,7 @@ export default function DoctorAnalyticsPage() {
           trend={sessTrend}
           sub="vs last month"
           sparkValues={weekBars.map(w => w.count)}
-          color="#4ECDC4"
+          color="#8DC63F"
           Icon={Calendar}
         />
         <KpiCard
@@ -444,21 +444,21 @@ export default function DoctorAnalyticsPage() {
           trend={revTrend}
           sub="vs last month"
           sparkValues={revSparkline}
-          color="#D4A853"
+          color="#F7941D"
           Icon={DollarSign}
         />
         <KpiCard
           label="Completion Rate"
           value={`${completionRate}%`}
           sub={`${appointments.filter(a => a.status === "completed").length} completed sessions`}
-          color="#2BA8A0"
+          color="#6BA028"
           Icon={CheckCircle}
         />
         <KpiCard
           label="Active Clients"
           value={activeClients}
           sub={`${totalClients} total all-time`}
-          color="#0D3B44"
+          color="#2A4A1A"
           Icon={Users}
         />
       </div>
@@ -466,44 +466,44 @@ export default function DoctorAnalyticsPage() {
       {/* ── Secondary KPI row ───────────────────────────────────────────── */}
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-2xl p-4 flex items-center gap-3"
-          style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
+          style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
           <div className="w-9 h-9 rounded-xl flex items-center justify-center"
             style={{ background: "rgba(142,68,173,0.1)" }}>
             <Clock size={16} style={{ color: "#8E44AD" }} />
           </div>
           <div>
-            <p className="text-xl font-semibold" style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>
+            <p className="text-xl font-semibold" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
               {avgDuration > 0 ? `${avgDuration} min` : "—"}
             </p>
             <p className="text-xs" style={{ color: "#8A9BA8" }}>Avg Session Duration</p>
           </div>
         </div>
         <div className="rounded-2xl p-4 flex items-center gap-3"
-          style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
+          style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
           <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: "rgba(13,59,68,0.08)" }}>
-            <FileText size={16} style={{ color: "#0D3B44" }} />
+            style={{ background: "rgba(42,74,26,0.08)" }}>
+            <FileText size={16} style={{ color: "#2A4A1A" }} />
           </div>
           <div>
-            <p className="text-xl font-semibold" style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>
+            <p className="text-xl font-semibold" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
               {notesMonth}
             </p>
             <p className="text-xs" style={{ color: "#8A9BA8" }}>Notes Written This Month</p>
           </div>
         </div>
         <div className="rounded-2xl p-4 flex items-center gap-3"
-          style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
+          style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
           <div className="w-9 h-9 rounded-xl flex items-center justify-center"
             style={{ background: "rgba(41,128,185,0.1)" }}>
             <ClipboardList size={16} style={{ color: "#2980B9" }} />
           </div>
           <div>
             <div className="flex items-baseline gap-1.5">
-              <p className="text-xl font-semibold" style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>
+              <p className="text-xl font-semibold" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
                 {assessDone}
               </p>
               {assessPending > 0 && (
-                <span className="text-xs font-semibold" style={{ color: "#D4A853" }}>
+                <span className="text-xs font-semibold" style={{ color: "#F7941D" }}>
                   +{assessPending} pending
                 </span>
               )}
@@ -518,14 +518,14 @@ export default function DoctorAnalyticsPage() {
 
         {/* Sessions per week — wide */}
         <div className="lg:col-span-2 rounded-2xl p-5"
-          style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
+          style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
           <div className="flex items-start justify-between mb-4">
             <div>
-              <p className="text-sm font-semibold" style={{ color: "#0D3B44" }}>Sessions Per Week</p>
+              <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>Sessions Per Week</p>
               <p className="text-xs" style={{ color: "#8A9BA8" }}>Completed sessions · last 8 weeks</p>
             </div>
             <span className="text-xs px-2.5 py-1 rounded-full font-semibold"
-              style={{ background: "rgba(78,205,196,0.1)", color: "#2BA8A0" }}>
+              style={{ background: "rgba(141,198,63,0.1)", color: "#6BA028" }}>
               {weekBars.reduce((s, w) => s + w.count, 0)} total
             </span>
           </div>
@@ -537,7 +537,7 @@ export default function DoctorAnalyticsPage() {
             <BarChart
               values={weekBars.map(w => w.count)}
               labels={weekBars.map(w => w.label)}
-              color="#4ECDC4"
+              color="#8DC63F"
               height={100}
             />
           )}
@@ -545,8 +545,8 @@ export default function DoctorAnalyticsPage() {
 
         {/* Session type donut */}
         <div className="rounded-2xl p-5"
-          style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
-          <p className="text-sm font-semibold mb-1" style={{ color: "#0D3B44" }}>Session Types</p>
+          style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
+          <p className="text-sm font-semibold mb-1" style={{ color: "#2A4A1A" }}>Session Types</p>
           <p className="text-xs mb-4" style={{ color: "#8A9BA8" }}>All-time breakdown</p>
 
           {typeSlices.length === 0 ? (
@@ -569,7 +569,7 @@ export default function DoctorAnalyticsPage() {
                       <span className="text-xs truncate flex-1" style={{ color: "#4A5568" }}>
                         {s.label}
                       </span>
-                      <span className="text-xs font-semibold" style={{ color: "#0D3B44" }}>
+                      <span className="text-xs font-semibold" style={{ color: "#2A4A1A" }}>
                         {pct}%
                       </span>
                     </div>
@@ -586,13 +586,13 @@ export default function DoctorAnalyticsPage() {
 
         {/* Revenue last 6 months */}
         <div className="rounded-2xl p-5"
-          style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
+          style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
           <div className="flex items-start justify-between mb-4">
             <div>
-              <p className="text-sm font-semibold" style={{ color: "#0D3B44" }}>Revenue</p>
+              <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>Revenue</p>
               <p className="text-xs" style={{ color: "#8A9BA8" }}>Last 6 months · USD</p>
             </div>
-            <span className="text-xs font-semibold" style={{ color: "#D4A853" }}>
+            <span className="text-xs font-semibold" style={{ color: "#F7941D" }}>
               {fmt$(monthRevBars.reduce((s, m) => s + m.rev, 0))} total
             </span>
           </div>
@@ -604,7 +604,7 @@ export default function DoctorAnalyticsPage() {
             <BarChart
               values={monthRevBars.map(m => m.rev)}
               labels={monthRevBars.map(m => m.label)}
-              color="#D4A853"
+              color="#F7941D"
               height={90}
             />
           )}
@@ -612,9 +612,9 @@ export default function DoctorAnalyticsPage() {
 
         {/* Busiest day of week */}
         <div className="rounded-2xl p-5"
-          style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
+          style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
           <div className="mb-4">
-            <p className="text-sm font-semibold" style={{ color: "#0D3B44" }}>Busiest Days</p>
+            <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>Busiest Days</p>
             <p className="text-xs" style={{ color: "#8A9BA8" }}>Bookings by day of week · all-time</p>
           </div>
           {dayBars.every(v => v === 0) ? (
@@ -625,7 +625,7 @@ export default function DoctorAnalyticsPage() {
             <BarChart
               values={dayBars}
               labels={DAY_LABELS}
-              color="#0D3B44"
+              color="#2A4A1A"
               height={90}
             />
           )}
@@ -634,10 +634,10 @@ export default function DoctorAnalyticsPage() {
 
       {/* ── Top clients ────────────────────────────────────────────────── */}
       <div className="rounded-2xl p-5"
-        style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
+        style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
         <div className="flex items-start justify-between mb-4">
           <div>
-            <p className="text-sm font-semibold" style={{ color: "#0D3B44" }}>Most Active Clients</p>
+            <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>Most Active Clients</p>
             <p className="text-xs" style={{ color: "#8A9BA8" }}>Ranked by total sessions booked</p>
           </div>
           <span className="text-xs" style={{ color: "#C4C4C4" }}>{totalClients} total clients</span>
@@ -654,18 +654,18 @@ export default function DoctorAnalyticsPage() {
                 <div key={c.name + i} className="flex items-center gap-3">
                   {/* Rank */}
                   <span className="w-5 text-xs font-bold text-right flex-shrink-0"
-                    style={{ color: i === 0 ? "#D4A853" : "#C4C4C4" }}>
+                    style={{ color: i === 0 ? "#F7941D" : "#C4C4C4" }}>
                     {i + 1}
                   </span>
                   {/* Avatar */}
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
-                    style={{ background: "rgba(13,59,68,0.06)", color: "#0D3B44" }}>
+                    style={{ background: "rgba(42,74,26,0.06)", color: "#2A4A1A" }}>
                     {c.name[0]?.toUpperCase() ?? "?"}
                   </div>
                   {/* Name + bar */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium truncate" style={{ color: "#0D3B44" }}>
+                      <span className="text-sm font-medium truncate" style={{ color: "#2A4A1A" }}>
                         {c.name}
                       </span>
                       <span className="text-xs flex-shrink-0 ml-2" style={{ color: "#8A9BA8" }}>
@@ -673,17 +673,17 @@ export default function DoctorAnalyticsPage() {
                       </span>
                     </div>
                     <div className="h-1.5 rounded-full overflow-hidden"
-                      style={{ background: "rgba(13,59,68,0.06)" }}>
+                      style={{ background: "rgba(42,74,26,0.06)" }}>
                       <div className="h-full rounded-full transition-all"
                         style={{
                           width: `${(c.count / maxCount) * 100}%`,
-                          background: i === 0 ? "#D4A853" : "#4ECDC4",
+                          background: i === 0 ? "#F7941D" : "#8DC63F",
                         }} />
                     </div>
                   </div>
                   {/* Completion rate */}
                   <span className="text-xs font-semibold flex-shrink-0 w-10 text-right"
-                    style={{ color: rate >= 80 ? "#2BA8A0" : rate >= 50 ? "#D4A853" : "#8A9BA8" }}>
+                    style={{ color: rate >= 80 ? "#6BA028" : rate >= 50 ? "#F7941D" : "#8A9BA8" }}>
                     {rate}%
                   </span>
                 </div>
@@ -696,8 +696,8 @@ export default function DoctorAnalyticsPage() {
       {/* ── Zero-data prompt ───────────────────────────────────────────── */}
       {appointments.length === 0 && (
         <div className="rounded-2xl p-8 text-center"
-          style={{ background: "rgba(78,205,196,0.04)", border: "1px dashed rgba(78,205,196,0.3)" }}>
-          <p className="text-sm font-medium mb-1" style={{ color: "#0D3B44" }}>
+          style={{ background: "rgba(141,198,63,0.04)", border: "1px dashed rgba(141,198,63,0.3)" }}>
+          <p className="text-sm font-medium mb-1" style={{ color: "#2A4A1A" }}>
             Analytics will fill in as sessions are completed
           </p>
           <p className="text-xs" style={{ color: "#8A9BA8" }}>

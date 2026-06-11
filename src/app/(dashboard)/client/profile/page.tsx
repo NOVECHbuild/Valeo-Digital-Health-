@@ -40,10 +40,10 @@ const GOALS = [
 
 // FIX 1: Accent → rgba map (replaces invalid hex-alpha string concat)
 const ACCENT_RGBA: Record<string, string> = {
-  "#0D3B44": "rgba(13,59,68,0.1)",
-  "#4ECDC4": "rgba(78,205,196,0.1)",
-  "#E8604C": "rgba(232,96,76,0.1)",
-  "#D4A853": "rgba(212,168,83,0.1)",
+  "#2A4A1A": "rgba(42,74,26,0.1)",
+  "#8DC63F": "rgba(141,198,63,0.1)",
+  "#F7941D": "rgba(247,148,29,0.1)",
+  "#F7941D": "rgba(247,148,29,0.1)",
 };
 
 // S1: First + last initial when name has a space
@@ -60,29 +60,29 @@ function passwordStrength(pw: string): { level: 0|1|2|3; label: string; color: s
   if (pw.length >= 8)  score++;
   if (pw.length >= 12) score++;
   if (/[A-Z]/.test(pw) && /[0-9]/.test(pw)) score++;
-  if (score <= 1) return { level: 1, label: "Weak",   color: "#E8604C" };
-  if (score === 2) return { level: 2, label: "Fair",   color: "#D4A853" };
-  return              { level: 3, label: "Strong", color: "#2BA8A0" };
+  if (score <= 1) return { level: 1, label: "Weak",   color: "#F7941D" };
+  if (score === 2) return { level: 2, label: "Fair",   color: "#F7941D" };
+  return              { level: 3, label: "Strong", color: "#6BA028" };
 }
 
 // ── Section wrapper ────────────────────────────────────────────────────────
 function Section({
-  title, icon: Icon, children, accent = "#0D3B44",
+  title, icon: Icon, children, accent = "#2A4A1A",
 }: {
   title: string; icon: React.ElementType;
   children: React.ReactNode; accent?: string;
 }) {
   return (
     <div className="rounded-2xl p-6"
-      style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}>
+      style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
       <div className="flex items-center gap-2 mb-5 pb-4 border-b"
-        style={{ borderColor: "rgba(13,59,68,0.07)" }}>
+        style={{ borderColor: "rgba(42,74,26,0.07)" }}>
         {/* FIX 1: Use ACCENT_RGBA map, not accent+"12" string concat */}
         <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{ background: ACCENT_RGBA[accent] ?? "rgba(13,59,68,0.1)" }}>
+          style={{ background: ACCENT_RGBA[accent] ?? "rgba(42,74,26,0.1)" }}>
           <Icon size={16} style={{ color: accent }} />
         </div>
-        <h3 className="text-sm font-semibold" style={{ color: "#0D3B44" }}>{title}</h3>
+        <h3 className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>{title}</h3>
       </div>
       {children}
     </div>
@@ -119,7 +119,7 @@ function Input({ value, onChange, placeholder, type = "text" }: {
     <input type={type} value={value} onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
       className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none transition-colors"
-      style={{ borderColor: "rgba(13,59,68,0.15)", background: "#FAFAFA" }} />
+      style={{ borderColor: "rgba(42,74,26,0.15)", background: "#FAFAFA" }} />
   );
 }
 
@@ -131,12 +131,12 @@ function EditActions({ saving, onCancel, onSave }: {
     <div className="flex items-center gap-2">
       <button onClick={onCancel}
         className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg"
-        style={{ color: "#8A9BA8", background: "rgba(13,59,68,0.04)" }}>
+        style={{ color: "#8A9BA8", background: "rgba(42,74,26,0.04)" }}>
         <X size={12} /> Cancel
       </button>
       <button onClick={onSave} disabled={saving}
         className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-60"
-        style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+        style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
         {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
         Save
       </button>
@@ -148,7 +148,7 @@ function EditActions({ saving, onCancel, onSave }: {
 function Toast({ type, msg }: { type: "success" | "error"; msg: string }) {
   return (
     <div className="fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg text-sm font-medium"
-      style={{ background: type === "success" ? "#0D3B44" : "#E8604C", color: "white" }}>
+      style={{ background: type === "success" ? "#2A4A1A" : "#F7941D", color: "white" }}>
       {type === "success" ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
       {msg}
     </div>
@@ -167,10 +167,10 @@ function CompletenessBar({ profile }: { profile: ProfileData }) {
   ];
   const filled = fields.filter(Boolean).length;
   const pct = Math.round((filled / fields.length) * 100);
-  const color = pct < 50 ? "#D4A853" : pct < 100 ? "#4ECDC4" : "#2BA8A0";
+  const color = pct < 50 ? "#F7941D" : pct < 100 ? "#8DC63F" : "#6BA028";
   return (
     <div className="flex items-center gap-3">
-      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(13,59,68,0.08)" }}>
+      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(42,74,26,0.08)" }}>
         <div className="h-full rounded-full transition-all duration-500"
           style={{ width: `${pct}%`, background: color }} />
       </div>
@@ -357,7 +357,7 @@ export default function ClientProfilePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <Loader2 size={28} className="animate-spin" style={{ color: "#4ECDC4" }} />
+        <Loader2 size={28} className="animate-spin" style={{ color: "#8DC63F" }} />
       </div>
     );
   }
@@ -371,9 +371,9 @@ export default function ClientProfilePage() {
       {/* FIX 2: Fetch error banner */}
       {fetchError && (
         <div className="rounded-2xl p-4 flex items-start gap-3"
-          style={{ background: "rgba(232,96,76,0.06)", border: "1px solid rgba(232,96,76,0.15)" }}>
-          <AlertTriangle size={15} className="flex-shrink-0 mt-0.5" style={{ color: "#E8604C" }} />
-          <p className="text-sm" style={{ color: "#E8604C" }}>{fetchError}</p>
+          style={{ background: "rgba(247,148,29,0.06)", border: "1px solid rgba(247,148,29,0.15)" }}>
+          <AlertTriangle size={15} className="flex-shrink-0 mt-0.5" style={{ color: "#F7941D" }} />
+          <p className="text-sm" style={{ color: "#F7941D" }}>{fetchError}</p>
         </div>
       )}
 
@@ -381,11 +381,11 @@ export default function ClientProfilePage() {
       <div className="flex items-center gap-4">
         {/* S1: First + last initials */}
         <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-bold flex-shrink-0"
-          style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)", color: "white" }}>
+          style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)", color: "white" }}>
           {getInitials(profile.displayName || user?.displayName || "U")}
         </div>
         <div className="flex-1 min-w-0">
-          <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>
+          <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
             {profile.displayName || "Your Profile"}
           </h2>
           <p className="text-sm mb-2" style={{ color: "#8A9BA8" }}>{profile.email}</p>
@@ -401,7 +401,7 @@ export default function ClientProfilePage() {
           {!isEditing("personal") ? (
             <button onClick={() => startEdit("personal")}
               className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
-              style={{ color: "#0D3B44", background: "rgba(13,59,68,0.06)" }}>
+              style={{ color: "#2A4A1A", background: "rgba(42,74,26,0.06)" }}>
               <Edit3 size={12} /> Edit
             </button>
           ) : (
@@ -443,7 +443,7 @@ export default function ClientProfilePage() {
       </Section>
 
       {/* ── Wellness Goals ── */}
-      <Section title="Wellness Goals" icon={Heart} accent="#4ECDC4">
+      <Section title="Wellness Goals" icon={Heart} accent="#8DC63F">
         <div className="flex items-center justify-between mb-4">
           <p className="text-xs" style={{ color: "#8A9BA8" }}>
             {profile.goals.length > 0
@@ -453,7 +453,7 @@ export default function ClientProfilePage() {
           {!isEditing("goals") ? (
             <button onClick={() => startEdit("goals")}
               className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg"
-              style={{ color: "#0D3B44", background: "rgba(13,59,68,0.06)" }}>
+              style={{ color: "#2A4A1A", background: "rgba(42,74,26,0.06)" }}>
               <Edit3 size={12} /> Edit
             </button>
           ) : (
@@ -470,11 +470,11 @@ export default function ClientProfilePage() {
                   <button key={goal} onClick={() => toggleGoal(goal)}
                     className="text-left p-3 rounded-xl border-2 text-xs font-medium transition-all"
                     style={{
-                      borderColor: selected ? "#0D3B44" : "rgba(13,59,68,0.1)",
-                      background:  selected ? "rgba(13,59,68,0.05)" : "white",
-                      color:       selected ? "#0D3B44" : "#4A5568",
+                      borderColor: selected ? "#2A4A1A" : "rgba(42,74,26,0.1)",
+                      background:  selected ? "rgba(42,74,26,0.05)" : "white",
+                      color:       selected ? "#2A4A1A" : "#4A5568",
                     }}>
-                    {selected && <CheckCircle size={11} className="inline mr-1" style={{ color: "#4ECDC4" }} />}
+                    {selected && <CheckCircle size={11} className="inline mr-1" style={{ color: "#8DC63F" }} />}
                     {goal}
                   </button>
                 );
@@ -487,7 +487,7 @@ export default function ClientProfilePage() {
               <select value={draft.preferredTime}
                 onChange={e => setDraft(d => ({ ...d, preferredTime: e.target.value }))}
                 className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none"
-                style={{ borderColor: "rgba(13,59,68,0.15)", background: "#FAFAFA" }}>
+                style={{ borderColor: "rgba(42,74,26,0.15)", background: "#FAFAFA" }}>
                 <option value="">No preference</option>
                 <option value="morning">Morning (9am – 12pm)</option>
                 <option value="afternoon">Afternoon (12pm – 4pm)</option>
@@ -501,7 +501,7 @@ export default function ClientProfilePage() {
               <div className="flex flex-wrap gap-2">
                 {profile.goals.map(goal => (
                   <span key={goal} className="px-3 py-1.5 rounded-full text-xs font-medium"
-                    style={{ background: "rgba(78,205,196,0.1)", color: "#2BA8A0" }}>
+                    style={{ background: "rgba(141,198,63,0.1)", color: "#6BA028" }}>
                     {goal}
                   </span>
                 ))}
@@ -527,13 +527,13 @@ export default function ClientProfilePage() {
       </Section>
 
       {/* ── Emergency Contact ── */}
-      <Section title="Emergency Contact" icon={Users} accent="#E8604C">
+      <Section title="Emergency Contact" icon={Users} accent="#F7941D">
         <div className="flex items-center justify-between mb-4">
           <span />
           {!isEditing("emergency") ? (
             <button onClick={() => startEdit("emergency")}
               className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg"
-              style={{ color: "#0D3B44", background: "rgba(13,59,68,0.06)" }}>
+              style={{ color: "#2A4A1A", background: "rgba(42,74,26,0.06)" }}>
               <Edit3 size={12} /> Edit
             </button>
           ) : (
@@ -555,13 +555,13 @@ export default function ClientProfilePage() {
       </Section>
 
       {/* ── Security ── */}
-      <Section title="Security" icon={Shield} accent="#D4A853">
+      <Section title="Security" icon={Shield} accent="#F7941D">
         <div className="flex items-center justify-between mb-4">
           <p className="text-xs" style={{ color: "#8A9BA8" }}>Change your account password</p>
           {!isEditing("password") ? (
             <button onClick={() => { setEditSection("password"); setPwError(null); }}
               className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg"
-              style={{ color: "#0D3B44", background: "rgba(13,59,68,0.06)" }}>
+              style={{ color: "#2A4A1A", background: "rgba(42,74,26,0.06)" }}>
               <Lock size={12} /> Change Password
             </button>
           ) : (
@@ -570,7 +570,7 @@ export default function ClientProfilePage() {
               setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
             }}
               className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg"
-              style={{ color: "#8A9BA8", background: "rgba(13,59,68,0.04)" }}>
+              style={{ color: "#8A9BA8", background: "rgba(42,74,26,0.04)" }}>
               <X size={12} /> Cancel
             </button>
           )}
@@ -580,7 +580,7 @@ export default function ClientProfilePage() {
           <div className="space-y-4">
             {pwError && (
               <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm"
-                style={{ background: "rgba(232,96,76,0.08)", color: "#E8604C" }}>
+                style={{ background: "rgba(247,148,29,0.08)", color: "#F7941D" }}>
                 <AlertCircle size={14} />{pwError}
               </div>
             )}
@@ -591,7 +591,7 @@ export default function ClientProfilePage() {
                 onChange={e => setCurrentPassword(e.target.value)}
                 placeholder="Your current password"
                 className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none"
-                style={{ borderColor: "rgba(13,59,68,0.15)", background: "#FAFAFA" }} />
+                style={{ borderColor: "rgba(42,74,26,0.15)", background: "#FAFAFA" }} />
             </div>
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
@@ -600,7 +600,7 @@ export default function ClientProfilePage() {
                 onChange={e => setNewPassword(e.target.value)}
                 placeholder="Min. 8 characters"
                 className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none"
-                style={{ borderColor: "rgba(13,59,68,0.15)", background: "#FAFAFA" }} />
+                style={{ borderColor: "rgba(42,74,26,0.15)", background: "#FAFAFA" }} />
               {/* S3: Password strength meter */}
               {newPassword && (
                 <div className="mt-2">
@@ -608,7 +608,7 @@ export default function ClientProfilePage() {
                     {[1, 2, 3].map(i => (
                       <div key={i} className="flex-1 h-1 rounded-full transition-all"
                         style={{
-                          background: i <= strength.level ? strength.color : "rgba(13,59,68,0.08)",
+                          background: i <= strength.level ? strength.color : "rgba(42,74,26,0.08)",
                         }} />
                     ))}
                   </div>
@@ -625,17 +625,17 @@ export default function ClientProfilePage() {
                 className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none"
                 style={{
                   borderColor: confirmPassword && confirmPassword !== newPassword
-                    ? "#E8604C" : "rgba(13,59,68,0.15)",
+                    ? "#F7941D" : "rgba(42,74,26,0.15)",
                   background: "#FAFAFA",
                 }} />
               {confirmPassword && confirmPassword !== newPassword && (
-                <p className="text-xs mt-1" style={{ color: "#E8604C" }}>Passwords do not match</p>
+                <p className="text-xs mt-1" style={{ color: "#F7941D" }}>Passwords do not match</p>
               )}
             </div>
             <button onClick={handlePasswordChange}
               disabled={pwSaving || !currentPassword || !newPassword || !confirmPassword}
               className="w-full py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-50 flex items-center justify-center gap-2"
-              style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+              style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
               {pwSaving ? <><Loader2 size={14} className="animate-spin" /> Updating…</> : "Update Password"}
             </button>
           </div>
@@ -643,13 +643,13 @@ export default function ClientProfilePage() {
 
         {!isEditing("password") && (
           <div className="flex items-center gap-3 p-3 rounded-xl"
-            style={{ background: "rgba(13,59,68,0.03)" }}>
+            style={{ background: "rgba(42,74,26,0.03)" }}>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: "rgba(78,205,196,0.1)" }}>
-              <Lock size={14} style={{ color: "#4ECDC4" }} />
+              style={{ background: "rgba(141,198,63,0.1)" }}>
+              <Lock size={14} style={{ color: "#8DC63F" }} />
             </div>
             <div>
-              <p className="text-sm font-medium" style={{ color: "#0D3B44" }}>Password</p>
+              <p className="text-sm font-medium" style={{ color: "#2A4A1A" }}>Password</p>
               {/* FIX 7: Real last sign-in time from Firebase Auth metadata */}
               <p className="text-xs" style={{ color: "#8A9BA8" }}>
                 {lastSignIn ? `Last sign-in: ${lastSignIn}` : "Password protected"}
@@ -657,7 +657,7 @@ export default function ClientProfilePage() {
             </div>
             <div className="ml-auto">
               <span className="text-xs px-2.5 py-1 rounded-full font-medium"
-                style={{ background: "rgba(78,205,196,0.1)", color: "#2BA8A0" }}>
+                style={{ background: "rgba(141,198,63,0.1)", color: "#6BA028" }}>
                 Protected
               </span>
             </div>
@@ -667,12 +667,12 @@ export default function ClientProfilePage() {
 
       {/* Email change note */}
       <div className="rounded-2xl p-4 flex items-start gap-3"
-        style={{ background: "rgba(13,59,68,0.03)", border: "1px solid rgba(13,59,68,0.07)" }}>
+        style={{ background: "rgba(42,74,26,0.03)", border: "1px solid rgba(42,74,26,0.07)" }}>
         <Mail size={15} className="flex-shrink-0 mt-0.5" style={{ color: "#8A9BA8" }} />
         <p className="text-xs" style={{ color: "#8A9BA8" }}>
           To change your email address please contact{" "}
           <a href="mailto:support@valeoexperience.com"
-            className="underline font-medium" style={{ color: "#0D3B44" }}>
+            className="underline font-medium" style={{ color: "#2A4A1A" }}>
             support@valeoexperience.com
           </a>
         </p>

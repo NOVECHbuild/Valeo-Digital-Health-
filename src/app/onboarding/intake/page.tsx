@@ -85,14 +85,14 @@ export default function IntakePage() {
   const isMulti       = q.type === "multiselect";
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(135deg, #0D3B44 0%, #1A535C 100%)" }}>
+    <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(135deg, #2A4A1A 0%, #3D6B24 100%)" }}>
 
       {/* Top bar */}
       <div className="px-6 py-5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: "rgba(78,205,196,0.2)" }}>
-            <Heart size={16} style={{ color: "#4ECDC4" }} />
+            style={{ background: "rgba(141,198,63,0.2)" }}>
+            <Heart size={16} style={{ color: "#8DC63F" }} />
           </div>
           <span className="text-white font-semibold" style={{ fontFamily: "var(--font-dm-serif)" }}>
             Valeo
@@ -106,7 +106,7 @@ export default function IntakePage() {
       {/* Progress bar */}
       <div className="mx-6 h-1 rounded-full" style={{ background: "rgba(255,255,255,0.1)" }}>
         <div className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${progress}%`, background: "#4ECDC4" }} />
+          style={{ width: `${progress}%`, background: "#8DC63F" }} />
       </div>
 
       {/* Content */}
@@ -116,7 +116,7 @@ export default function IntakePage() {
           {/* Question */}
           <div className="mb-8">
             <p className="text-xs font-semibold uppercase tracking-widest mb-3"
-              style={{ color: "rgba(78,205,196,0.8)" }}>
+              style={{ color: "rgba(141,198,63,0.8)" }}>
               Question {step + 1}
             </p>
             <h2 className="text-2xl text-white mb-2"
@@ -144,16 +144,16 @@ export default function IntakePage() {
                   className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left transition-all duration-150 hover:-translate-y-0.5"
                   style={{
                     background: selected
-                      ? "rgba(78,205,196,0.2)"
+                      ? "rgba(141,198,63,0.2)"
                       : "rgba(255,255,255,0.06)",
-                    border: `2px solid ${selected ? "#4ECDC4" : "rgba(255,255,255,0.1)"}`,
+                    border: `2px solid ${selected ? "#8DC63F" : "rgba(255,255,255,0.1)"}`,
                   }}>
                   <div className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center border-2 transition-all"
                     style={{
-                      borderColor: selected ? "#4ECDC4" : "rgba(255,255,255,0.3)",
-                      background:  selected ? "#4ECDC4" : "transparent",
+                      borderColor: selected ? "#8DC63F" : "rgba(255,255,255,0.3)",
+                      background:  selected ? "#8DC63F" : "transparent",
                     }}>
-                    {selected && <CheckCircle size={12} style={{ color: "#0D3B44" }} />}
+                    {selected && <CheckCircle size={12} style={{ color: "#2A4A1A" }} />}
                   </div>
                   <span className="text-sm font-medium"
                     style={{ color: selected ? "white" : "rgba(255,255,255,0.8)" }}>
@@ -175,7 +175,7 @@ export default function IntakePage() {
             <button onClick={handleNext}
               disabled={!isAnswered() || saving}
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40 transition-all hover:-translate-y-0.5"
-              style={{ background: "#4ECDC4", color: "#0D3B44" }}>
+              style={{ background: "#8DC63F", color: "#2A4A1A" }}>
               {saving ? (
                 <><Loader2 size={15} className="animate-spin" /> Finding your match...</>
               ) : step === total - 1 ? (

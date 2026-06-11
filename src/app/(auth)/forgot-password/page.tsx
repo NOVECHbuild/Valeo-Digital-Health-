@@ -44,20 +44,20 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md text-center">
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl"
-          style={{ background: "rgba(78,205,196,0.15)" }}
+          style={{ background: "rgba(141,198,63,0.15)" }}
         >
           ✉️
         </div>
         <h1
           className="text-3xl mb-3"
-          style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}
+          style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}
         >
           Check your email
         </h1>
         <p className="text-slate-500 mb-2">
           We sent a password reset link to
         </p>
-        <p className="font-semibold text-ocean mb-8" style={{ color: "#0D3B44" }}>
+        <p className="font-semibold text-ocean mb-8" style={{ color: "#2A4A1A" }}>
           {getValues("email")}
         </p>
         <p className="text-xs text-slate-400 mb-8">
@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
         <Link
           href="/login"
           className="text-sm font-semibold hover:underline"
-          style={{ color: "#0D3B44" }}
+          style={{ color: "#2A4A1A" }}
         >
           ← Back to sign in
         </Link>
@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
     <div className="w-full max-w-md">
       <h1
         className="text-4xl mb-2"
-        style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}
+        style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}
       >
         Reset your password
       </h1>
@@ -123,7 +123,7 @@ export default function ForgotPasswordPage() {
           disabled={loading}
           className="w-full py-3 px-6 rounded-lg text-white font-semibold text-sm
                      transition-all duration-200 disabled:opacity-60"
-          style={{ background: loading ? "#8A9BA8" : "linear-gradient(135deg, #0D3B44, #1A535C)" }}
+          style={{ background: loading ? "#8A9BA8" : "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
         >
           {loading ? "Sending..." : "Send Reset Link"}
         </button>
@@ -133,7 +133,7 @@ export default function ForgotPasswordPage() {
         <Link
           href="/login"
           className="font-semibold hover:underline"
-          style={{ color: "#0D3B44" }}
+          style={{ color: "#2A4A1A" }}
         >
           ← Back to sign in
         </Link>

@@ -13,10 +13,10 @@ import { CheckCircle, Calendar, Video, ArrowRight, Loader2 } from 'lucide-react'
 function LoadingCard() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4"
-      style={{ background: 'linear-gradient(135deg, #0D3B44 0%, #1A535C 100%)' }}>
+      style={{ background: 'linear-gradient(135deg, #2A4A1A 0%, #3D6B24 100%)' }}>
       <div className="rounded-3xl p-10 text-center max-w-sm w-full"
-        style={{ background: 'white', boxShadow: '0 20px 60px rgba(13,59,68,0.25)' }}>
-        <Loader2 size={36} className="animate-spin mx-auto" style={{ color: '#4ECDC4' }} />
+        style={{ background: 'white', boxShadow: '0 20px 60px rgba(42,74,26,0.25)' }}>
+        <Loader2 size={36} className="animate-spin mx-auto" style={{ color: '#8DC63F' }} />
       </div>
     </div>
   );
@@ -66,18 +66,18 @@ function SuccessContent() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4"
-      style={{ background: 'linear-gradient(135deg, #0D3B44 0%, #1A535C 100%)' }}>
+      style={{ background: 'linear-gradient(135deg, #2A4A1A 0%, #3D6B24 100%)' }}>
       <div className="rounded-3xl p-10 text-center max-w-sm w-full"
-        style={{ background: 'white', boxShadow: '0 20px 60px rgba(13,59,68,0.25)' }}>
+        style={{ background: 'white', boxShadow: '0 20px 60px rgba(42,74,26,0.25)' }}>
 
         {/* Success icon */}
         <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
-          style={{ background: 'rgba(78,205,196,0.12)' }}>
-          <CheckCircle size={32} style={{ color: '#2BA8A0' }} />
+          style={{ background: 'rgba(141,198,63,0.12)' }}>
+          <CheckCircle size={32} style={{ color: '#6BA028' }} />
         </div>
 
         <h2 className="text-2xl mb-2"
-          style={{ fontFamily: 'var(--font-dm-serif)', color: '#0D3B44' }}>
+          style={{ fontFamily: 'var(--font-dm-serif)', color: '#2A4A1A' }}>
           Payment Successful!
         </h2>
         <p className="text-sm mb-6" style={{ color: '#8A9BA8' }}>
@@ -89,7 +89,7 @@ function SuccessContent() {
         {meetLink && (
           <a href={meetLink} target="_blank" rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-semibold text-white mb-3 transition-all hover:-translate-y-0.5"
-            style={{ background: 'linear-gradient(135deg, #4ECDC4, #2BA8A0)' }}>
+            style={{ background: 'linear-gradient(135deg, #8DC63F, #6BA028)' }}>
             <Video size={15} /> Join Google Meet
           </a>
         )}
@@ -97,7 +97,7 @@ function SuccessContent() {
         {/* View appointments */}
         <Link href="/client/appointments"
           className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-semibold mb-3 transition-all hover:-translate-y-0.5"
-          style={{ background: 'rgba(13,59,68,0.06)', color: '#0D3B44' }}>
+          style={{ background: 'rgba(42,74,26,0.06)', color: '#2A4A1A' }}>
           <Calendar size={15} /> View My Appointments <ArrowRight size={13} />
         </Link>
 

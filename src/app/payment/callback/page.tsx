@@ -73,19 +73,19 @@ function CallbackHandler() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4"
-      style={{ background: 'linear-gradient(135deg, #0D3B44 0%, #1A535C 100%)' }}>
+      style={{ background: 'linear-gradient(135deg, #2A4A1A 0%, #3D6B24 100%)' }}>
       <div className="rounded-3xl p-10 text-center max-w-sm w-full"
-        style={{ background: 'white', boxShadow: '0 20px 60px rgba(13,59,68,0.25)' }}>
+        style={{ background: 'white', boxShadow: '0 20px 60px rgba(42,74,26,0.25)' }}>
         <div className="mb-5">
           {isError ? (
-            <XCircle size={44} className="mx-auto" style={{ color: '#E8604C' }} />
+            <XCircle size={44} className="mx-auto" style={{ color: '#F7941D' }} />
           ) : (
             <div className="relative w-11 h-11 mx-auto">
-              <Loader2 size={44} className="animate-spin" style={{ color: '#4ECDC4' }} />
+              <Loader2 size={44} className="animate-spin" style={{ color: '#8DC63F' }} />
             </div>
           )}
         </div>
-        <h2 className="text-xl mb-2" style={{ fontFamily: 'var(--font-dm-serif)', color: '#0D3B44' }}>
+        <h2 className="text-xl mb-2" style={{ fontFamily: 'var(--font-dm-serif)', color: '#2A4A1A' }}>
           {isError ? 'Payment Issue' : 'Processing Payment'}
         </h2>
         <p className="text-sm" style={{ color: '#8A9BA8' }}>{statusMsg}</p>
@@ -98,13 +98,13 @@ function CallbackHandler() {
 function CallbackFallback() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4"
-      style={{ background: 'linear-gradient(135deg, #0D3B44 0%, #1A535C 100%)' }}>
+      style={{ background: 'linear-gradient(135deg, #2A4A1A 0%, #3D6B24 100%)' }}>
       <div className="rounded-3xl p-10 text-center max-w-sm w-full"
-        style={{ background: 'white', boxShadow: '0 20px 60px rgba(13,59,68,0.25)' }}>
+        style={{ background: 'white', boxShadow: '0 20px 60px rgba(42,74,26,0.25)' }}>
         <div className="mb-5">
-          <Loader2 size={44} className="animate-spin mx-auto" style={{ color: '#4ECDC4' }} />
+          <Loader2 size={44} className="animate-spin mx-auto" style={{ color: '#8DC63F' }} />
         </div>
-        <h2 className="text-xl mb-2" style={{ fontFamily: 'var(--font-dm-serif)', color: '#0D3B44' }}>
+        <h2 className="text-xl mb-2" style={{ fontFamily: 'var(--font-dm-serif)', color: '#2A4A1A' }}>
           Processing Payment
         </h2>
         <p className="text-sm" style={{ color: '#8A9BA8' }}>Verifying your payment…</p>

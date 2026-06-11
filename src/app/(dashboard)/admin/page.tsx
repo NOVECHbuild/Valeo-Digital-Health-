@@ -14,7 +14,7 @@ type UserDoc     = { uid: string; role: string; displayName: string; email: stri
 type Appointment = { id: string; status: string; sessionType: string; createdAt: any; clientId: string; doctorId: string; };
 type Payment     = { id: string; amount: number; status: string; createdAt: any; source: "online"|"manual"; };
 
-const C = { ocean:"#0D3B44", dark:"#1A1A2E", teal:"#4ECDC4", coral:"#E8604C", gold:"#D4A853", slate:"#8A9BA8" };
+const C = { ocean:"#2A4A1A", dark:"#1E3810", teal:"#8DC63F", coral:"#F7941D", gold:"#F7941D", slate:"#8A9BA8" };
 
 function toDate(ts: any): Date|null {
   if (!ts) return null;
@@ -39,7 +39,7 @@ function StatCard({ label, value, sub, icon: Icon, accent, trend }: {
   trend?: { value: string; positive: boolean };
 }) {
   return (
-    <div className="rounded-2xl p-5" style={{ background:"white", boxShadow:"0 1px 4px rgba(26,26,46,0.07)" }}>
+    <div className="rounded-2xl p-5" style={{ background:"white", boxShadow:"0 1px 4px rgba(30,56,16,0.07)" }}>
       <div className="flex items-center justify-between mb-4">
         <span className="text-xs font-semibold uppercase tracking-wider" style={{ color:C.slate }}>{label}</span>
         <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background:accent+"15" }}>
@@ -62,7 +62,7 @@ function StatCard({ label, value, sub, icon: Icon, accent, trend }: {
 function QuickAction({ href, icon: Icon, label, accent }: { href:string; icon:React.ElementType; label:string; accent:string }) {
   return (
     <Link href={href} className="group flex items-center gap-3 p-3 rounded-xl transition-all hover:-translate-y-0.5"
-      style={{ background:"rgba(26,26,46,0.03)", border:"1px solid rgba(26,26,46,0.06)" }}>
+      style={{ background:"rgba(30,56,16,0.03)", border:"1px solid rgba(30,56,16,0.06)" }}>
       <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background:accent+"15" }}>
         <Icon size={16} style={{ color:accent }}/>
       </div>
@@ -81,7 +81,7 @@ function FeedItem({ event }: { event: FeedEvent }) {
     payment: { Icon: Banknote, color: C.gold  },
   }[event.type];
   return (
-    <div className="flex items-start gap-3 py-3 border-b last:border-0" style={{ borderColor:"rgba(26,26,46,0.05)" }}>
+    <div className="flex items-start gap-3 py-3 border-b last:border-0" style={{ borderColor:"rgba(30,56,16,0.05)" }}>
       <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background:cfg.color+"15" }}>
         <cfg.Icon size={14} style={{ color:cfg.color }}/>
       </div>
@@ -175,9 +175,9 @@ export default function AdminDashboard() {
 
       {/* Hero banner */}
       <div className="rounded-2xl p-6 relative overflow-hidden"
-        style={{ background:"linear-gradient(135deg, #1A1A2E 0%, #2D2D4E 100%)", boxShadow:"0 4px 24px rgba(26,26,46,0.2)" }}>
+        style={{ background:"linear-gradient(135deg, #1E3810 0%, #2D2D4E 100%)", boxShadow:"0 4px 24px rgba(30,56,16,0.2)" }}>
         <div className="absolute right-0 top-0 w-80 h-full opacity-10"
-          style={{ background:"radial-gradient(circle at 80% 50%, #E8604C, transparent 70%)" }}/>
+          style={{ background:"radial-gradient(circle at 80% 50%, #F7941D, transparent 70%)" }}/>
         <div className="relative z-10 flex items-start justify-between flex-wrap gap-4">
           <div>
             {/* Render date only after client mount — no hydration mismatch */}
@@ -191,13 +191,13 @@ export default function AdminDashboard() {
           </div>
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl"
-              style={{ background:"rgba(78,205,196,0.12)", border:"1px solid rgba(78,205,196,0.2)" }}>
+              style={{ background:"rgba(141,198,63,0.12)", border:"1px solid rgba(141,198,63,0.2)" }}>
               <div className="w-2 h-2 rounded-full animate-pulse" style={{ background:C.teal }}/>
               <span className="text-sm font-medium" style={{ color:C.teal }}>All Systems Online</span>
             </div>
             {pendingAppts.length > 0 && (
               <Link href="/admin/assignments" className="flex items-center gap-2 px-4 py-2 rounded-xl transition-opacity hover:opacity-80"
-                style={{ background:"rgba(232,96,76,0.15)", border:"1px solid rgba(232,96,76,0.3)" }}>
+                style={{ background:"rgba(247,148,29,0.15)", border:"1px solid rgba(247,148,29,0.3)" }}>
                 <AlertCircle size={13} style={{ color:C.coral }}/>
                 <span className="text-sm font-medium" style={{ color:C.coral }}>
                   {pendingAppts.length} pending appointment{pendingAppts.length!==1?"s":""}
@@ -218,7 +218,7 @@ export default function AdminDashboard() {
 
       {/* Revenue split */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl p-4 flex items-center gap-4" style={{ background:"white", boxShadow:"0 1px 4px rgba(26,26,46,0.07)" }}>
+        <div className="rounded-2xl p-4 flex items-center gap-4" style={{ background:"white", boxShadow:"0 1px 4px rgba(30,56,16,0.07)" }}>
           <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background:C.teal+"15" }}>
             <Globe size={18} style={{ color:C.teal }}/>
           </div>
@@ -227,7 +227,7 @@ export default function AdminDashboard() {
             <p className="text-xl font-bold" style={{ fontFamily:"var(--font-dm-serif)", color:C.dark }}>{fmt(onlineRevenue)}</p>
           </div>
         </div>
-        <div className="rounded-2xl p-4 flex items-center gap-4" style={{ background:"white", boxShadow:"0 1px 4px rgba(26,26,46,0.07)" }}>
+        <div className="rounded-2xl p-4 flex items-center gap-4" style={{ background:"white", boxShadow:"0 1px 4px rgba(30,56,16,0.07)" }}>
           <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background:C.gold+"15" }}>
             <Banknote size={18} style={{ color:C.gold }}/>
           </div>
@@ -240,14 +240,14 @@ export default function AdminDashboard() {
 
       {/* Activity feed + Quick Actions */}
       <div className="grid lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 rounded-2xl p-5" style={{ background:"white", boxShadow:"0 1px 4px rgba(26,26,46,0.07)" }}>
+        <div className="lg:col-span-2 rounded-2xl p-5" style={{ background:"white", boxShadow:"0 1px 4px rgba(30,56,16,0.07)" }}>
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-semibold uppercase tracking-wider" style={{ color:C.slate }}>Recent Activity</h3>
             <Activity size={15} style={{ color:C.slate }}/>
           </div>
           {feed.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3" style={{ background:"rgba(232,96,76,0.06)" }}>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3" style={{ background:"rgba(247,148,29,0.06)" }}>
                 <Activity size={24} style={{ color:C.coral }}/>
               </div>
               <p className="text-sm font-medium mb-1" style={{ color:C.dark }}>No activity yet</p>
@@ -266,7 +266,7 @@ export default function AdminDashboard() {
           <QuickAction href="/admin/analytics"     icon={TrendingUp}  label="Analytics"         accent={C.coral} />
           <QuickAction href="/admin/announcements" icon={Activity}    label="Announcements"     accent="#9B59B6" />
           <QuickAction href="/admin/settings"      icon={Settings}    label="Platform Settings" accent={C.dark}  />
-          <div className="rounded-xl p-4" style={{ background:"rgba(26,26,46,0.03)", border:"1px solid rgba(26,26,46,0.08)" }}>
+          <div className="rounded-xl p-4" style={{ background:"rgba(30,56,16,0.03)", border:"1px solid rgba(30,56,16,0.08)" }}>
             <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color:C.slate }}>System Health</p>
             {[
               { label:"Firebase Auth",  status:"Operational",    ok:true  },
@@ -274,7 +274,7 @@ export default function AdminDashboard() {
               { label:"Storage",        status:"Operational",    ok:true  },
               { label:"WiPay Gateway",  status:"Not configured", ok:false },
             ].map(({ label, status, ok }) => (
-              <div key={label} className="flex items-center justify-between py-1.5 border-b last:border-0" style={{ borderColor:"rgba(26,26,46,0.06)" }}>
+              <div key={label} className="flex items-center justify-between py-1.5 border-b last:border-0" style={{ borderColor:"rgba(30,56,16,0.06)" }}>
                 <span className="text-xs" style={{ color:"#4A5568" }}>{label}</span>
                 <span className="text-xs font-medium flex items-center gap-1" style={{ color:ok?C.teal:C.coral }}>
                   <div className="w-1.5 h-1.5 rounded-full" style={{ background:ok?C.teal:C.coral }}/>
@@ -296,7 +296,7 @@ export default function AdminDashboard() {
         ].map(({ label, count, icon: Icon, accent, desc, href }) => (
           <Link key={label} href={href}
             className="group rounded-2xl p-5 flex items-center gap-4 transition-all hover:-translate-y-0.5"
-            style={{ background:"white", boxShadow:"0 1px 4px rgba(26,26,46,0.07)" }}>
+            style={{ background:"white", boxShadow:"0 1px 4px rgba(30,56,16,0.07)" }}>
             <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background:accent+"12" }}>
               <Icon size={22} style={{ color:accent }}/>
             </div>

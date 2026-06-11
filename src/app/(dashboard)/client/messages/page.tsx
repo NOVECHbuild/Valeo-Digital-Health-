@@ -55,10 +55,10 @@ function Bubble({ msg, isOwn }: { msg: any; isOwn: boolean }) {
         <div
           className="px-4 py-2.5 rounded-2xl text-sm leading-relaxed"
           style={{
-            background:   isOwn ? "linear-gradient(135deg, #0D3B44, #1A535C)" : "white",
+            background:   isOwn ? "linear-gradient(135deg, #2A4A1A, #3D6B24)" : "white",
             color:        isOwn ? "white" : "#22272B",
             borderRadius: isOwn ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-            boxShadow:    isOwn ? "none" : "0 1px 3px rgba(13,59,68,0.08)",
+            boxShadow:    isOwn ? "none" : "0 1px 3px rgba(42,74,26,0.08)",
           }}
         >
           {msg.text}
@@ -72,7 +72,7 @@ function Bubble({ msg, isOwn }: { msg: any; isOwn: boolean }) {
             <CheckCheck
               size={11}
               className="inline ml-1"
-              style={{ color: msg._optimistic ? "#C4C4C4" : "#4ECDC4" }} // S1: dim while pending
+              style={{ color: msg._optimistic ? "#C4C4C4" : "#8DC63F" }} // S1: dim while pending
             />
           )}
         </p>
@@ -234,7 +234,7 @@ export default function ClientMessagesPage() {
           height: "calc(100vh - 160px)",
           minHeight: "520px",
           background: "white",
-          boxShadow: "0 2px 12px rgba(13,59,68,0.08)",
+          boxShadow: "0 2px 12px rgba(42,74,26,0.08)",
         }}
       >
 
@@ -242,13 +242,13 @@ export default function ClientMessagesPage() {
         <div
           className={`flex-shrink-0 border-r flex flex-col
             ${mobileView === "chat" ? "hidden md:flex" : "flex"} w-full md:w-72`}
-          style={{ borderColor: "rgba(13,59,68,0.08)" }}
+          style={{ borderColor: "rgba(42,74,26,0.08)" }}
         >
           {/* Sidebar header */}
-          <div className="p-5 border-b" style={{ borderColor: "rgba(13,59,68,0.08)" }}>
+          <div className="p-5 border-b" style={{ borderColor: "rgba(42,74,26,0.08)" }}>
             <h2
               className="text-lg font-semibold"
-              style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}
+              style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}
             >
               Messages
             </h2>
@@ -262,17 +262,17 @@ export default function ClientMessagesPage() {
           <div className="flex-1 overflow-y-auto">
             {convLoading ? (
               <div className="flex items-center justify-center py-10">
-                <Loader2 size={20} className="animate-spin" style={{ color: "#4ECDC4" }} />
+                <Loader2 size={20} className="animate-spin" style={{ color: "#8DC63F" }} />
               </div>
             ) : conversations.length === 0 ? (
               <div className="p-5 text-center">
                 <div
                   className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3"
-                  style={{ background: "rgba(78,205,196,0.08)" }}
+                  style={{ background: "rgba(141,198,63,0.08)" }}
                 >
-                  <MessageCircle size={20} style={{ color: "#4ECDC4" }} />
+                  <MessageCircle size={20} style={{ color: "#8DC63F" }} />
                 </div>
-                <p className="text-sm font-medium mb-1" style={{ color: "#0D3B44" }}>
+                <p className="text-sm font-medium mb-1" style={{ color: "#2A4A1A" }}>
                   No messages yet
                 </p>
                 <p className="text-xs mb-4" style={{ color: "#8A9BA8" }}>
@@ -281,7 +281,7 @@ export default function ClientMessagesPage() {
                 {/* FIX 5: Show error if startConversation fails */}
                 {startError && (
                   <p className="text-xs mb-3 flex items-center justify-center gap-1"
-                    style={{ color: "#E8604C" }}>
+                    style={{ color: "#F7941D" }}>
                     <AlertCircle size={12} />{startError}
                   </p>
                 )}
@@ -289,7 +289,7 @@ export default function ClientMessagesPage() {
                   onClick={startConversation}
                   disabled={startingNew}
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
-                  style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}
+                  style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
                 >
                   {startingNew
                     ? <Loader2 size={13} className="animate-spin" />
@@ -309,20 +309,20 @@ export default function ClientMessagesPage() {
                     onClick={() => openConv(conv.id, conv.doctorName ?? "Dr. Miller")}
                     className="w-full text-left px-5 py-4 border-b transition-colors hover:bg-black/[0.02]"
                     style={{
-                      borderColor: "rgba(13,59,68,0.05)",
-                      background:  isActive ? "rgba(13,59,68,0.04)" : "transparent",
+                      borderColor: "rgba(42,74,26,0.05)",
+                      background:  isActive ? "rgba(42,74,26,0.04)" : "transparent",
                     }}
                   >
                     <div className="flex items-center gap-3">
                       <div
                         className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
-                        style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)", color: "white" }}
+                        style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)", color: "white" }}
                       >
                         {conv.doctorName?.[0]?.toUpperCase() ?? "D"}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <p className="text-sm font-semibold truncate" style={{ color: "#0D3B44" }}>
+                          <p className="text-sm font-semibold truncate" style={{ color: "#2A4A1A" }}>
                             {conv.doctorName ?? "Your Therapist"}
                           </p>
                           <span className="text-xs flex-shrink-0 ml-1" style={{ color: "#C4C4C4" }}>
@@ -338,7 +338,7 @@ export default function ClientMessagesPage() {
                           {unreadLabel && (
                             <span
                               className="min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ml-1 text-white"
-                              style={{ background: "#4ECDC4" }}
+                              style={{ background: "#8DC63F" }}
                             >
                               {unreadLabel}
                             </span>
@@ -353,7 +353,7 @@ export default function ClientMessagesPage() {
           </div>
 
           {/* Privacy note */}
-          <div className="p-4 border-t" style={{ borderColor: "rgba(13,59,68,0.08)" }}>
+          <div className="p-4 border-t" style={{ borderColor: "rgba(42,74,26,0.08)" }}>
             <p className="flex items-center gap-1.5 text-xs" style={{ color: "#C4C4C4" }}>
               <Lock size={10} /> End-to-end encrypted · HIPAA compliant
             </p>
@@ -370,7 +370,7 @@ export default function ClientMessagesPage() {
               {/* Chat header */}
               <div
                 className="flex items-center gap-3 px-5 py-4 border-b flex-shrink-0"
-                style={{ borderColor: "rgba(13,59,68,0.08)" }}
+                style={{ borderColor: "rgba(42,74,26,0.08)" }}
               >
                 {/* Mobile back */}
                 <button
@@ -381,19 +381,19 @@ export default function ClientMessagesPage() {
                 </button>
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
-                  style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)", color: "white" }}
+                  style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)", color: "white" }}
                 >
                   {doctorName?.[0]?.toUpperCase() ?? "D"}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold" style={{ color: "#0D3B44" }}>
+                  <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>
                     {doctorName || "Your Therapist"}
                   </p>
                   {/* FIX 8: Show generic "Therapist" instead of hardcoded specialty */}
-                  <p className="text-xs flex items-center gap-1" style={{ color: "#4ECDC4" }}>
+                  <p className="text-xs flex items-center gap-1" style={{ color: "#8DC63F" }}>
                     <span
                       className="w-1.5 h-1.5 rounded-full inline-block"
-                      style={{ background: "#4ECDC4" }}
+                      style={{ background: "#8DC63F" }}
                     />
                     {activeConv.doctorSpecialization ?? "Therapist"}
                   </p>
@@ -404,17 +404,17 @@ export default function ClientMessagesPage() {
               <div className="flex-1 overflow-y-auto px-5 py-4">
                 {msgLoading ? (
                   <div className="flex items-center justify-center h-full">
-                    <Loader2 size={24} className="animate-spin" style={{ color: "#4ECDC4" }} />
+                    <Loader2 size={24} className="animate-spin" style={{ color: "#8DC63F" }} />
                   </div>
                 ) : allMessages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center px-6">
                     <div
                       className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-                      style={{ background: "rgba(78,205,196,0.08)" }}
+                      style={{ background: "rgba(141,198,63,0.08)" }}
                     >
-                      <MessageCircle size={20} style={{ color: "#4ECDC4" }} />
+                      <MessageCircle size={20} style={{ color: "#8DC63F" }} />
                     </div>
-                    <p className="text-sm font-medium mb-1" style={{ color: "#0D3B44" }}>
+                    <p className="text-sm font-medium mb-1" style={{ color: "#2A4A1A" }}>
                       Start the conversation
                     </p>
                     <p className="text-xs" style={{ color: "#8A9BA8" }}>
@@ -439,11 +439,11 @@ export default function ClientMessagesPage() {
                         <div key={msg.id}>
                           {showDate && dateLabel && (
                             <div className="flex items-center gap-3 my-4">
-                              <div className="flex-1 h-px" style={{ background: "rgba(13,59,68,0.08)" }} />
+                              <div className="flex-1 h-px" style={{ background: "rgba(42,74,26,0.08)" }} />
                               <span className="text-xs px-3" style={{ color: "#C4C4C4" }}>
                                 {dateLabel}
                               </span>
-                              <div className="flex-1 h-px" style={{ background: "rgba(13,59,68,0.08)" }} />
+                              <div className="flex-1 h-px" style={{ background: "rgba(42,74,26,0.08)" }} />
                             </div>
                           )}
                           <Bubble msg={msg} isOwn={isOwn} />
@@ -458,13 +458,13 @@ export default function ClientMessagesPage() {
               {/* Input area */}
               <div
                 className="px-5 py-4 border-t flex-shrink-0"
-                style={{ borderColor: "rgba(13,59,68,0.08)" }}
+                style={{ borderColor: "rgba(42,74,26,0.08)" }}
               >
                 {/* FIX 10: Send error banner */}
                 {sendError && (
                   <div
                     className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs mb-3"
-                    style={{ background: "rgba(232,96,76,0.08)", color: "#E8604C" }}
+                    style={{ background: "rgba(247,148,29,0.08)", color: "#F7941D" }}
                   >
                     <AlertCircle size={13} />
                     {sendError}
@@ -489,8 +489,8 @@ export default function ClientMessagesPage() {
                     rows={1}
                     className="flex-1 px-4 py-3 rounded-2xl text-sm border resize-none focus:outline-none leading-relaxed"
                     style={{
-                      borderColor: "rgba(13,59,68,0.15)",
-                      background:  "rgba(13,59,68,0.02)",
+                      borderColor: "rgba(42,74,26,0.15)",
+                      background:  "rgba(42,74,26,0.02)",
                       maxHeight:   "120px",
                     }}
                   />
@@ -498,7 +498,7 @@ export default function ClientMessagesPage() {
                     onClick={handleSend}
                     disabled={!text.trim() || sending}
                     className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 disabled:opacity-40 transition-all hover:-translate-y-0.5"
-                    style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}
+                    style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
                   >
                     {sending
                       ? <Loader2 size={16} className="animate-spin text-white" />
@@ -515,11 +515,11 @@ export default function ClientMessagesPage() {
             <div className="flex-1 flex flex-col items-center justify-center text-center px-8">
               <div
                 className="w-16 h-16 rounded-3xl flex items-center justify-center mb-4"
-                style={{ background: "rgba(13,59,68,0.05)" }}
+                style={{ background: "rgba(42,74,26,0.05)" }}
               >
                 <MessageCircle size={28} style={{ color: "#8A9BA8" }} />
               </div>
-              <p className="text-base font-semibold mb-1" style={{ color: "#0D3B44" }}>
+              <p className="text-base font-semibold mb-1" style={{ color: "#2A4A1A" }}>
                 Your messages
               </p>
               <p className="text-sm mb-5" style={{ color: "#8A9BA8" }}>
@@ -531,7 +531,7 @@ export default function ClientMessagesPage() {
               {conversations.length === 0 && !convLoading && (
                 <>
                   {startError && (
-                    <p className="text-xs mb-3 flex items-center gap-1" style={{ color: "#E8604C" }}>
+                    <p className="text-xs mb-3 flex items-center gap-1" style={{ color: "#F7941D" }}>
                       <AlertCircle size={12} />{startError}
                     </p>
                   )}
@@ -539,7 +539,7 @@ export default function ClientMessagesPage() {
                     onClick={startConversation}
                     disabled={startingNew}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60 transition-all hover:-translate-y-0.5"
-                    style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}
+                    style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
                   >
                     {startingNew
                       ? <Loader2 size={14} className="animate-spin" />

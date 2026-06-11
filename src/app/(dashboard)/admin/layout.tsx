@@ -68,7 +68,7 @@ export default function AdminLayout({
           "lg:!translate-x-0 lg:static lg:z-auto",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
-        style={{ width: "256px", minWidth: "256px", background: "#1A1A2E" }}
+        style={{ width: "256px", minWidth: "256px", background: "#1E3810" }}
       >
         {/* Logo */}
         <div className="flex items-center justify-between px-6 py-6 border-b border-white/10">
@@ -79,7 +79,7 @@ export default function AdminLayout({
             >
               Valeo
             </span>
-            <span className="text-xs tracking-widest uppercase" style={{ color: "#E8604C" }}>
+            <span className="text-xs tracking-widest uppercase" style={{ color: "#F7941D" }}>
               Admin Console
             </span>
           </div>
@@ -98,7 +98,7 @@ export default function AdminLayout({
         >
           <div
             className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #E8604C, #C44D3A)", color: "white" }}
+            style={{ background: "linear-gradient(135deg, #F7941D, #C4700A)", color: "white" }}
           >
             <Shield size={15} />
           </div>
@@ -131,7 +131,7 @@ export default function AdminLayout({
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
                   active ? "" : "text-white/55 hover:text-white hover:bg-white/5"
                 )}
-                style={active ? { background: "#E8604C", color: "white" } : {}}
+                style={active ? { background: "#F7941D", color: "white" } : {}}
               >
                 <Icon size={17} />
                 <span className="flex-1">{label}</span>
@@ -163,22 +163,22 @@ export default function AdminLayout({
           style={{
             background: "rgba(244,244,246,0.92)",
             backdropFilter: "blur(12px)",
-            borderColor: "rgba(26,26,46,0.08)",
+            borderColor: "rgba(30,56,16,0.08)",
           }}
         >
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden p-2 rounded-lg hover:bg-black/5"
-              style={{ color: "#1A1A2E" }}
+              style={{ color: "#1E3810" }}
             >
               <Menu size={20} />
             </button>
             <div className="flex items-center gap-2">
-              <Shield size={16} style={{ color: "#E8604C" }} />
+              <Shield size={16} style={{ color: "#F7941D" }} />
               <h1
                 className="text-lg font-medium"
-                style={{ fontFamily: "var(--font-dm-serif)", color: "#1A1A2E" }}
+                style={{ fontFamily: "var(--font-dm-serif)", color: "#1E3810" }}
               >
                 {navItems.find(i => i.href === pathname)?.label ?? "Admin Console"}
               </h1>
@@ -193,12 +193,12 @@ export default function AdminLayout({
               <Bell size={18} />
               <span
                 className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
-                style={{ background: "#E8604C" }}
+                style={{ background: "#F7941D" }}
               />
             </button>
             <div
               className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold"
-              style={{ background: "rgba(232,96,76,0.1)", color: "#E8604C" }}
+              style={{ background: "rgba(247,148,29,0.1)", color: "#F7941D" }}
             >
               <Shield size={12} />
               Admin Access

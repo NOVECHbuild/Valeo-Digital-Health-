@@ -3,16 +3,20 @@
 @tailwind utilities;
 
 :root {
-  --ocean:        #0D3B44;
-  --ocean-mid:    #1A535C;
-  --teal:         #4ECDC4;
-  --teal-light:   #7EDDD7;
-  --coral:        #E8604C;
-  --sand:         #F5EFE0;
-  --cream:        #FAF8F3;
-  --charcoal:     #22272B;
-  --slate:        #4A5568;
-  --mist:         #8A9BA8;
+  --forest:        #2A4A1A;
+  --forest-mid:    #3D6B24;
+  --green:         #8DC63F;
+  --green-light:   #A8D460;
+  --orange:        #F7941D;
+  --orange-dark:   #C4700A;
+  --orange-light:  #F9A84D;
+  --gray:          #58595B;
+  --leaf:          #F2F8EA;
+  --cream:         #F6FAF0;
+  --ivory:         #FAFCF7;
+  --charcoal:      #22272B;
+  --slate:         #4A5568;
+  --mist:          #8A9BA8;
 
   --font-dm-sans:  'DM Sans', sans-serif;
   --font-dm-serif: 'DM Serif Display', serif;
@@ -29,7 +33,7 @@ html {
 body {
   font-family: var(--font-dm-sans);
   color: var(--charcoal);
-  background: var(--cream);
+  background: var(--ivory);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -40,10 +44,12 @@ h1, h2, h3 {
 }
 
 @layer utilities {
-  .bg-cream  { background-color: var(--cream); }
-  .bg-ocean  { background-color: var(--ocean); }
-  .text-ocean { color: var(--ocean); }
-  .text-teal  { color: var(--teal); }
-  .ring-teal  { --tw-ring-color: var(--teal); }
-  .border-teal { border-color: var(--teal); }
+  .bg-cream    { background-color: var(--cream); }
+  .bg-leaf     { background-color: var(--leaf); }
+  .bg-forest   { background-color: var(--forest); }
+  .text-forest { color: var(--forest); }
+  .text-green  { color: var(--green); }
+  .text-orange { color: var(--orange); }
+  .ring-green  { --tw-ring-color: var(--green); }
+  .border-green { border-color: var(--green); }
 }

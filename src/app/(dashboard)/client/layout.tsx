@@ -107,7 +107,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           "lg:!translate-x-0 lg:static lg:z-auto",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
-        style={{ width: "256px", minWidth: "256px", background: "#0D3B44" }}
+        style={{ width: "256px", minWidth: "256px", background: "#2A4A1A" }}
       >
         {/* Logo */}
         <div className="flex items-center justify-between px-6 py-6 border-b border-white/10">
@@ -115,7 +115,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             <span className="text-white text-lg block" style={{ fontFamily: "var(--font-dm-serif)" }}>
               Valeo
             </span>
-            <span className="text-xs tracking-widest uppercase" style={{ color: "#4ECDC4" }}>
+            <span className="text-xs tracking-widest uppercase" style={{ color: "#8DC63F" }}>
               Health Platform
             </span>
           </div>
@@ -135,7 +135,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         >
           <div
             className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-            style={{ background: "#4ECDC4", color: "#0D3B44" }}
+            style={{ background: "#8DC63F", color: "#2A4A1A" }}
           >
             {firstName?.[0]?.toUpperCase() ?? "U"}
           </div>
@@ -169,7 +169,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
                   active ? "" : "text-white/60 hover:text-white hover:bg-white/5"
                 )}
-                style={active ? { background: "#4ECDC4", color: "#0D3B44" } : {}}
+                style={active ? { background: "#8DC63F", color: "#2A4A1A" } : {}}
               >
                 <Icon size={17} />
                 <span className="flex-1">{label}</span>
@@ -179,7 +179,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                   <span
                     className="flex items-center justify-center rounded-full text-xs font-bold min-w-[18px] h-[18px] px-1"
                     style={{
-                      background: active ? "#0D3B44" : "#E8604C",
+                      background: active ? "#2A4A1A" : "#F7941D",
                       color: "white",
                       fontSize: "10px",
                     }}
@@ -216,14 +216,14 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           style={{
             background: "rgba(245,244,240,0.92)",
             backdropFilter: "blur(12px)",
-            borderColor: "rgba(13,59,68,0.08)",
+            borderColor: "rgba(42,74,26,0.08)",
           }}
         >
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden p-2 rounded-lg hover:bg-black/5"
-              style={{ color: "#0D3B44" }}
+              style={{ color: "#2A4A1A" }}
               aria-label="Open sidebar"
             >
               <Menu size={20} />
@@ -231,7 +231,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             {/* FIX: Header title uses startsWith-aware pageTitle */}
             <h1
               className="text-lg font-medium"
-              style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}
+              style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}
             >
               {pageTitle}
             </h1>
@@ -248,7 +248,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               {unreadMessages > 0 && (
                 <span
                   className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
-                  style={{ background: "#E8604C" }}
+                  style={{ background: "#F7941D" }}
                 />
               )}
             </button>
@@ -257,7 +257,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             <Link
               href="/client/appointments"
               className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all"
-              style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}
+              style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
             >
               <Calendar size={14} />
               Book Session

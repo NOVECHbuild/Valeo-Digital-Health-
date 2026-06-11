@@ -24,18 +24,18 @@ const SESSION_TYPES = ["Individual Therapy","Couples Therapy","Life Coaching","W
 const NOTE_TAGS = ["Progress","Concern","Follow-up","Milestone","Crisis","Homework","Assessment","General"];
 
 const TAG_COLORS: Record<string,{bg:string;color:string}> = {
-  Progress:    { bg:"rgba(78,205,196,0.12)",  color:"#2BA8A0" },
-  Concern:     { bg:"rgba(232,96,76,0.12)",   color:"#E8604C" },
-  "Follow-up": { bg:"rgba(212,168,83,0.12)",  color:"#B8860B" },
-  Milestone:   { bg:"rgba(13,59,68,0.1)",     color:"#0D3B44" },
-  Crisis:      { bg:"rgba(232,96,76,0.18)",   color:"#C0392B" },
+  Progress:    { bg:"rgba(141,198,63,0.12)",  color:"#6BA028" },
+  Concern:     { bg:"rgba(247,148,29,0.12)",   color:"#F7941D" },
+  "Follow-up": { bg:"rgba(247,148,29,0.12)",  color:"#C4700A" },
+  Milestone:   { bg:"rgba(42,74,26,0.1)",     color:"#2A4A1A" },
+  Crisis:      { bg:"rgba(247,148,29,0.18)",   color:"#C0392B" },
   Homework:    { bg:"rgba(142,68,173,0.1)",   color:"#8E44AD" },
   Assessment:  { bg:"rgba(52,152,219,0.12)",  color:"#2980B9" },
   General:     { bg:"rgba(138,155,168,0.12)", color:"#8A9BA8" },
 };
 
 function TagChip({ tag }: { tag: string }) {
-  const s = TAG_COLORS[tag] ?? { bg:"rgba(13,59,68,0.06)", color:"#4A5568" };
+  const s = TAG_COLORS[tag] ?? { bg:"rgba(42,74,26,0.06)", color:"#4A5568" };
   return (
     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
       style={{ background:s.bg, color:s.color }}>{tag}</span>
@@ -77,11 +77,11 @@ function NoteEditor({ note, clients, doctorId, onSave, onClose }: {
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16"
       style={{ background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }}>
       <div className="w-full max-w-2xl rounded-3xl overflow-hidden max-h-[80vh] flex flex-col"
-        style={{ background:"#FAF8F3" }}>
+        style={{ background:"#F6FAF0" }}>
         <div className="flex items-center justify-between px-6 py-5 border-b flex-shrink-0"
-          style={{ borderColor:"rgba(13,59,68,0.08)" }}>
+          style={{ borderColor:"rgba(42,74,26,0.08)" }}>
           <div>
-            <h3 className="font-semibold text-sm" style={{ color:"#0D3B44" }}>
+            <h3 className="font-semibold text-sm" style={{ color:"#2A4A1A" }}>
               {isEdit ? "Edit Session Note" : "New Session Note"}
             </h3>
             <p className="text-xs flex items-center gap-1 mt-0.5" style={{ color:"#8A9BA8" }}>
@@ -96,7 +96,7 @@ function NoteEditor({ note, clients, doctorId, onSave, onClose }: {
         <div className="overflow-y-auto flex-1 p-6 space-y-4">
           {error && (
             <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm"
-              style={{ background:"rgba(232,96,76,0.08)", color:"#E8604C" }}>
+              style={{ background:"rgba(247,148,29,0.08)", color:"#F7941D" }}>
               <AlertCircle size={14} />{error}
             </div>
           )}
@@ -105,7 +105,7 @@ function NoteEditor({ note, clients, doctorId, onSave, onClose }: {
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color:"#8A9BA8" }}>Client *</label>
               <select value={clientId} onChange={e=>setClientId(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none"
-                style={{ borderColor:"rgba(13,59,68,0.15)", background:"white", color:clientId?"#22272B":"#8A9BA8" }}>
+                style={{ borderColor:"rgba(42,74,26,0.15)", background:"white", color:clientId?"#22272B":"#8A9BA8" }}>
                 <option value="">Select client</option>
                 {clients.map(c=><option key={c.uid} value={c.uid}>{c.displayName}</option>)}
               </select>
@@ -114,7 +114,7 @@ function NoteEditor({ note, clients, doctorId, onSave, onClose }: {
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color:"#8A9BA8" }}>Session Type *</label>
               <select value={sessionType} onChange={e=>setSessionType(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none"
-                style={{ borderColor:"rgba(13,59,68,0.15)", background:"white", color:sessionType?"#22272B":"#8A9BA8" }}>
+                style={{ borderColor:"rgba(42,74,26,0.15)", background:"white", color:sessionType?"#22272B":"#8A9BA8" }}>
                 <option value="">Select type</option>
                 {SESSION_TYPES.map(t=><option key={t} value={t}>{t}</option>)}
               </select>
@@ -125,14 +125,14 @@ function NoteEditor({ note, clients, doctorId, onSave, onClose }: {
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color:"#8A9BA8" }}>Session Date *</label>
               <input type="date" value={sessionDate} onChange={e=>setSessionDate(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none"
-                style={{ borderColor:"rgba(13,59,68,0.15)", background:"white" }} />
+                style={{ borderColor:"rgba(42,74,26,0.15)", background:"white" }} />
             </div>
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color:"#8A9BA8" }}>Note Title *</label>
               <input type="text" value={title} onChange={e=>setTitle(e.target.value)}
                 placeholder="e.g. Session 3 — Anxiety management"
                 className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none"
-                style={{ borderColor:"rgba(13,59,68,0.15)", background:"white" }} />
+                style={{ borderColor:"rgba(42,74,26,0.15)", background:"white" }} />
             </div>
           </div>
           <div>
@@ -143,7 +143,7 @@ function NoteEditor({ note, clients, doctorId, onSave, onClose }: {
                 return (
                   <button key={tag} onClick={()=>toggleTag(tag)}
                     className="px-3 py-1 rounded-full text-xs font-medium border-2 transition-all"
-                    style={{ borderColor:sel?"#0D3B44":"rgba(13,59,68,0.12)", background:sel?"rgba(13,59,68,0.06)":"white", color:sel?"#0D3B44":"#8A9BA8" }}>
+                    style={{ borderColor:sel?"#2A4A1A":"rgba(42,74,26,0.12)", background:sel?"rgba(42,74,26,0.06)":"white", color:sel?"#2A4A1A":"#8A9BA8" }}>
                     {tag}
                   </button>
                 );
@@ -155,19 +155,19 @@ function NoteEditor({ note, clients, doctorId, onSave, onClose }: {
             <textarea value={content} onChange={e=>setContent(e.target.value)} rows={8}
               placeholder="Document session observations, progress, interventions, and plans..."
               className="w-full px-4 py-3 rounded-xl text-sm border resize-none focus:outline-none leading-relaxed"
-              style={{ borderColor:"rgba(13,59,68,0.15)", background:"white" }} />
+              style={{ borderColor:"rgba(42,74,26,0.15)", background:"white" }} />
             <p className="text-xs mt-1 text-right" style={{ color:"#C4C4C4" }}>{content.length} characters</p>
           </div>
         </div>
 
         <div className="flex gap-3 px-6 py-4 border-t flex-shrink-0"
-          style={{ borderColor:"rgba(13,59,68,0.08)" }}>
+          style={{ borderColor:"rgba(42,74,26,0.08)" }}>
           <button onClick={onClose}
             className="flex-1 py-3 rounded-xl text-sm font-semibold border-2"
-            style={{ borderColor:"rgba(13,59,68,0.15)", color:"#0D3B44" }}>Cancel</button>
+            style={{ borderColor:"rgba(42,74,26,0.15)", color:"#2A4A1A" }}>Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="flex-1 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-60 flex items-center justify-center gap-2"
-            style={{ background:"linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+            style={{ background:"linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
             {saving ? <><Loader2 size={14} className="animate-spin"/>Saving...</> : <><Save size={14}/>Save Note</>}
           </button>
         </div>
@@ -182,15 +182,15 @@ function NoteCard({ note, onEdit, onDelete }: { note:Note; onEdit:()=>void; onDe
   const hasMore = note.content.length > 180;
 
   return (
-    <div className="rounded-2xl p-5" style={{ background:"white", boxShadow:"0 1px 4px rgba(13,59,68,0.07)" }}>
+    <div className="rounded-2xl p-5" style={{ background:"white", boxShadow:"0 1px 4px rgba(42,74,26,0.07)" }}>
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-sm font-bold"
-            style={{ background:"rgba(13,59,68,0.06)", color:"#0D3B44" }}>
+            style={{ background:"rgba(42,74,26,0.06)", color:"#2A4A1A" }}>
             {note.clientName?.[0]?.toUpperCase()??"C"}
           </div>
           <div>
-            <p className="text-sm font-semibold" style={{ color:"#0D3B44" }}>{note.title}</p>
+            <p className="text-sm font-semibold" style={{ color:"#2A4A1A" }}>{note.title}</p>
             <div className="flex items-center gap-3 mt-0.5">
               <span className="flex items-center gap-1 text-xs" style={{ color:"#8A9BA8" }}>
                 <User size={10}/>{note.clientName}
@@ -213,7 +213,7 @@ function NoteCard({ note, onEdit, onDelete }: { note:Note; onEdit:()=>void; onDe
       </div>
 
       <span className="text-xs px-2.5 py-1 rounded-lg font-medium mb-3 inline-block"
-        style={{ background:"rgba(13,59,68,0.05)", color:"#4A5568" }}>
+        style={{ background:"rgba(42,74,26,0.05)", color:"#4A5568" }}>
         {note.sessionType}
       </span>
 
@@ -223,13 +223,13 @@ function NoteCard({ note, onEdit, onDelete }: { note:Note; onEdit:()=>void; onDe
         </div>
       )}
 
-      <div className="rounded-xl p-4" style={{ background:"rgba(13,59,68,0.02)" }}>
+      <div className="rounded-xl p-4" style={{ background:"rgba(42,74,26,0.02)" }}>
         <p className="text-sm leading-relaxed" style={{ color:"#4A5568", whiteSpace:"pre-wrap" }}>
           {expanded ? note.content : preview}{!expanded && hasMore && "..."}
         </p>
         {hasMore && (
           <button onClick={()=>setExpanded(!expanded)}
-            className="flex items-center gap-1 text-xs font-medium mt-2" style={{ color:"#0D3B44" }}>
+            className="flex items-center gap-1 text-xs font-medium mt-2" style={{ color:"#2A4A1A" }}>
             {expanded?"Show less":"Read more"}
             <ChevronDown size={12} style={{ transform:expanded?"rotate(180deg)":"none", transition:"transform 0.2s" }}/>
           </button>
@@ -326,39 +326,39 @@ export default function DoctorNotesPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       {toast && (
         <div className="fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg text-sm font-medium"
-          style={{ background:toast.type==="success"?"#0D3B44":"#E8604C", color:"white" }}>
+          style={{ background:toast.type==="success"?"#2A4A1A":"#F7941D", color:"white" }}>
           {toast.type==="success"?<CheckCircle size={16}/>:<AlertCircle size={16}/>}{toast.msg}
         </div>
       )}
 
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-2xl" style={{ fontFamily:"var(--font-dm-serif)", color:"#0D3B44" }}>Session Notes</h2>
+          <h2 className="text-2xl" style={{ fontFamily:"var(--font-dm-serif)", color:"#2A4A1A" }}>Session Notes</h2>
           <p className="text-sm mt-0.5 flex items-center gap-1.5" style={{ color:"#8A9BA8" }}>
             <Lock size={12}/> Private and confidential — only visible to you
           </p>
         </div>
         <button onClick={()=>setEditNote({})}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white hover:-translate-y-0.5 transition-all"
-          style={{ background:"linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+          style={{ background:"linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
           <Plus size={15}/> New Note
         </button>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label:"Total Notes", value:notes.length,                               accent:"#0D3B44" },
-          { label:"Clients",     value:new Set(notes.map(n=>n.clientId)).size,     accent:"#4ECDC4" },
-          { label:"This Month",  value:thisMonth,                                  accent:"#D4A853" },
+          { label:"Total Notes", value:notes.length,                               accent:"#2A4A1A" },
+          { label:"Clients",     value:new Set(notes.map(n=>n.clientId)).size,     accent:"#8DC63F" },
+          { label:"This Month",  value:thisMonth,                                  accent:"#F7941D" },
         ].map(({label,value,accent})=>(
           <div key={label} className="rounded-2xl p-4 flex items-center gap-3"
-            style={{ background:"white", boxShadow:"0 1px 4px rgba(13,59,68,0.07)" }}>
+            style={{ background:"white", boxShadow:"0 1px 4px rgba(42,74,26,0.07)" }}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background:accent+"12" }}>
               <FileText size={16} style={{ color:accent }}/>
             </div>
             <div>
               <p className="text-2xl font-semibold leading-none"
-                style={{ fontFamily:"var(--font-dm-serif)", color:"#0D3B44" }}>{value}</p>
+                style={{ fontFamily:"var(--font-dm-serif)", color:"#2A4A1A" }}>{value}</p>
               <p className="text-xs mt-0.5" style={{ color:"#8A9BA8" }}>{label}</p>
             </div>
           </div>
@@ -371,12 +371,12 @@ export default function DoctorNotesPage() {
           <input type="text" value={search} onChange={e=>setSearch(e.target.value)}
             placeholder="Search notes..."
             className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm border focus:outline-none"
-            style={{ borderColor:"rgba(13,59,68,0.12)", background:"white" }}/>
+            style={{ borderColor:"rgba(42,74,26,0.12)", background:"white" }}/>
           {search && <button onClick={()=>setSearch("")} className="absolute right-3.5 top-1/2 -translate-y-1/2"><X size={13} style={{ color:"#8A9BA8" }}/></button>}
         </div>
         <select value={filterClient} onChange={e=>setFilterClient(e.target.value)}
           className="px-4 py-2.5 rounded-xl text-sm border focus:outline-none"
-          style={{ borderColor:"rgba(13,59,68,0.12)", background:"white", color:"#22272B" }}>
+          style={{ borderColor:"rgba(42,74,26,0.12)", background:"white", color:"#22272B" }}>
           <option value="all">All Clients</option>
           {clients.map(c=><option key={c.uid} value={c.uid}>{c.displayName}</option>)}
         </select>
@@ -384,14 +384,14 @@ export default function DoctorNotesPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 size={28} className="animate-spin" style={{ color:"#4ECDC4" }}/>
+          <Loader2 size={28} className="animate-spin" style={{ color:"#8DC63F" }}/>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl p-12 text-center" style={{ background:"white", boxShadow:"0 1px 4px rgba(13,59,68,0.07)" }}>
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background:"rgba(78,205,196,0.08)" }}>
-            <FileText size={24} style={{ color:"#4ECDC4" }}/>
+        <div className="rounded-2xl p-12 text-center" style={{ background:"white", boxShadow:"0 1px 4px rgba(42,74,26,0.07)" }}>
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background:"rgba(141,198,63,0.08)" }}>
+            <FileText size={24} style={{ color:"#8DC63F" }}/>
           </div>
-          <p className="text-sm font-medium mb-1" style={{ color:"#0D3B44" }}>
+          <p className="text-sm font-medium mb-1" style={{ color:"#2A4A1A" }}>
             {search?"No notes found":"No session notes yet"}
           </p>
           <p className="text-xs mb-4" style={{ color:"#8A9BA8" }}>
@@ -400,7 +400,7 @@ export default function DoctorNotesPage() {
           {!search && (
             <button onClick={()=>setEditNote({})}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-              style={{ background:"linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+              style={{ background:"linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
               <Plus size={14}/> New Note
             </button>
           )}

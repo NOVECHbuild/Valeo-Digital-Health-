@@ -74,7 +74,7 @@ function Toast({ msg, type }: { msg: string; type: "success" | "error" }) {
   return (
     <div
       className="fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg text-sm font-medium max-w-sm"
-      style={{ background: type === "success" ? "#0D3B44" : "#E8604C", color: "white" }}
+      style={{ background: type === "success" ? "#2A4A1A" : "#F7941D", color: "white" }}
     >
       {type === "success" ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
       {msg}
@@ -114,7 +114,7 @@ function ScaleInput({
             type="button"
             className="w-9 h-9 rounded-xl text-sm font-semibold transition-all"
             style={{
-              background: value === n ? "#0D3B44" : "rgba(13,59,68,0.06)",
+              background: value === n ? "#2A4A1A" : "rgba(42,74,26,0.06)",
               color:      value === n ? "white"   : "#4A5568",
               cursor:     readOnly ? "default" : "pointer",
             }}
@@ -214,7 +214,7 @@ function AssessmentModal({
     >
       <div
         className="w-full max-w-2xl rounded-3xl overflow-hidden max-h-[85vh] flex flex-col"
-        style={{ background: "#FAF8F3" }}
+        style={{ background: "#F6FAF0" }}
       >
         {/* Header */}
         <div className="px-6 pt-6 pb-4 flex-shrink-0">
@@ -223,14 +223,14 @@ function AssessmentModal({
               <div className="flex items-center gap-2 mb-1">
                 <h3
                   className="text-xl font-semibold"
-                  style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}
+                  style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}
                 >
                   {template.title}
                 </h3>
                 {readOnly && (
                   <span
                     className="text-xs px-2 py-0.5 rounded-full font-medium"
-                    style={{ background: "rgba(78,205,196,0.1)", color: "#2BA8A0" }}
+                    style={{ background: "rgba(141,198,63,0.1)", color: "#6BA028" }}
                   >
                     Read-only
                   </span>
@@ -252,19 +252,19 @@ function AssessmentModal({
                 <span className="text-xs" style={{ color: "#8A9BA8" }}>
                   {answered} of {total} answered
                 </span>
-                <span className="text-xs font-semibold" style={{ color: "#0D3B44" }}>
+                <span className="text-xs font-semibold" style={{ color: "#2A4A1A" }}>
                   {Math.round(progress)}%
                 </span>
               </div>
               <div
                 className="h-1.5 rounded-full overflow-hidden"
-                style={{ background: "rgba(13,59,68,0.08)" }}
+                style={{ background: "rgba(42,74,26,0.08)" }}
               >
                 <div
                   className="h-full rounded-full transition-all duration-300"
                   style={{
                     width: `${progress}%`,
-                    background: "linear-gradient(90deg, #0D3B44, #4ECDC4)",
+                    background: "linear-gradient(90deg, #2A4A1A, #8DC63F)",
                   }}
                 />
               </div>
@@ -277,7 +277,7 @@ function AssessmentModal({
           {error && (
             <div
               className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm"
-              style={{ background: "rgba(232,96,76,0.08)", color: "#E8604C" }}
+              style={{ background: "rgba(247,148,29,0.08)", color: "#F7941D" }}
             >
               <AlertCircle size={14} />{error}
             </div>
@@ -287,11 +287,11 @@ function AssessmentModal({
             <div
               key={q.id}
               className="rounded-2xl p-5"
-              style={{ background: "white", boxShadow: "0 1px 3px rgba(13,59,68,0.06)" }}
+              style={{ background: "white", boxShadow: "0 1px 3px rgba(42,74,26,0.06)" }}
             >
-              <p className="text-sm font-semibold mb-1" style={{ color: "#0D3B44" }}>
+              <p className="text-sm font-semibold mb-1" style={{ color: "#2A4A1A" }}>
                 <span style={{ color: "#8A9BA8" }}>{i + 1}. </span>{q.label}
-                {q.required && !readOnly && <span style={{ color: "#E8604C" }}> *</span>}
+                {q.required && !readOnly && <span style={{ color: "#F7941D" }}> *</span>}
               </p>
 
               {q.type === "text" && (
@@ -303,8 +303,8 @@ function AssessmentModal({
                   placeholder={readOnly ? "No answer" : "Your answer..."}
                   className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none mt-2"
                   style={{
-                    borderColor: "rgba(13,59,68,0.15)",
-                    background:  readOnly ? "rgba(13,59,68,0.02)" : "#FAFAFA",
+                    borderColor: "rgba(42,74,26,0.15)",
+                    background:  readOnly ? "rgba(42,74,26,0.02)" : "#FAFAFA",
                     color:       responses[q.id] ? "#22272B" : "#C4C4C4",
                   }}
                 />
@@ -319,8 +319,8 @@ function AssessmentModal({
                   placeholder={readOnly ? "No answer" : "Your answer..."}
                   className="w-full px-3 py-2.5 rounded-xl text-sm border resize-none focus:outline-none mt-2"
                   style={{
-                    borderColor: "rgba(13,59,68,0.15)",
-                    background:  readOnly ? "rgba(13,59,68,0.02)" : "#FAFAFA",
+                    borderColor: "rgba(42,74,26,0.15)",
+                    background:  readOnly ? "rgba(42,74,26,0.02)" : "#FAFAFA",
                     color:       responses[q.id] ? "#22272B" : "#C4C4C4",
                   }}
                 />
@@ -348,14 +348,14 @@ function AssessmentModal({
                       type="button"
                       className="flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all"
                       style={{
-                        borderColor: responses[q.id] === opt ? "#0D3B44" : "rgba(13,59,68,0.12)",
-                        background:  responses[q.id] === opt ? "rgba(13,59,68,0.06)" : "white",
-                        color:       responses[q.id] === opt ? "#0D3B44" : "#8A9BA8",
+                        borderColor: responses[q.id] === opt ? "#2A4A1A" : "rgba(42,74,26,0.12)",
+                        background:  responses[q.id] === opt ? "rgba(42,74,26,0.06)" : "white",
+                        color:       responses[q.id] === opt ? "#2A4A1A" : "#8A9BA8",
                         cursor:      readOnly ? "default" : "pointer",
                       }}
                     >
                       {responses[q.id] === opt && (
-                        <CheckCircle size={12} className="inline mr-1.5" style={{ color: "#4ECDC4" }} />
+                        <CheckCircle size={12} className="inline mr-1.5" style={{ color: "#8DC63F" }} />
                       )}
                       {opt}
                     </button>
@@ -373,14 +373,14 @@ function AssessmentModal({
                       type="button"
                       className="w-full text-left px-4 py-2.5 rounded-xl text-sm border-2 transition-all"
                       style={{
-                        borderColor: responses[q.id] === opt ? "#0D3B44" : "rgba(13,59,68,0.12)",
-                        background:  responses[q.id] === opt ? "rgba(13,59,68,0.06)" : "white",
-                        color:       responses[q.id] === opt ? "#0D3B44" : "#4A5568",
+                        borderColor: responses[q.id] === opt ? "#2A4A1A" : "rgba(42,74,26,0.12)",
+                        background:  responses[q.id] === opt ? "rgba(42,74,26,0.06)" : "white",
+                        color:       responses[q.id] === opt ? "#2A4A1A" : "#4A5568",
                         cursor:      readOnly ? "default" : "pointer",
                       }}
                     >
                       {responses[q.id] === opt && (
-                        <CheckCircle size={12} className="inline mr-2" style={{ color: "#4ECDC4" }} />
+                        <CheckCircle size={12} className="inline mr-2" style={{ color: "#8DC63F" }} />
                       )}
                       {opt}
                     </button>
@@ -394,14 +394,14 @@ function AssessmentModal({
         {/* Footer */}
         <div
           className="px-6 py-4 border-t flex-shrink-0 flex gap-3"
-          style={{ borderColor: "rgba(13,59,68,0.08)" }}
+          style={{ borderColor: "rgba(42,74,26,0.08)" }}
         >
           {readOnly ? (
             // S2: Read-only footer — just a close button
             <button
               onClick={onClose}
               className="flex-1 py-3 rounded-xl text-sm font-semibold text-white"
-              style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}
+              style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
             >
               Close
             </button>
@@ -412,7 +412,7 @@ function AssessmentModal({
                 onClick={handleSaveDraft}
                 disabled={saving || submitting}
                 className="flex-1 py-3 rounded-xl text-sm font-semibold border-2 disabled:opacity-60 flex items-center justify-center gap-2"
-                style={{ borderColor: "rgba(13,59,68,0.15)", color: "#0D3B44" }}
+                style={{ borderColor: "rgba(42,74,26,0.15)", color: "#2A4A1A" }}
               >
                 {saving ? <Loader2 size={14} className="animate-spin" /> : null}
                 Save & Continue Later
@@ -421,7 +421,7 @@ function AssessmentModal({
                 onClick={handleSubmit}
                 disabled={submitting || saving}
                 className="flex-1 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-60 flex items-center justify-center gap-2"
-                style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}
+                style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
               >
                 {submitting
                   ? <><Loader2 size={14} className="animate-spin" />Submitting…</>
@@ -450,7 +450,7 @@ function AssessmentCard({
     <button
       onClick={onOpen}
       className="w-full text-left rounded-2xl p-5 transition-all hover:-translate-y-0.5"
-      style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}
+      style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}
     >
       <div className="flex items-start gap-4">
         {/* Icon */}
@@ -458,25 +458,25 @@ function AssessmentCard({
           className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
           style={{
             background: done
-              ? "rgba(78,205,196,0.1)"
+              ? "rgba(141,198,63,0.1)"
               : overdue
-              ? "rgba(232,96,76,0.1)"
-              : "rgba(212,168,83,0.1)",
+              ? "rgba(247,148,29,0.1)"
+              : "rgba(247,148,29,0.1)",
           }}
         >
           {done ? (
-            <CheckCircle size={20} style={{ color: "#4ECDC4" }} />
+            <CheckCircle size={20} style={{ color: "#8DC63F" }} />
           ) : overdue ? (
-            <AlertTriangle size={20} style={{ color: "#E8604C" }} />
+            <AlertTriangle size={20} style={{ color: "#F7941D" }} />
           ) : (
-            <ClipboardList size={20} style={{ color: "#D4A853" }} />
+            <ClipboardList size={20} style={{ color: "#F7941D" }} />
           )}
         </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <p className="text-sm font-semibold" style={{ color: "#0D3B44" }}>
+            <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>
               {assessment.templateTitle}
             </p>
             {/* S2: Show eye icon for completed; chevron for pending */}
@@ -491,11 +491,11 @@ function AssessmentCard({
               className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium"
               style={{
                 background: done
-                  ? "rgba(78,205,196,0.1)"
+                  ? "rgba(141,198,63,0.1)"
                   : overdue
-                  ? "rgba(232,96,76,0.08)"
-                  : "rgba(212,168,83,0.1)",
-                color: done ? "#2BA8A0" : overdue ? "#E8604C" : "#B8860B",
+                  ? "rgba(247,148,29,0.08)"
+                  : "rgba(247,148,29,0.1)",
+                color: done ? "#6BA028" : overdue ? "#F7941D" : "#C4700A",
               }}
             >
               {done
@@ -507,7 +507,7 @@ function AssessmentCard({
 
             {/* Due date */}
             {assessment.dueDate && !done && (
-              <span className="text-xs" style={{ color: overdue ? "#E8604C" : "#8A9BA8" }}>
+              <span className="text-xs" style={{ color: overdue ? "#F7941D" : "#8A9BA8" }}>
                 {overdue ? "Was due" : "Due"}{" "}
                 {new Date(assessment.dueDate + "T12:00:00").toLocaleDateString("en-US", {
                   month: "short", day: "numeric",
@@ -660,7 +660,7 @@ export default function ClientAssessmentsPage() {
 
       {/* Header */}
       <div>
-        <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>
+        <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
           Assessments
         </h2>
         <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>
@@ -671,14 +671,14 @@ export default function ClientAssessmentsPage() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: "Total",     value: assessments.length, accent: "#0D3B44" },
-          { label: "Pending",   value: pending.length,     accent: "#D4A853" },
-          { label: "Completed", value: completed.length,   accent: "#4ECDC4" },
+          { label: "Total",     value: assessments.length, accent: "#2A4A1A" },
+          { label: "Pending",   value: pending.length,     accent: "#F7941D" },
+          { label: "Completed", value: completed.length,   accent: "#8DC63F" },
         ].map(({ label, value, accent }) => (
           <div
             key={label}
             className="rounded-2xl p-4 text-center"
-            style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}
+            style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}
           >
             <p
               className="text-3xl font-semibold"
@@ -695,29 +695,29 @@ export default function ClientAssessmentsPage() {
       {fetchError && (
         <div
           className="rounded-2xl p-5 flex items-start gap-3"
-          style={{ background: "rgba(232,96,76,0.06)", border: "1px solid rgba(232,96,76,0.15)" }}
+          style={{ background: "rgba(247,148,29,0.06)", border: "1px solid rgba(247,148,29,0.15)" }}
         >
-          <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" style={{ color: "#E8604C" }} />
-          <p className="text-sm" style={{ color: "#E8604C" }}>{fetchError}</p>
+          <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" style={{ color: "#F7941D" }} />
+          <p className="text-sm" style={{ color: "#F7941D" }}>{fetchError}</p>
         </div>
       )}
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 size={28} className="animate-spin" style={{ color: "#4ECDC4" }} />
+          <Loader2 size={28} className="animate-spin" style={{ color: "#8DC63F" }} />
         </div>
       ) : assessments.length === 0 ? (
         <div
           className="rounded-2xl p-12 text-center"
-          style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}
+          style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}
         >
           <div
             className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
-            style={{ background: "rgba(78,205,196,0.08)" }}
+            style={{ background: "rgba(141,198,63,0.08)" }}
           >
-            <ClipboardList size={24} style={{ color: "#4ECDC4" }} />
+            <ClipboardList size={24} style={{ color: "#8DC63F" }} />
           </div>
-          <p className="text-sm font-medium mb-1" style={{ color: "#0D3B44" }}>
+          <p className="text-sm font-medium mb-1" style={{ color: "#2A4A1A" }}>
             No assessments yet
           </p>
           <p className="text-xs" style={{ color: "#8A9BA8" }}>
@@ -730,8 +730,8 @@ export default function ClientAssessmentsPage() {
           {pending.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <Clock size={14} style={{ color: "#D4A853" }} />
-                <h3 className="text-sm font-semibold" style={{ color: "#0D3B44" }}>
+                <Clock size={14} style={{ color: "#F7941D" }} />
+                <h3 className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>
                   Needs Attention ({pending.length})
                 </h3>
               </div>
@@ -751,8 +751,8 @@ export default function ClientAssessmentsPage() {
           {completed.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <CheckCircle size={14} style={{ color: "#4ECDC4" }} />
-                <h3 className="text-sm font-semibold" style={{ color: "#0D3B44" }}>
+                <CheckCircle size={14} style={{ color: "#8DC63F" }} />
+                <h3 className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>
                   Completed ({completed.length})
                 </h3>
               </div>
@@ -774,7 +774,7 @@ export default function ClientAssessmentsPage() {
       {/* Privacy note */}
       <div
         className="rounded-xl p-4 flex items-start gap-3"
-        style={{ background: "rgba(13,59,68,0.03)", border: "1px solid rgba(13,59,68,0.07)" }}
+        style={{ background: "rgba(42,74,26,0.03)", border: "1px solid rgba(42,74,26,0.07)" }}
       >
         <Lock size={14} className="flex-shrink-0 mt-0.5" style={{ color: "#8A9BA8" }} />
         <p className="text-xs" style={{ color: "#8A9BA8" }}>

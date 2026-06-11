@@ -88,7 +88,7 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6"
-      style={{ background: "#FAF8F3" }}>
+      style={{ background: "#F6FAF0" }}>
       <div className="w-full max-w-lg">
 
         {/* Progress bar */}
@@ -98,27 +98,27 @@ export default function OnboardingPage() {
               style={{ color: "#8A9BA8" }}>
               Step {step} of {totalSteps}
             </span>
-            <span className="text-xs font-semibold" style={{ color: "#0D3B44" }}>
+            <span className="text-xs font-semibold" style={{ color: "#2A4A1A" }}>
               {Math.round(progress)}%
             </span>
           </div>
-          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(13,59,68,0.08)" }}>
+          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(42,74,26,0.08)" }}>
             <div className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${progress}%`, background: "linear-gradient(90deg, #0D3B44, #4ECDC4)" }} />
+              style={{ width: `${progress}%`, background: "linear-gradient(90deg, #2A4A1A, #8DC63F)" }} />
           </div>
         </div>
 
-        <div className="rounded-3xl p-8" style={{ background: "white", boxShadow: "0 4px 24px rgba(13,59,68,0.08)" }}>
+        <div className="rounded-3xl p-8" style={{ background: "white", boxShadow: "0 4px 24px rgba(42,74,26,0.08)" }}>
 
           {/* ── Step 1 — Welcome ── */}
           {step === 1 && (
             <div className="text-center">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
-                style={{ background: "rgba(78,205,196,0.1)" }}>
-                <Heart size={28} style={{ color: "#4ECDC4" }} />
+                style={{ background: "rgba(141,198,63,0.1)" }}>
+                <Heart size={28} style={{ color: "#8DC63F" }} />
               </div>
               <h2 className="text-3xl mb-3"
-                style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>
+                style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
                 Welcome to Valeo, {user?.displayName?.split(" ")[0]}
               </h2>
               <p className="text-sm mb-6 leading-relaxed" style={{ color: "#4A5568" }}>
@@ -132,10 +132,10 @@ export default function OnboardingPage() {
                   { icon: Calendar, text: "Helps match you to the right session type" },
                 ].map(({ icon: Icon, text }) => (
                   <div key={text} className="flex items-center gap-3 p-3 rounded-xl"
-                    style={{ background: "rgba(13,59,68,0.03)" }}>
+                    style={{ background: "rgba(42,74,26,0.03)" }}>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ background: "rgba(78,205,196,0.1)" }}>
-                      <Icon size={15} style={{ color: "#4ECDC4" }} />
+                      style={{ background: "rgba(141,198,63,0.1)" }}>
+                      <Icon size={15} style={{ color: "#8DC63F" }} />
                     </div>
                     <p className="text-sm" style={{ color: "#4A5568" }}>{text}</p>
                   </div>
@@ -143,7 +143,7 @@ export default function OnboardingPage() {
               </div>
               <button onClick={() => setStep(2)}
                 className="w-full py-3.5 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2"
-                style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+                style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
                 Get Started <ChevronRight size={16} />
               </button>
             </div>
@@ -152,7 +152,7 @@ export default function OnboardingPage() {
           {/* ── Step 2 — Goals ── */}
           {step === 2 && (
             <div>
-              <h2 className="text-2xl mb-1" style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>
+              <h2 className="text-2xl mb-1" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
                 What brings you here?
               </h2>
               <p className="text-sm mb-6" style={{ color: "#8A9BA8" }}>
@@ -165,11 +165,11 @@ export default function OnboardingPage() {
                     <button key={goal} onClick={() => toggleGoal(goal)}
                       className="text-left p-3 rounded-xl border-2 text-xs font-medium transition-all"
                       style={{
-                        borderColor: selected ? "#0D3B44" : "rgba(13,59,68,0.1)",
-                        background:  selected ? "rgba(13,59,68,0.05)" : "white",
-                        color:       selected ? "#0D3B44" : "#4A5568",
+                        borderColor: selected ? "#2A4A1A" : "rgba(42,74,26,0.1)",
+                        background:  selected ? "rgba(42,74,26,0.05)" : "white",
+                        color:       selected ? "#2A4A1A" : "#4A5568",
                       }}>
-                      {selected && <CheckCircle size={11} className="inline mr-1" style={{ color: "#4ECDC4" }} />}
+                      {selected && <CheckCircle size={11} className="inline mr-1" style={{ color: "#8DC63F" }} />}
                       {goal}
                     </button>
                   );
@@ -183,7 +183,7 @@ export default function OnboardingPage() {
                 <select value={data.preferredTime}
                   onChange={e => setData(d => ({ ...d, preferredTime: e.target.value }))}
                   className="w-full px-4 py-3 rounded-xl text-sm border focus:outline-none"
-                  style={{ borderColor: "rgba(13,59,68,0.15)", background: "white", color: "#22272B" }}>
+                  style={{ borderColor: "rgba(42,74,26,0.15)", background: "white", color: "#22272B" }}>
                   <option value="">Select a preference</option>
                   <option value="morning">Morning (9am – 12pm)</option>
                   <option value="afternoon">Afternoon (12pm – 4pm)</option>
@@ -193,12 +193,12 @@ export default function OnboardingPage() {
               <div className="flex gap-3">
                 <button onClick={() => setStep(1)}
                   className="flex-1 py-3 rounded-xl text-sm font-semibold border-2"
-                  style={{ borderColor: "rgba(13,59,68,0.15)", color: "#0D3B44" }}>
+                  style={{ borderColor: "rgba(42,74,26,0.15)", color: "#2A4A1A" }}>
                   Back
                 </button>
                 <button onClick={() => setStep(3)} disabled={data.goals.length === 0}
                   className="flex-1 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-40"
-                  style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+                  style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
                   Continue
                 </button>
               </div>
@@ -208,7 +208,7 @@ export default function OnboardingPage() {
           {/* ── Step 3 — Emergency contact ── */}
           {step === 3 && (
             <div>
-              <h2 className="text-2xl mb-1" style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>
+              <h2 className="text-2xl mb-1" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
                 Emergency contact
               </h2>
               <p className="text-sm mb-6" style={{ color: "#8A9BA8" }}>
@@ -222,7 +222,7 @@ export default function OnboardingPage() {
                     onChange={e => setData(d => ({ ...d, emergencyName: e.target.value }))}
                     placeholder="Full name"
                     className="w-full px-4 py-3 rounded-xl text-sm border focus:outline-none"
-                    style={{ borderColor: "rgba(13,59,68,0.15)", background: "white" }} />
+                    style={{ borderColor: "rgba(42,74,26,0.15)", background: "white" }} />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
@@ -231,7 +231,7 @@ export default function OnboardingPage() {
                     onChange={e => setData(d => ({ ...d, emergencyPhone: e.target.value }))}
                     placeholder="+1 (868) 000-0000"
                     className="w-full px-4 py-3 rounded-xl text-sm border focus:outline-none"
-                    style={{ borderColor: "rgba(13,59,68,0.15)", background: "white" }} />
+                    style={{ borderColor: "rgba(42,74,26,0.15)", background: "white" }} />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
@@ -239,7 +239,7 @@ export default function OnboardingPage() {
                   <select value={data.referral}
                     onChange={e => setData(d => ({ ...d, referral: e.target.value }))}
                     className="w-full px-4 py-3 rounded-xl text-sm border focus:outline-none"
-                    style={{ borderColor: "rgba(13,59,68,0.15)", background: "white", color: data.referral ? "#22272B" : "#8A9BA8" }}>
+                    style={{ borderColor: "rgba(42,74,26,0.15)", background: "white", color: data.referral ? "#22272B" : "#8A9BA8" }}>
                     <option value="">Select one</option>
                     {REFERRAL_SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
@@ -248,13 +248,13 @@ export default function OnboardingPage() {
               <div className="flex gap-3">
                 <button onClick={() => setStep(2)}
                   className="flex-1 py-3 rounded-xl text-sm font-semibold border-2"
-                  style={{ borderColor: "rgba(13,59,68,0.15)", color: "#0D3B44" }}>
+                  style={{ borderColor: "rgba(42,74,26,0.15)", color: "#2A4A1A" }}>
                   Back
                 </button>
                 <button onClick={() => setStep(4)}
                   disabled={!data.emergencyName || !data.emergencyPhone}
                   className="flex-1 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-40"
-                  style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+                  style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
                   Continue
                 </button>
               </div>
@@ -265,11 +265,11 @@ export default function OnboardingPage() {
           {step === 4 && (
             <div>
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
-                style={{ background: "rgba(78,205,196,0.1)" }}>
-                <CheckCircle size={28} style={{ color: "#4ECDC4" }} />
+                style={{ background: "rgba(141,198,63,0.1)" }}>
+                <CheckCircle size={28} style={{ color: "#8DC63F" }} />
               </div>
               <h2 className="text-2xl mb-1 text-center"
-                style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>
+                style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
                 You're all set!
               </h2>
               <p className="text-sm mb-6 text-center" style={{ color: "#8A9BA8" }}>
@@ -278,7 +278,7 @@ export default function OnboardingPage() {
 
               {/* Summary */}
               <div className="rounded-2xl p-5 mb-6 space-y-3"
-                style={{ background: "rgba(13,59,68,0.03)", border: "1px solid rgba(13,59,68,0.08)" }}>
+                style={{ background: "rgba(42,74,26,0.03)", border: "1px solid rgba(42,74,26,0.08)" }}>
                 {[
                   { label: "Name",             value: user?.displayName },
                   { label: "Goals",            value: data.goals.length > 0 ? data.goals.join(", ") : "Not set" },
@@ -286,9 +286,9 @@ export default function OnboardingPage() {
                   { label: "Emergency contact",value: data.emergencyName || "Not set" },
                 ].map(({ label, value }) => (
                   <div key={label} className="flex items-start justify-between gap-4 py-2 border-b last:border-0"
-                    style={{ borderColor: "rgba(13,59,68,0.06)" }}>
+                    style={{ borderColor: "rgba(42,74,26,0.06)" }}>
                     <span className="text-xs flex-shrink-0" style={{ color: "#8A9BA8" }}>{label}</span>
-                    <span className="text-xs text-right font-medium" style={{ color: "#0D3B44" }}>{value}</span>
+                    <span className="text-xs text-right font-medium" style={{ color: "#2A4A1A" }}>{value}</span>
                   </div>
                 ))}
               </div>
@@ -300,7 +300,7 @@ export default function OnboardingPage() {
                   className="mt-0.5 rounded" />
                 <span className="text-xs" style={{ color: "#4A5568" }}>
                   I agree to the{" "}
-                  <a href="/privacy" className="underline" style={{ color: "#0D3B44" }}>Privacy Policy</a>
+                  <a href="/privacy" className="underline" style={{ color: "#2A4A1A" }}>Privacy Policy</a>
                   {" "}and understand that my information will be kept confidential in line with professional ethical standards.
                 </span>
               </label>
@@ -308,13 +308,13 @@ export default function OnboardingPage() {
               <div className="flex gap-3">
                 <button onClick={() => setStep(3)}
                   className="flex-1 py-3 rounded-xl text-sm font-semibold border-2"
-                  style={{ borderColor: "rgba(13,59,68,0.15)", color: "#0D3B44" }}>
+                  style={{ borderColor: "rgba(42,74,26,0.15)", color: "#2A4A1A" }}>
                   Back
                 </button>
                 <button onClick={handleFinish}
                   disabled={!data.agreeToTerms || saving}
                   className="flex-1 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-40 flex items-center justify-center gap-2"
-                  style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+                  style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
                   {saving
                     ? <><Loader2 size={15} className="animate-spin" /> Saving...</>
                     : "Go to Dashboard"}

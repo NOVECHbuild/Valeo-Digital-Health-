@@ -15,7 +15,7 @@ type Appointment  = { id: string; status: string; sessionType: string; createdAt
 type Payment      = { id: string; amount: number; status: string; createdAt: any; source: "online"|"manual"; method: string; clientId?: string; };
 type Assessment   = { id: string; status: string; assignedAt: any; completedAt: any; };
 
-const C = { ocean:"#0D3B44", teal:"#4ECDC4", teal2:"#2BA8A0", coral:"#E8604C", gold:"#D4A853", slate:"#8A9BA8" };
+const C = { ocean:"#2A4A1A", teal:"#8DC63F", teal2:"#6BA028", coral:"#F7941D", gold:"#F7941D", slate:"#8A9BA8" };
 const SESSION_COLORS: Record<string,string> = { "Individual Therapy":C.ocean,"Couples Therapy":C.teal,"Life Coaching":C.gold,"Workplace Wellness":C.coral,"Free Consultation":C.slate };
 
 function toDate(ts: any): Date|null { if(!ts)return null; if(ts.toDate)return ts.toDate(); if(ts instanceof Date)return ts; if(typeof ts==="string")return new Date(ts); return null; }
@@ -29,10 +29,10 @@ const fmt2 = (n:number) => new Intl.NumberFormat("en-US",{style:"currency",curre
 function KpiCard({label,value,sub,accent,Icon,trend}:{label:string;value:string|number;sub?:string;accent:string;Icon:any;trend?:number|null}){
   const up=trend!=null&&trend>=0;
   return(
-    <div className="rounded-2xl p-5 flex flex-col gap-3" style={{background:"white",boxShadow:"0 1px 4px rgba(13,59,68,0.07)"}}>
+    <div className="rounded-2xl p-5 flex flex-col gap-3" style={{background:"white",boxShadow:"0 1px 4px rgba(42,74,26,0.07)"}}>
       <div className="flex items-start justify-between">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{background:accent+"15"}}><Icon size={18} style={{color:accent}}/></div>
-        {trend!=null&&(<span className="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg" style={{background:up?"rgba(43,168,160,0.1)":"rgba(232,96,76,0.1)",color:up?C.teal2:C.coral}}>{up?<TrendingUp size={11}/>:<TrendingDown size={11}/>}{Math.abs(trend)}%</span>)}
+        {trend!=null&&(<span className="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg" style={{background:up?"rgba(43,168,160,0.1)":"rgba(247,148,29,0.1)",color:up?C.teal2:C.coral}}>{up?<TrendingUp size={11}/>:<TrendingDown size={11}/>}{Math.abs(trend)}%</span>)}
       </div>
       <div>
         <p className="text-2xl font-bold" style={{fontFamily:"var(--font-dm-serif)",color:C.ocean}}>{value}</p>
@@ -66,7 +66,7 @@ function StackedBars({months}:{months:{key:string;online:number;manual:number}[]
         const manPct=total>0?(m.manual/total)*100:0,onPct=total>0?(m.online/total)*100:0;
         return(
           <div key={m.key} className="flex-1 flex flex-col items-center gap-1">
-            <div className="w-full flex flex-col justify-end rounded-t-lg overflow-hidden" style={{height:"56px",background:"rgba(13,59,68,0.04)"}}>
+            <div className="w-full flex flex-col justify-end rounded-t-lg overflow-hidden" style={{height:"56px",background:"rgba(42,74,26,0.04)"}}>
               <div style={{height:`${pct}%`,minHeight:total>0?"4px":"0",display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
                 <div style={{height:`${manPct}%`,background:C.gold,minHeight:m.manual>0?"3px":"0"}}/>
                 <div style={{height:`${onPct}%`,background:C.teal,minHeight:m.online>0?"3px":"0"}}/>
@@ -82,11 +82,11 @@ function StackedBars({months}:{months:{key:string;online:number;manual:number}[]
 
 function Donut({segments,size=100}:{segments:{label:string;value:number;color:string}[];size?:number}){
   const total=segments.reduce((s,x)=>s+x.value,0);
-  if(total===0)return(<div className="flex items-center justify-center rounded-full border-4" style={{width:size,height:size,borderColor:"rgba(13,59,68,0.08)"}}><span className="text-xs" style={{color:"#C4C4C4"}}>No data</span></div>);
+  if(total===0)return(<div className="flex items-center justify-center rounded-full border-4" style={{width:size,height:size,borderColor:"rgba(42,74,26,0.08)"}}><span className="text-xs" style={{color:"#C4C4C4"}}>No data</span></div>);
   const r=36,cx=50,cy=50,circ=2*Math.PI*r;let offset=0;
   return(
     <svg viewBox="0 0 100 100" style={{width:size,height:size}}>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(13,59,68,0.06)" strokeWidth="14"/>
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(42,74,26,0.06)" strokeWidth="14"/>
       {segments.map(seg=>{const dash=(seg.value/total)*circ;const el=(<circle key={seg.label} cx={cx} cy={cy} r={r} fill="none" stroke={seg.color} strokeWidth="14" strokeDasharray={`${dash} ${circ-dash}`} strokeDashoffset={-offset} strokeLinecap="butt" style={{transform:"rotate(-90deg)",transformOrigin:"50% 50%"}}/>);offset+=dash;return el;})}
       <text x="50" y="50" textAnchor="middle" dominantBaseline="central" style={{fontSize:"14px",fontWeight:700,fill:C.ocean}}>{total}</text>
     </svg>
@@ -183,10 +183,10 @@ export default function AdminAnalyticsPage(){
           <h2 className="text-2xl" style={{fontFamily:"var(--font-dm-serif)",color:C.ocean}}>Analytics</h2>
           <p className="text-sm mt-0.5" style={{color:C.slate}}>Platform performance and clinical activity overview</p>
         </div>
-        <div className="flex gap-1 p-1 rounded-xl" style={{background:"rgba(13,59,68,0.06)"}}>
+        <div className="flex gap-1 p-1 rounded-xl" style={{background:"rgba(42,74,26,0.06)"}}>
           {(["1m","3m","6m"] as const).map(p=>(
             <button key={p} onClick={()=>setPeriod(p)} className="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all"
-              style={{background:period===p?"white":"transparent",color:period===p?C.ocean:C.slate,boxShadow:period===p?"0 1px 3px rgba(13,59,68,0.1)":"none"}}>
+              style={{background:period===p?"white":"transparent",color:period===p?C.ocean:C.slate,boxShadow:period===p?"0 1px 3px rgba(42,74,26,0.1)":"none"}}>
               {p==="1m"?"1 Month":p==="3m"?"3 Months":"6 Months"}
             </button>
           ))}
@@ -203,7 +203,7 @@ export default function AdminAnalyticsPage(){
 
       {/* Revenue Split + Stacked Bars */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(13,59,68,0.07)"}}>
+        <div className="rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(42,74,26,0.07)"}}>
           <p className="text-sm font-semibold mb-4" style={{color:C.ocean}}>Revenue Split</p>
           <div className="space-y-4">
             <div>
@@ -211,7 +211,7 @@ export default function AdminAnalyticsPage(){
                 <span className="flex items-center gap-1.5 text-xs" style={{color:"#4A5568"}}><Globe size={12} style={{color:C.teal}}/> Online (WiPay)</span>
                 <span className="text-xs font-bold" style={{color:C.ocean}}>{fmt(onlineRevenue)}</span>
               </div>
-              <div className="h-2 rounded-full overflow-hidden" style={{background:"rgba(13,59,68,0.06)"}}>
+              <div className="h-2 rounded-full overflow-hidden" style={{background:"rgba(42,74,26,0.06)"}}>
                 <div className="h-full rounded-full" style={{width:`${totalRevenue>0?(onlineRevenue/totalRevenue)*100:0}%`,background:C.teal}}/>
               </div>
             </div>
@@ -220,24 +220,24 @@ export default function AdminAnalyticsPage(){
                 <span className="flex items-center gap-1.5 text-xs" style={{color:"#4A5568"}}><Banknote size={12} style={{color:C.gold}}/> Manual / Cash</span>
                 <span className="text-xs font-bold" style={{color:C.ocean}}>{fmt(manualRevenue)}</span>
               </div>
-              <div className="h-2 rounded-full overflow-hidden" style={{background:"rgba(13,59,68,0.06)"}}>
+              <div className="h-2 rounded-full overflow-hidden" style={{background:"rgba(42,74,26,0.06)"}}>
                 <div className="h-full rounded-full" style={{width:`${totalRevenue>0?(manualRevenue/totalRevenue)*100:0}%`,background:C.gold}}/>
               </div>
             </div>
             {methodBreakdown.length>0&&(
-              <div className="pt-2 border-t space-y-2" style={{borderColor:"rgba(13,59,68,0.06)"}}>
+              <div className="pt-2 border-t space-y-2" style={{borderColor:"rgba(42,74,26,0.06)"}}>
                 <p className="text-xs font-semibold uppercase tracking-wider" style={{color:C.slate}}>By Method</p>
                 {methodBreakdown.map(([method,count])=>(
                   <div key={method} className="flex items-center justify-between">
                     <span className="text-xs" style={{color:"#4A5568"}}>{method}</span>
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{background:"rgba(13,59,68,0.06)",color:C.ocean}}>{count}</span>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{background:"rgba(42,74,26,0.06)",color:C.ocean}}>{count}</span>
                   </div>
                 ))}
               </div>
             )}
           </div>
         </div>
-        <div className="lg:col-span-2 rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(13,59,68,0.07)"}}>
+        <div className="lg:col-span-2 rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(42,74,26,0.07)"}}>
           <div className="flex items-center justify-between mb-1">
             <div>
               <p className="text-sm font-semibold" style={{color:C.ocean}}>Revenue Trend</p>
@@ -255,7 +255,7 @@ export default function AdminAnalyticsPage(){
 
       {/* Sessions + Session Types */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(13,59,68,0.07)"}}>
+        <div className="lg:col-span-2 rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(42,74,26,0.07)"}}>
           <div className="flex items-center justify-between mb-4">
             <div><p className="text-sm font-semibold" style={{color:C.ocean}}>Sessions Over Time</p><p className="text-xs" style={{color:C.slate}}>Completed appointments per month</p></div>
             <BarChart2 size={16} style={{color:C.slate}}/>
@@ -265,7 +265,7 @@ export default function AdminAnalyticsPage(){
               const max=Math.max(...monthlyData.map(x=>x.sessions),1),pct=(m.sessions/max)*100;
               return(
                 <div key={m.key} className="flex-1 flex flex-col items-center gap-1">
-                  <div className="w-full rounded-t-lg flex items-end" style={{height:"56px",background:"rgba(13,59,68,0.04)"}}>
+                  <div className="w-full rounded-t-lg flex items-end" style={{height:"56px",background:"rgba(42,74,26,0.04)"}}>
                     <div className="w-full rounded-t-lg" style={{height:`${Math.max(pct,2)}%`,background:C.teal,minHeight:m.sessions>0?"4px":"0"}}/>
                   </div>
                   <span className="text-xs" style={{color:"#C4C4C4",fontSize:"10px"}}>{monthLabel(m.key)}</span>
@@ -277,7 +277,7 @@ export default function AdminAnalyticsPage(){
             <span className="flex items-center gap-1.5 text-xs" style={{color:C.slate}}><span className="w-2.5 h-2.5 rounded-full" style={{background:C.teal}}/> Completed sessions</span>
           </div>
         </div>
-        <div className="rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(13,59,68,0.07)"}}>
+        <div className="rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(42,74,26,0.07)"}}>
           <div className="flex items-center justify-between mb-4">
             <div><p className="text-sm font-semibold" style={{color:C.ocean}}>Session Types</p><p className="text-xs" style={{color:C.slate}}>All completed</p></div>
             <PieChart size={16} style={{color:C.slate}}/>
@@ -296,7 +296,7 @@ export default function AdminAnalyticsPage(){
 
       {/* Client Growth + Doctor Performance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(13,59,68,0.07)"}}>
+        <div className="rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(42,74,26,0.07)"}}>
           <div className="flex items-center justify-between mb-1">
             <div><p className="text-sm font-semibold" style={{color:C.ocean}}>Client Growth</p><p className="text-xs" style={{color:C.slate}}>New registrations</p></div>
             <UserCheck size={16} style={{color:C.slate}}/>
@@ -307,7 +307,7 @@ export default function AdminAnalyticsPage(){
             {monthlyData.map(m=><span key={m.key} className="text-xs" style={{color:"#C4C4C4",fontSize:"10px"}}>{monthLabel(m.key)}</span>)}
           </div>
         </div>
-        <div className="rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(13,59,68,0.07)"}}>
+        <div className="rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(42,74,26,0.07)"}}>
           <div className="flex items-center justify-between mb-4">
             <div><p className="text-sm font-semibold" style={{color:C.ocean}}>Doctor Performance</p><p className="text-xs" style={{color:C.slate}}>Sessions per therapist</p></div>
             <Stethoscope size={16} style={{color:C.slate}}/>
@@ -315,9 +315,9 @@ export default function AdminAnalyticsPage(){
           {doctorPerf.length===0?(<p className="text-xs text-center py-6" style={{color:"#C4C4C4"}}>No doctors yet</p>):(
             <div className="space-y-3">
               {doctorPerf.map(doc=>(
-                <div key={doc.name} className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{background:"rgba(13,59,68,0.03)",border:"1px solid rgba(13,59,68,0.06)"}}>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0" style={{background:"linear-gradient(135deg,#1A1A2E,#2D2D4E)",color:"white"}}>{doc.name?.[0]?.toUpperCase()??"D"}</div>
-                  <div className="flex-1 min-w-0"><p className="text-sm font-medium truncate" style={{color:"#1A1A2E"}}>{doc.name}</p><p className="text-xs" style={{color:C.slate}}>{doc.sessions} sessions</p></div>
+                <div key={doc.name} className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{background:"rgba(42,74,26,0.03)",border:"1px solid rgba(42,74,26,0.06)"}}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0" style={{background:"linear-gradient(135deg,#1E3810,#2D2D4E)",color:"white"}}>{doc.name?.[0]?.toUpperCase()??"D"}</div>
+                  <div className="flex-1 min-w-0"><p className="text-sm font-medium truncate" style={{color:"#1E3810"}}>{doc.name}</p><p className="text-xs" style={{color:C.slate}}>{doc.sessions} sessions</p></div>
                 </div>
               ))}
             </div>
@@ -327,18 +327,18 @@ export default function AdminAnalyticsPage(){
 
       {/* Health + Appointment Status + Quick Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(13,59,68,0.07)"}}>
+        <div className="rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(42,74,26,0.07)"}}>
           <p className="text-sm font-semibold mb-4" style={{color:C.ocean}}>Platform Health</p>
           <div className="space-y-4">
             {[{label:"Appointment completion",pct:apptRate,color:C.teal},{label:"Assessment completion",pct:assessRate,color:C.coral},{label:"Client retention",pct:retentionRate,color:C.gold}].map(({label,pct,color})=>(
               <div key={label}>
                 <div className="flex items-center justify-between mb-1"><span className="text-xs" style={{color:"#4A5568"}}>{label}</span><span className="text-xs font-semibold" style={{color:C.ocean}}>{pct}%</span></div>
-                <div className="h-2 rounded-full overflow-hidden" style={{background:"rgba(13,59,68,0.06)"}}><div className="h-full rounded-full" style={{width:`${pct}%`,background:color}}/></div>
+                <div className="h-2 rounded-full overflow-hidden" style={{background:"rgba(42,74,26,0.06)"}}><div className="h-full rounded-full" style={{width:`${pct}%`,background:color}}/></div>
               </div>
             ))}
           </div>
         </div>
-        <div className="rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(13,59,68,0.07)"}}>
+        <div className="rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(42,74,26,0.07)"}}>
           <p className="text-sm font-semibold mb-4" style={{color:C.ocean}}>Appointment Status</p>
           <div className="space-y-3">
             {[{label:"Completed",value:completedAppts.length,color:C.teal,Icon:CheckCircle},{label:"Pending",value:pendingAppts.length,color:C.gold,Icon:Clock},{label:"Cancelled",value:cancelledAppts.length,color:C.coral,Icon:AlertCircle}].map(({label,value,color,Icon})=>(
@@ -348,7 +348,7 @@ export default function AdminAnalyticsPage(){
             ))}
           </div>
         </div>
-        <div className="rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(13,59,68,0.07)"}}>
+        <div className="rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(42,74,26,0.07)"}}>
           <p className="text-sm font-semibold mb-4" style={{color:C.ocean}}>Quick Stats</p>
           <div className="space-y-3">
             {[
@@ -359,7 +359,7 @@ export default function AdminAnalyticsPage(){
               {label:"Returning clients",    value:returningClients,                  accent:C.coral},
               {label:"Manual payments",      value:payments.filter(p=>p.source==="manual"&&p.status==="completed").length, accent:C.slate},
             ].map(({label,value,accent})=>(
-              <div key={label} className="flex items-center justify-between py-1.5 border-b last:border-0" style={{borderColor:"rgba(13,59,68,0.05)"}}>
+              <div key={label} className="flex items-center justify-between py-1.5 border-b last:border-0" style={{borderColor:"rgba(42,74,26,0.05)"}}>
                 <span className="text-xs" style={{color:"#4A5568"}}>{label}</span>
                 <span className="text-sm font-bold" style={{color:accent}}>{value}</span>
               </div>
@@ -369,7 +369,7 @@ export default function AdminAnalyticsPage(){
       </div>
 
       {/* Assessment Activity */}
-      <div className="rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(13,59,68,0.07)"}}>
+      <div className="rounded-2xl p-5" style={{background:"white",boxShadow:"0 1px 4px rgba(42,74,26,0.07)"}}>
         <div className="flex items-center justify-between mb-4">
           <div><p className="text-sm font-semibold" style={{color:C.ocean}}>Assessment Activity</p><p className="text-xs" style={{color:C.slate}}>Assigned vs completed per month</p></div>
           <Activity size={16} style={{color:C.slate}}/>
@@ -384,11 +384,11 @@ export default function AdminAnalyticsPage(){
                 <div className="space-y-1.5">
                   <div className="space-y-0.5">
                     <div className="flex items-center justify-between text-xs"><span style={{color:"#4A5568"}}>Assigned</span><span className="font-semibold" style={{color:C.ocean}}>{assigned}</span></div>
-                    <div className="h-1.5 rounded-full overflow-hidden" style={{background:"rgba(13,59,68,0.06)"}}><div className="h-full rounded-full" style={{width:`${(assigned/maxVal)*100}%`,background:C.ocean+"90"}}/></div>
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{background:"rgba(42,74,26,0.06)"}}><div className="h-full rounded-full" style={{width:`${(assigned/maxVal)*100}%`,background:C.ocean+"90"}}/></div>
                   </div>
                   <div className="space-y-0.5">
                     <div className="flex items-center justify-between text-xs"><span style={{color:"#4A5568"}}>Completed</span><span className="font-semibold" style={{color:C.ocean}}>{completed}</span></div>
-                    <div className="h-1.5 rounded-full overflow-hidden" style={{background:"rgba(13,59,68,0.06)"}}><div className="h-full rounded-full" style={{width:`${(completed/maxVal)*100}%`,background:C.teal}}/></div>
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{background:"rgba(42,74,26,0.06)"}}><div className="h-full rounded-full" style={{width:`${(completed/maxVal)*100}%`,background:C.teal}}/></div>
                   </div>
                 </div>
               </div>

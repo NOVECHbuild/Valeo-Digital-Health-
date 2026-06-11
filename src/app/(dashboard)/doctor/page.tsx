@@ -49,18 +49,18 @@ function StatCard({ label, value, sub, icon: Icon, accent, trend }: {
   icon: React.ElementType; accent: string; trend?: string;
 }) {
   return (
-    <div className="rounded-2xl p-5" style={{ background:"white", boxShadow:"0 1px 4px rgba(10,46,53,0.07)" }}>
+    <div className="rounded-2xl p-5" style={{ background:"white", boxShadow:"0 1px 4px rgba(30,56,16,0.07)" }}>
       <div className="flex items-center justify-between mb-4">
         <span className="text-xs font-semibold uppercase tracking-wider" style={{ color:"#8A9BA8" }}>{label}</span>
         <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background:accent+"15" }}>
           <Icon size={17} style={{ color:accent }}/>
         </div>
       </div>
-      <p className="text-3xl font-semibold mb-1" style={{ fontFamily:"var(--font-dm-serif)", color:"#0A2E35" }}>{value}</p>
+      <p className="text-3xl font-semibold mb-1" style={{ fontFamily:"var(--font-dm-serif)", color:"#1E3810" }}>{value}</p>
       <div className="flex items-center justify-between">
         <p className="text-xs" style={{ color:"#8A9BA8" }}>{sub}</p>
         {trend && (
-          <span className="text-xs font-medium flex items-center gap-1" style={{ color:"#4ECDC4" }}>
+          <span className="text-xs font-medium flex items-center gap-1" style={{ color:"#8DC63F" }}>
             <TrendingUp size={11}/> {trend}
           </span>
         )}
@@ -75,24 +75,24 @@ function AppointmentRow({ name, time, type, status }: {
   status: "pending"|"approved"|"completed"|"cancelled";
 }) {
   const styles = {
-    pending:   { bg:"rgba(212,168,83,0.1)",  color:"#D4A853", label:"Pending"   },
-    approved:  { bg:"rgba(78,205,196,0.1)",  color:"#2BA8A0", label:"Approved"  },
-    completed: { bg:"rgba(13,59,68,0.08)",   color:"#0A2E35", label:"Completed" },
-    cancelled: { bg:"rgba(232,96,76,0.1)",   color:"#E8604C", label:"Cancelled" },
+    pending:   { bg:"rgba(247,148,29,0.1)",  color:"#F7941D", label:"Pending"   },
+    approved:  { bg:"rgba(141,198,63,0.1)",  color:"#6BA028", label:"Approved"  },
+    completed: { bg:"rgba(42,74,26,0.08)",   color:"#1E3810", label:"Completed" },
+    cancelled: { bg:"rgba(247,148,29,0.1)",   color:"#F7941D", label:"Cancelled" },
   };
   const s = styles[status] ?? styles.pending;
   return (
-    <div className="flex items-center gap-4 py-3 border-b last:border-0" style={{ borderColor:"rgba(10,46,53,0.06)" }}>
+    <div className="flex items-center gap-4 py-3 border-b last:border-0" style={{ borderColor:"rgba(30,56,16,0.06)" }}>
       <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-        style={{ background:"rgba(78,205,196,0.15)", color:"#0A2E35" }}>
+        style={{ background:"rgba(141,198,63,0.15)", color:"#1E3810" }}>
         {name?.[0]?.toUpperCase() ?? "?"}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate" style={{ color:"#0A2E35" }}>{name}</p>
+        <p className="text-sm font-medium truncate" style={{ color:"#1E3810" }}>{name}</p>
         <p className="text-xs" style={{ color:"#8A9BA8" }}>{type}</p>
       </div>
       <div className="text-right flex-shrink-0">
-        <p className="text-xs font-medium mb-0.5" style={{ color:"#0A2E35" }}>{time}</p>
+        <p className="text-xs font-medium mb-0.5" style={{ color:"#1E3810" }}>{time}</p>
         <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background:s.bg, color:s.color }}>{s.label}</span>
       </div>
     </div>
@@ -105,12 +105,12 @@ function ActionCard({ href, icon: Icon, label, count, accent }: {
 }) {
   return (
     <Link href={href} className="group rounded-xl p-4 flex items-center gap-3 transition-all hover:-translate-y-0.5"
-      style={{ background:"white", boxShadow:"0 1px 4px rgba(10,46,53,0.07)" }}>
+      style={{ background:"white", boxShadow:"0 1px 4px rgba(30,56,16,0.07)" }}>
       <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background:accent+"15" }}>
         <Icon size={18} style={{ color:accent }}/>
       </div>
       <div className="flex-1">
-        <p className="text-sm font-medium" style={{ color:"#0A2E35" }}>{label}</p>
+        <p className="text-sm font-medium" style={{ color:"#1E3810" }}>{label}</p>
         <p className="text-xs" style={{ color: count > 0 ? accent : "#8A9BA8" }}>
           {count > 0 ? `${count} pending` : "All clear"}
         </p>
@@ -204,7 +204,7 @@ export default function DoctorDashboard() {
 
   if (loading) return (
     <div className="flex items-center justify-center py-24">
-      <Loader2 size={28} className="animate-spin" style={{ color:"#4ECDC4" }}/>
+      <Loader2 size={28} className="animate-spin" style={{ color:"#8DC63F" }}/>
     </div>
   );
 
@@ -213,9 +213,9 @@ export default function DoctorDashboard() {
 
       {/* Welcome banner */}
       <div className="rounded-2xl p-6 relative overflow-hidden"
-        style={{ background:"linear-gradient(135deg, #0A2E35 0%, #1A535C 100%)", boxShadow:"0 4px 24px rgba(10,46,53,0.2)" }}>
+        style={{ background:"linear-gradient(135deg, #1E3810 0%, #3D6B24 100%)", boxShadow:"0 4px 24px rgba(30,56,16,0.2)" }}>
         <div className="absolute right-0 top-0 w-80 h-full opacity-10"
-          style={{ background:"radial-gradient(circle at 80% 50%, #4ECDC4, transparent 70%)" }}/>
+          style={{ background:"radial-gradient(circle at 80% 50%, #8DC63F, transparent 70%)" }}/>
         <div className="relative z-10 flex items-start justify-between flex-wrap gap-4">
           <div>
             <p className="text-sm mb-1" style={{ color:"rgba(255,255,255,0.55)" }}>
@@ -239,9 +239,9 @@ export default function DoctorDashboard() {
           </div>
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl"
-              style={{ background:"rgba(78,205,196,0.15)", border:"1px solid rgba(78,205,196,0.25)" }}>
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{ background:"#4ECDC4" }}/>
-              <span className="text-sm font-medium" style={{ color:"#4ECDC4" }}>Practice Active</span>
+              style={{ background:"rgba(141,198,63,0.15)", border:"1px solid rgba(141,198,63,0.25)" }}>
+              <div className="w-2 h-2 rounded-full animate-pulse" style={{ background:"#8DC63F" }}/>
+              <span className="text-sm font-medium" style={{ color:"#8DC63F" }}>Practice Active</span>
             </div>
             {pendingAppts.length > 0 && (
               <Link href="/doctor/schedule"
@@ -259,29 +259,29 @@ export default function DoctorDashboard() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Clients"     value={clients.length}          sub={`+${newClientsThisMonth} this month`}    icon={Users}       accent="#4ECDC4" trend={newClientsThisMonth > 0 ? `+${newClientsThisMonth} new` : undefined}/>
-        <StatCard label="This Month"        value={completedThisMonth}      sub="Sessions completed"                      icon={CheckCircle} accent="#0A2E35"/>
-        <StatCard label="Pending Approvals" value={pendingAppts.length}     sub="Awaiting confirmation"                   icon={AlertCircle} accent="#E8604C"/>
-        <StatCard label="Revenue"           value={fmt(revenueThisMonth)}   sub={`${fmt(totalRevenue)} total`}            icon={DollarSign}  accent="#D4A853"/>
+        <StatCard label="Total Clients"     value={clients.length}          sub={`+${newClientsThisMonth} this month`}    icon={Users}       accent="#8DC63F" trend={newClientsThisMonth > 0 ? `+${newClientsThisMonth} new` : undefined}/>
+        <StatCard label="This Month"        value={completedThisMonth}      sub="Sessions completed"                      icon={CheckCircle} accent="#1E3810"/>
+        <StatCard label="Pending Approvals" value={pendingAppts.length}     sub="Awaiting confirmation"                   icon={AlertCircle} accent="#F7941D"/>
+        <StatCard label="Revenue"           value={fmt(revenueThisMonth)}   sub={`${fmt(totalRevenue)} total`}            icon={DollarSign}  accent="#F7941D"/>
       </div>
 
       {/* Today's Schedule + Needs Attention */}
       <div className="grid lg:grid-cols-5 gap-4">
 
         {/* Today's schedule */}
-        <div className="lg:col-span-3 rounded-2xl p-5" style={{ background:"white", boxShadow:"0 1px 4px rgba(10,46,53,0.07)" }}>
+        <div className="lg:col-span-3 rounded-2xl p-5" style={{ background:"white", boxShadow:"0 1px 4px rgba(30,56,16,0.07)" }}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold uppercase tracking-wider" style={{ color:"#8A9BA8" }}>Today&apos;s Schedule</h3>
-            <Link href="/doctor/schedule" className="text-xs font-medium flex items-center gap-1 hover:underline" style={{ color:"#4ECDC4" }}>
+            <Link href="/doctor/schedule" className="text-xs font-medium flex items-center gap-1 hover:underline" style={{ color:"#8DC63F" }}>
               View all <ArrowRight size={11}/>
             </Link>
           </div>
           {todayAppts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3" style={{ background:"rgba(78,205,196,0.08)" }}>
-                <Calendar size={24} style={{ color:"#4ECDC4" }}/>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3" style={{ background:"rgba(141,198,63,0.08)" }}>
+                <Calendar size={24} style={{ color:"#8DC63F" }}/>
               </div>
-              <p className="text-sm font-medium mb-1" style={{ color:"#0A2E35" }}>No appointments today</p>
+              <p className="text-sm font-medium mb-1" style={{ color:"#1E3810" }}>No appointments today</p>
               <p className="text-xs" style={{ color:"#8A9BA8" }}>Your schedule is clear. Appointments will appear here.</p>
             </div>
           ) : (
@@ -304,14 +304,14 @@ export default function DoctorDashboard() {
         {/* Needs Attention */}
         <div className="lg:col-span-2 space-y-3">
           <h3 className="text-sm font-semibold uppercase tracking-wider px-1" style={{ color:"#8A9BA8" }}>Needs Attention</h3>
-          <ActionCard href="/doctor/schedule"    icon={Clock}         label="Pending Approvals"     count={pendingAppts.length}    accent="#E8604C"/>
-          <ActionCard href="/doctor/assessments" icon={ClipboardList} label="Assessments to Review" count={pendingAssessments}     accent="#4ECDC4"/>
-          <ActionCard href="/doctor/notes"       icon={FileText}      label="Notes to Complete"     count={0}                     accent="#0A2E35"/>
-          <ActionCard href="/doctor/clients"     icon={Users}         label="New Client Requests"   count={newClientsThisMonth}   accent="#D4A853"/>
+          <ActionCard href="/doctor/schedule"    icon={Clock}         label="Pending Approvals"     count={pendingAppts.length}    accent="#F7941D"/>
+          <ActionCard href="/doctor/assessments" icon={ClipboardList} label="Assessments to Review" count={pendingAssessments}     accent="#8DC63F"/>
+          <ActionCard href="/doctor/notes"       icon={FileText}      label="Notes to Complete"     count={0}                     accent="#1E3810"/>
+          <ActionCard href="/doctor/clients"     icon={Users}         label="New Client Requests"   count={newClientsThisMonth}   accent="#F7941D"/>
 
           {/* This week stats */}
           <div className="rounded-xl p-4 mt-2"
-            style={{ background:"linear-gradient(135deg, rgba(78,205,196,0.08), rgba(78,205,196,0.03))", border:"1px solid rgba(78,205,196,0.15)" }}>
+            style={{ background:"linear-gradient(135deg, rgba(141,198,63,0.08), rgba(141,198,63,0.03))", border:"1px solid rgba(141,198,63,0.15)" }}>
             <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color:"#8A9BA8" }}>This Week</p>
             {[
               { label:"Sessions Completed", value: weekAppts      },
@@ -319,9 +319,9 @@ export default function DoctorDashboard() {
               { label:"Assessments Sent",    value: weekAssess     },
             ].map(({ label, value }) => (
               <div key={label} className="flex items-center justify-between py-1.5 border-b last:border-0"
-                style={{ borderColor:"rgba(78,205,196,0.1)" }}>
+                style={{ borderColor:"rgba(141,198,63,0.1)" }}>
                 <span className="text-xs" style={{ color:"#4A5568" }}>{label}</span>
-                <span className="text-xs font-bold" style={{ color:"#0A2E35" }}>{value}</span>
+                <span className="text-xs font-bold" style={{ color:"#1E3810" }}>{value}</span>
               </div>
             ))}
           </div>
@@ -329,19 +329,19 @@ export default function DoctorDashboard() {
       </div>
 
       {/* Recent Clients */}
-      <div className="rounded-2xl p-5" style={{ background:"white", boxShadow:"0 1px 4px rgba(10,46,53,0.07)" }}>
+      <div className="rounded-2xl p-5" style={{ background:"white", boxShadow:"0 1px 4px rgba(30,56,16,0.07)" }}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold uppercase tracking-wider" style={{ color:"#8A9BA8" }}>Recent Clients</h3>
-          <Link href="/doctor/clients" className="text-xs font-medium flex items-center gap-1 hover:underline" style={{ color:"#4ECDC4" }}>
+          <Link href="/doctor/clients" className="text-xs font-medium flex items-center gap-1 hover:underline" style={{ color:"#8DC63F" }}>
             View all <ArrowRight size={11}/>
           </Link>
         </div>
         {clients.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3" style={{ background:"rgba(13,59,68,0.06)" }}>
-              <Users size={20} style={{ color:"#0A2E35" }}/>
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3" style={{ background:"rgba(42,74,26,0.06)" }}>
+              <Users size={20} style={{ color:"#1E3810" }}/>
             </div>
-            <p className="text-sm font-medium mb-1" style={{ color:"#0A2E35" }}>No clients yet</p>
+            <p className="text-sm font-medium mb-1" style={{ color:"#1E3810" }}>No clients yet</p>
             <p className="text-xs" style={{ color:"#8A9BA8" }}>Clients will appear here once they book sessions.</p>
           </div>
         ) : (
@@ -356,13 +356,13 @@ export default function DoctorDashboard() {
               return (
                 <Link key={c.uid} href="/doctor/clients"
                   className="group flex items-center gap-3 p-3 rounded-xl transition-all hover:-translate-y-0.5"
-                  style={{ background:"rgba(10,46,53,0.03)", border:"1px solid rgba(10,46,53,0.06)" }}>
+                  style={{ background:"rgba(30,56,16,0.03)", border:"1px solid rgba(30,56,16,0.06)" }}>
                   <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-                    style={{ background:"rgba(78,205,196,0.15)", color:"#0A2E35" }}>
+                    style={{ background:"rgba(141,198,63,0.15)", color:"#1E3810" }}>
                     {c.displayName?.[0]?.toUpperCase() ?? "?"}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color:"#0A2E35" }}>{c.displayName}</p>
+                    <p className="text-sm font-medium truncate" style={{ color:"#1E3810" }}>{c.displayName}</p>
                     <p className="text-xs" style={{ color:"#8A9BA8" }}>
                       {sessions} session{sessions!==1?"s":""}{lastDate ? ` · ${lastDate.toLocaleDateString("en-US",{month:"short",day:"numeric"})}` : ""}
                     </p>

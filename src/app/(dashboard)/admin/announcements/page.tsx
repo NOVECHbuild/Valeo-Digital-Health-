@@ -26,15 +26,15 @@ interface Announcement {
 }
 
 const AUDIENCE_OPTIONS: { value: Audience; label: string; icon: any; color: string }[] = [
-  { value: "all",     label: "Everyone",  icon: Globe,       color: "#4ECDC4" },
-  { value: "clients", label: "Clients",   icon: User,        color: "#0D3B44" },
-  { value: "doctors", label: "Doctors",   icon: Stethoscope, color: "#D4A853" },
+  { value: "all",     label: "Everyone",  icon: Globe,       color: "#8DC63F" },
+  { value: "clients", label: "Clients",   icon: User,        color: "#2A4A1A" },
+  { value: "doctors", label: "Doctors",   icon: Stethoscope, color: "#F7941D" },
 ];
 
 const TYPE_OPTIONS: { value: AnnouncementType; label: string; color: string; bg: string }[] = [
-  { value: "info",        label: "Info",        color: "#2BA8A0", bg: "rgba(78,205,196,0.1)"  },
-  { value: "warning",     label: "Warning",     color: "#B8860B", bg: "rgba(212,168,83,0.1)"  },
-  { value: "maintenance", label: "Maintenance", color: "#E8604C", bg: "rgba(232,96,76,0.1)"   },
+  { value: "info",        label: "Info",        color: "#6BA028", bg: "rgba(141,198,63,0.1)"  },
+  { value: "warning",     label: "Warning",     color: "#C4700A", bg: "rgba(247,148,29,0.1)"  },
+  { value: "maintenance", label: "Maintenance", color: "#F7941D", bg: "rgba(247,148,29,0.1)"   },
 ];
 
 function TypeBadge({ type }: { type: AnnouncementType }) {
@@ -129,7 +129,7 @@ export default function AnnouncementsPage() {
       {/* Toast */}
       {toast && (
         <div className="fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg text-sm font-medium"
-          style={{ background: toast.type === "success" ? "#1A1A2E" : "#E8604C", color: "white" }}>
+          style={{ background: toast.type === "success" ? "#1E3810" : "#F7941D", color: "white" }}>
           {toast.type === "success" ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
           {toast.msg}
         </div>
@@ -137,7 +137,7 @@ export default function AnnouncementsPage() {
 
       {/* Header */}
       <div>
-        <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#1A1A2E" }}>
+        <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#1E3810" }}>
           Announcements
         </h2>
         <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>
@@ -147,13 +147,13 @@ export default function AnnouncementsPage() {
 
       {/* Compose Card */}
       <div className="rounded-2xl p-6 space-y-5"
-        style={{ background: "white", boxShadow: "0 1px 4px rgba(26,26,46,0.07)" }}>
+        style={{ background: "white", boxShadow: "0 1px 4px rgba(30,56,16,0.07)" }}>
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: "rgba(78,205,196,0.1)" }}>
-            <Megaphone size={16} style={{ color: "#4ECDC4" }} />
+            style={{ background: "rgba(141,198,63,0.1)" }}>
+            <Megaphone size={16} style={{ color: "#8DC63F" }} />
           </div>
-          <h3 className="text-sm font-semibold" style={{ color: "#1A1A2E" }}>New Announcement</h3>
+          <h3 className="text-sm font-semibold" style={{ color: "#1E3810" }}>New Announcement</h3>
         </div>
 
         {/* Audience */}
@@ -167,9 +167,9 @@ export default function AnnouncementsPage() {
                 <button key={opt.value} onClick={() => setForm(f => ({ ...f, audience: opt.value }))}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
                   style={{
-                    background: active ? "linear-gradient(135deg, #1A1A2E, #2D2D4E)" : "rgba(26,26,46,0.04)",
+                    background: active ? "linear-gradient(135deg, #1E3810, #2D2D4E)" : "rgba(30,56,16,0.04)",
                     color: active ? "white" : "#4A5568",
-                    border: active ? "none" : "1px solid rgba(26,26,46,0.1)",
+                    border: active ? "none" : "1px solid rgba(30,56,16,0.1)",
                   }}>
                   <Icon size={14} style={{ color: active ? "white" : opt.color }} />
                   {opt.label}
@@ -189,9 +189,9 @@ export default function AnnouncementsPage() {
                 <button key={opt.value} onClick={() => setForm(f => ({ ...f, type: opt.value }))}
                   className="px-4 py-2 rounded-xl text-xs font-semibold capitalize transition-all"
                   style={{
-                    background: active ? opt.bg : "rgba(26,26,46,0.03)",
+                    background: active ? opt.bg : "rgba(30,56,16,0.03)",
                     color: active ? opt.color : "#8A9BA8",
-                    border: `1.5px solid ${active ? opt.color : "rgba(26,26,46,0.1)"}`,
+                    border: `1.5px solid ${active ? opt.color : "rgba(30,56,16,0.1)"}`,
                   }}>
                   {opt.label}
                 </button>
@@ -207,14 +207,14 @@ export default function AnnouncementsPage() {
             onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
             placeholder="e.g. Scheduled maintenance this Sunday"
             className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-            style={{ background: "#F8F9FA", border: "1px solid rgba(26,26,46,0.1)", color: "#1A1A2E" }} />
+            style={{ background: "#F8F9FA", border: "1px solid rgba(30,56,16,0.1)", color: "#1E3810" }} />
         </div>
 
         {/* Message */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#8A9BA8" }}>Message</p>
-            <span className="text-xs" style={{ color: charCount > 500 ? "#E8604C" : "#C4C4C4" }}>
+            <span className="text-xs" style={{ color: charCount > 500 ? "#F7941D" : "#C4C4C4" }}>
               {charCount}/500
             </span>
           </div>
@@ -223,14 +223,14 @@ export default function AnnouncementsPage() {
             rows={4} maxLength={500}
             placeholder="Write your announcement here..."
             className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none"
-            style={{ background: "#F8F9FA", border: "1px solid rgba(26,26,46,0.1)", color: "#1A1A2E" }} />
+            style={{ background: "#F8F9FA", border: "1px solid rgba(30,56,16,0.1)", color: "#1E3810" }} />
         </div>
 
         {/* Send button */}
         <div className="flex justify-end">
           <button onClick={handleSend} disabled={sending || !form.title.trim() || !form.message.trim()}
             className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:translate-y-0"
-            style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+            style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
             {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
             {sending ? "Sending…" : "Send Announcement"}
           </button>
@@ -245,11 +245,11 @@ export default function AnnouncementsPage() {
 
         {loading ? (
           <div className="flex justify-center py-12">
-            <Loader2 size={24} className="animate-spin" style={{ color: "#4ECDC4" }} />
+            <Loader2 size={24} className="animate-spin" style={{ color: "#8DC63F" }} />
           </div>
         ) : announcements.length === 0 ? (
           <div className="rounded-2xl py-14 text-center"
-            style={{ background: "white", boxShadow: "0 1px 4px rgba(26,26,46,0.07)" }}>
+            style={{ background: "white", boxShadow: "0 1px 4px rgba(30,56,16,0.07)" }}>
             <Megaphone size={28} className="mx-auto mb-3" style={{ color: "#C4C4C4" }} />
             <p className="text-sm" style={{ color: "#8A9BA8" }}>No announcements yet</p>
           </div>
@@ -260,7 +260,7 @@ export default function AnnouncementsPage() {
               const AudienceIcon = audience.icon;
               return (
                 <div key={ann.id} className="rounded-2xl p-5"
-                  style={{ background: "white", boxShadow: "0 1px 4px rgba(26,26,46,0.07)" }}>
+                  style={{ background: "white", boxShadow: "0 1px 4px rgba(30,56,16,0.07)" }}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -275,15 +275,15 @@ export default function AnnouncementsPage() {
                             : new Date(ann.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                         </span>
                       </div>
-                      <p className="text-sm font-semibold mb-1" style={{ color: "#1A1A2E" }}>{ann.title}</p>
+                      <p className="text-sm font-semibold mb-1" style={{ color: "#1E3810" }}>{ann.title}</p>
                       <p className="text-sm leading-relaxed" style={{ color: "#4A5568" }}>{ann.message}</p>
                       <p className="text-xs mt-2" style={{ color: "#C4C4C4" }}>Sent by {ann.createdBy}</p>
                     </div>
                     <button onClick={() => handleDelete(ann.id)} disabled={deleting === ann.id}
                       className="p-2 rounded-lg hover:bg-red-50 transition-colors flex-shrink-0">
                       {deleting === ann.id
-                        ? <Loader2 size={14} className="animate-spin" style={{ color: "#E8604C" }} />
-                        : <Trash2 size={14} style={{ color: "#E8604C" }} />}
+                        ? <Loader2 size={14} className="animate-spin" style={{ color: "#F7941D" }} />
+                        : <Trash2 size={14} style={{ color: "#F7941D" }} />}
                     </button>
                   </div>
                 </div>

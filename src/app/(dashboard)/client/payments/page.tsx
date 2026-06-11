@@ -60,18 +60,18 @@ function fmtCurrency(amount: number, currency = "USD"): string {
 
 // FIX 3: accent color → rgba map (hex alpha is not reliably supported cross-browser)
 const ACCENT_RGBA: Record<string, string> = {
-  "#0D3B44": "rgba(13,59,68,0.1)",
-  "#4ECDC4": "rgba(78,205,196,0.12)",
-  "#D4A853": "rgba(212,168,83,0.12)",
+  "#2A4A1A": "rgba(42,74,26,0.1)",
+  "#8DC63F": "rgba(141,198,63,0.12)",
+  "#F7941D": "rgba(247,148,29,0.12)",
 };
 
 // ── Status config ──────────────────────────────────────────────────────────
 const STATUS_CONFIG: Record<PaymentStatus, {
   label: string; bg: string; color: string; Icon: any;
 }> = {
-  completed: { label: "Paid",       bg: "rgba(78,205,196,0.12)",  color: "#2BA8A0", Icon: CheckCircle  },
-  pending:   { label: "Pending",    bg: "rgba(212,168,83,0.12)",  color: "#B8860B", Icon: Clock        },
-  failed:    { label: "Failed",     bg: "rgba(232,96,76,0.12)",   color: "#E8604C", Icon: XCircle      },
+  completed: { label: "Paid",       bg: "rgba(141,198,63,0.12)",  color: "#6BA028", Icon: CheckCircle  },
+  pending:   { label: "Pending",    bg: "rgba(247,148,29,0.12)",  color: "#C4700A", Icon: Clock        },
+  failed:    { label: "Failed",     bg: "rgba(247,148,29,0.12)",   color: "#F7941D", Icon: XCircle      },
   refunded:  { label: "Refunded",   bg: "rgba(138,155,168,0.12)", color: "#8A9BA8", Icon: ArrowUpRight  },
   cancelled: { label: "Cancelled",  bg: "rgba(138,155,168,0.12)", color: "#8A9BA8", Icon: XCircle      },
 };
@@ -107,7 +107,7 @@ function PaymentCard({ payment }: { payment: Payment }) {
   return (
     <div
       className="rounded-2xl overflow-hidden transition-all"
-      style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}
+      style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}
     >
       {/* Main row */}
       <div className="flex items-center gap-4 p-5">
@@ -123,7 +123,7 @@ function PaymentCard({ payment }: { payment: Payment }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-sm font-semibold" style={{ color: "#0D3B44" }}>
+              <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>
                 {payment.sessionType || "Therapy Session"}
               </p>
               <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>{displayDate}</p>
@@ -133,7 +133,7 @@ function PaymentCard({ payment }: { payment: Payment }) {
                 className="text-base font-bold"
                 style={{
                   fontFamily: "var(--font-dm-serif)",
-                  color: payment.status === "refunded" ? "#8A9BA8" : "#0D3B44",
+                  color: payment.status === "refunded" ? "#8A9BA8" : "#2A4A1A",
                   textDecoration: payment.status === "refunded" ? "line-through" : "none",
                 }}
               >
@@ -169,7 +169,7 @@ function PaymentCard({ payment }: { payment: Payment }) {
 
       {/* Expanded detail */}
       {expanded && (
-        <div className="px-5 pb-5 pt-0 border-t" style={{ borderColor: "rgba(13,59,68,0.06)" }}>
+        <div className="px-5 pb-5 pt-0 border-t" style={{ borderColor: "rgba(42,74,26,0.06)" }}>
           <div className="mt-4 grid grid-cols-2 gap-3">
             {[
               {
@@ -197,9 +197,9 @@ function PaymentCard({ payment }: { payment: Payment }) {
                 value: payment.reference || "—",
               },
             ].map(({ label, value }) => (
-              <div key={label} className="rounded-xl p-3" style={{ background: "rgba(13,59,68,0.02)" }}>
+              <div key={label} className="rounded-xl p-3" style={{ background: "rgba(42,74,26,0.02)" }}>
                 <p className="text-xs" style={{ color: "#8A9BA8" }}>{label}</p>
-                <p className="text-sm font-medium mt-0.5 truncate" style={{ color: "#0D3B44" }}>{value}</p>
+                <p className="text-sm font-medium mt-0.5 truncate" style={{ color: "#2A4A1A" }}>{value}</p>
               </div>
             ))}
           </div>
@@ -208,11 +208,11 @@ function PaymentCard({ payment }: { payment: Payment }) {
           {payment.status === "completed" && (
             <div
               className="mt-3 flex items-center justify-between px-3 py-2.5 rounded-xl"
-              style={{ background: "rgba(78,205,196,0.06)", border: "1px solid rgba(78,205,196,0.15)" }}
+              style={{ background: "rgba(141,198,63,0.06)", border: "1px solid rgba(141,198,63,0.15)" }}
             >
               <div className="flex items-center gap-2">
-                <CheckCircle size={13} style={{ color: "#2BA8A0" }} />
-                <p className="text-xs font-medium" style={{ color: "#2BA8A0" }}>Payment confirmed</p>
+                <CheckCircle size={13} style={{ color: "#6BA028" }} />
+                <p className="text-xs font-medium" style={{ color: "#6BA028" }}>Payment confirmed</p>
               </div>
               {payment.receiptUrl && (
                 <a
@@ -220,7 +220,7 @@ function PaymentCard({ payment }: { payment: Payment }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-1 text-xs font-semibold"
-                  style={{ color: "#0D3B44" }}
+                  style={{ color: "#2A4A1A" }}
                 >
                   <Download size={11} /> Receipt
                 </a>
@@ -232,11 +232,11 @@ function PaymentCard({ payment }: { payment: Payment }) {
           {payment.status === "failed" && (
             <div
               className="mt-3 px-3 py-3 rounded-xl"
-              style={{ background: "rgba(232,96,76,0.06)", border: "1px solid rgba(232,96,76,0.15)" }}
+              style={{ background: "rgba(247,148,29,0.06)", border: "1px solid rgba(247,148,29,0.15)" }}
             >
               <div className="flex items-start gap-2 mb-3">
-                <AlertCircle size={13} className="flex-shrink-0 mt-0.5" style={{ color: "#E8604C" }} />
-                <p className="text-xs" style={{ color: "#E8604C" }}>
+                <AlertCircle size={13} className="flex-shrink-0 mt-0.5" style={{ color: "#F7941D" }} />
+                <p className="text-xs" style={{ color: "#F7941D" }}>
                   Payment was not processed. Please rebook your session to try again.
                 </p>
               </div>
@@ -244,7 +244,7 @@ function PaymentCard({ payment }: { payment: Payment }) {
               <Link
                 href="/client/appointments"
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
-                style={{ background: "#E8604C" }}
+                style={{ background: "#F7941D" }}
               >
                 <RefreshCw size={11} /> Rebook Session
               </Link>
@@ -255,11 +255,11 @@ function PaymentCard({ payment }: { payment: Payment }) {
           {payment.status === "pending" && (
             <div
               className="mt-3 px-3 py-3 rounded-xl flex items-center justify-between gap-3"
-              style={{ background: "rgba(212,168,83,0.06)", border: "1px solid rgba(212,168,83,0.2)" }}
+              style={{ background: "rgba(247,148,29,0.06)", border: "1px solid rgba(247,148,29,0.2)" }}
             >
               <div className="flex items-center gap-2">
-                <Clock size={13} style={{ color: "#B8860B" }} />
-                <p className="text-xs font-medium" style={{ color: "#B8860B" }}>
+                <Clock size={13} style={{ color: "#C4700A" }} />
+                <p className="text-xs font-medium" style={{ color: "#C4700A" }}>
                   Awaiting payment confirmation
                 </p>
               </div>
@@ -267,7 +267,7 @@ function PaymentCard({ payment }: { payment: Payment }) {
               <Link
                 href="/client/appointments"
                 className="flex items-center gap-1 text-xs font-semibold flex-shrink-0"
-                style={{ color: "#0D3B44" }}
+                style={{ color: "#2A4A1A" }}
               >
                 View Booking <ArrowUpRight size={11} />
               </Link>
@@ -337,7 +337,7 @@ export default function ClientPaymentsPage() {
 
       {/* Header */}
       <div>
-        <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>
+        <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
           Payments
         </h2>
         <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>
@@ -349,25 +349,25 @@ export default function ClientPaymentsPage() {
       {/* FIX 3: Use ACCENT_RGBA map instead of string-concatenated hex alpha */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: "Total Spent",   value: fmtCurrency(totalSpent), accent: "#0D3B44", Icon: DollarSign },
-          { label: "Sessions Paid", value: totalSessions,           accent: "#4ECDC4", Icon: Calendar   },
-          { label: "Pending",       value: pendingCount,            accent: "#D4A853", Icon: Clock      },
+          { label: "Total Spent",   value: fmtCurrency(totalSpent), accent: "#2A4A1A", Icon: DollarSign },
+          { label: "Sessions Paid", value: totalSessions,           accent: "#8DC63F", Icon: Calendar   },
+          { label: "Pending",       value: pendingCount,            accent: "#F7941D", Icon: Clock      },
         ].map(({ label, value, accent, Icon }) => (
           <div
             key={label}
             className="rounded-2xl p-4 flex items-center gap-3"
-            style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}
+            style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}
           >
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: ACCENT_RGBA[accent] ?? "rgba(13,59,68,0.08)" }}
+              style={{ background: ACCENT_RGBA[accent] ?? "rgba(42,74,26,0.08)" }}
             >
               <Icon size={16} style={{ color: accent }} />
             </div>
             <div>
               <p
                 className="text-lg font-bold leading-none"
-                style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}
+                style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}
               >
                 {value}
               </p>
@@ -381,10 +381,10 @@ export default function ClientPaymentsPage() {
       {fetchError && (
         <div
           className="rounded-2xl p-4 flex items-start gap-3"
-          style={{ background: "rgba(232,96,76,0.06)", border: "1px solid rgba(232,96,76,0.15)" }}
+          style={{ background: "rgba(247,148,29,0.06)", border: "1px solid rgba(247,148,29,0.15)" }}
         >
-          <AlertTriangle size={15} className="flex-shrink-0 mt-0.5" style={{ color: "#E8604C" }} />
-          <p className="text-sm" style={{ color: "#E8604C" }}>{fetchError}</p>
+          <AlertTriangle size={15} className="flex-shrink-0 mt-0.5" style={{ color: "#F7941D" }} />
+          <p className="text-sm" style={{ color: "#F7941D" }}>{fetchError}</p>
         </div>
       )}
 
@@ -400,9 +400,9 @@ export default function ClientPaymentsPage() {
                 onClick={() => setFilter(f)}
                 className="px-3 py-2 rounded-xl text-xs font-semibold capitalize transition-all"
                 style={{
-                  background: isActive ? "#0D3B44" : "white",
+                  background: isActive ? "#2A4A1A" : "white",
                   color:      isActive ? "white"   : "#4A5568",
-                  boxShadow:  isActive ? "none"    : "0 1px 3px rgba(13,59,68,0.07)",
+                  boxShadow:  isActive ? "none"    : "0 1px 3px rgba(42,74,26,0.07)",
                 }}
               >
                 {f === "all"
@@ -417,20 +417,20 @@ export default function ClientPaymentsPage() {
       {/* Payment list */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 size={28} className="animate-spin" style={{ color: "#4ECDC4" }} />
+          <Loader2 size={28} className="animate-spin" style={{ color: "#8DC63F" }} />
         </div>
       ) : filtered.length === 0 ? (
         <div
           className="rounded-2xl p-12 text-center"
-          style={{ background: "white", boxShadow: "0 1px 4px rgba(13,59,68,0.07)" }}
+          style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}
         >
           <div
             className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
-            style={{ background: "rgba(78,205,196,0.08)" }}
+            style={{ background: "rgba(141,198,63,0.08)" }}
           >
-            <CreditCard size={24} style={{ color: "#4ECDC4" }} />
+            <CreditCard size={24} style={{ color: "#8DC63F" }} />
           </div>
-          <p className="text-sm font-medium mb-1" style={{ color: "#0D3B44" }}>
+          <p className="text-sm font-medium mb-1" style={{ color: "#2A4A1A" }}>
             {filter === "all" ? "No payments yet" : `No ${filter} payments`}
           </p>
           {/* S3: Explain the flow to first-time users */}
@@ -442,7 +442,7 @@ export default function ClientPaymentsPage() {
                 <Link
                   href="/client/appointments"
                   className="underline mt-1 inline-block"
-                  style={{ color: "#0D3B44" }}
+                  style={{ color: "#2A4A1A" }}
                 >
                   Book your first session →
                 </Link>
@@ -461,7 +461,7 @@ export default function ClientPaymentsPage() {
       {/* Security note */}
       <div
         className="rounded-xl p-4 flex items-start gap-3"
-        style={{ background: "rgba(13,59,68,0.03)", border: "1px solid rgba(13,59,68,0.07)" }}
+        style={{ background: "rgba(42,74,26,0.03)", border: "1px solid rgba(42,74,26,0.07)" }}
       >
         <Lock size={13} className="flex-shrink-0 mt-0.5" style={{ color: "#8A9BA8" }} />
         <p className="text-xs" style={{ color: "#8A9BA8" }}>
@@ -469,7 +469,7 @@ export default function ClientPaymentsPage() {
           For billing questions, contact{" "}
           <a
             href="mailto:support@valeoexperience.com"
-            style={{ color: "#0D3B44" }}
+            style={{ color: "#2A4A1A" }}
           >
             support@valeoexperience.com
           </a>

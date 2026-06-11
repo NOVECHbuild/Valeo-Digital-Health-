@@ -97,9 +97,9 @@ function Bubble({ msg, isOwn, isLastInGroup }: {
       <div className="max-w-[72%]">
         <div className="px-4 py-2.5 text-sm leading-relaxed"
           style={{
-            background:   isOwn ? "linear-gradient(135deg, #0D3B44, #1A535C)" : "white",
+            background:   isOwn ? "linear-gradient(135deg, #2A4A1A, #3D6B24)" : "white",
             color:        isOwn ? "white" : "#22272B",
-            boxShadow:    isOwn ? "none" : "0 1px 3px rgba(13,59,68,0.08)",
+            boxShadow:    isOwn ? "none" : "0 1px 3px rgba(42,74,26,0.08)",
             // Grouped bubble corners — tighter radius for consecutive messages
             borderRadius: isOwn
               ? isLastInGroup ? "18px 18px 4px 18px" : "18px 18px 4px 18px"
@@ -114,7 +114,7 @@ function Bubble({ msg, isOwn, isLastInGroup }: {
             {fullTime(msg.createdAt)}
             {isOwn && (
               isRead
-                ? <CheckCheck size={11} style={{ color: "#4ECDC4" }}/>
+                ? <CheckCheck size={11} style={{ color: "#8DC63F" }}/>
                 : <Check size={11} style={{ color: "#C4C4C4" }}/>
             )}
           </p>
@@ -223,7 +223,7 @@ export default function DoctorMessagesPage() {
       <div className="rounded-3xl overflow-hidden flex"
         style={{
           height: "calc(100vh - 160px)", minHeight: "520px",
-          background: "white", boxShadow: "0 2px 12px rgba(13,59,68,0.08)",
+          background: "white", boxShadow: "0 2px 12px rgba(42,74,26,0.08)",
         }}>
 
         {/* ══════════════════════════════════
@@ -231,18 +231,18 @@ export default function DoctorMessagesPage() {
         ══════════════════════════════════ */}
         <div className={`flex-shrink-0 border-r flex flex-col
           ${mobileView === "chat" ? "hidden md:flex" : "flex"} w-full md:w-72`}
-          style={{ borderColor: "rgba(13,59,68,0.08)" }}>
+          style={{ borderColor: "rgba(42,74,26,0.08)" }}>
 
           {/* Sidebar header */}
-          <div className="p-5 border-b" style={{ borderColor: "rgba(13,59,68,0.08)" }}>
+          <div className="p-5 border-b" style={{ borderColor: "rgba(42,74,26,0.08)" }}>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-semibold"
-                style={{ fontFamily: "var(--font-dm-serif)", color: "#0D3B44" }}>
+                style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
                 Messages
               </h2>
               {totalUnread > 0 && (
                 <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                  style={{ background: "#E8604C" }}>
+                  style={{ background: "#F7941D" }}>
                   {totalUnread > 99 ? "99+" : totalUnread}
                 </span>
               )}
@@ -253,7 +253,7 @@ export default function DoctorMessagesPage() {
               <input type="text" value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Search clients..."
                 className="w-full pl-9 pr-8 py-2 rounded-xl text-xs border focus:outline-none"
-                style={{ borderColor: "rgba(13,59,68,0.12)", background: "rgba(13,59,68,0.02)" }} />
+                style={{ borderColor: "rgba(42,74,26,0.12)", background: "rgba(42,74,26,0.02)" }} />
               {search && (
                 <button onClick={() => setSearch("")}
                   className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -267,17 +267,17 @@ export default function DoctorMessagesPage() {
           <div className="flex-1 overflow-y-auto">
             {convLoading ? (
               <div className="flex items-center justify-center py-10">
-                <Loader2 size={20} className="animate-spin" style={{ color: "#4ECDC4" }} />
+                <Loader2 size={20} className="animate-spin" style={{ color: "#8DC63F" }} />
               </div>
             ) : filtered.length === 0 ? (
               <div className="p-5 text-center">
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3"
-                  style={{ background: "rgba(78,205,196,0.08)" }}>
+                  style={{ background: "rgba(141,198,63,0.08)" }}>
                   {search
-                    ? <Search size={20} style={{ color: "#4ECDC4" }} />
-                    : <Users  size={20} style={{ color: "#4ECDC4" }} />}
+                    ? <Search size={20} style={{ color: "#8DC63F" }} />
+                    : <Users  size={20} style={{ color: "#8DC63F" }} />}
                 </div>
-                <p className="text-sm font-medium" style={{ color: "#0D3B44" }}>
+                <p className="text-sm font-medium" style={{ color: "#2A4A1A" }}>
                   {search ? "No clients found" : "No messages yet"}
                 </p>
                 <p className="text-xs mt-1" style={{ color: "#8A9BA8" }}>
@@ -297,19 +297,19 @@ export default function DoctorMessagesPage() {
                   <button key={conv.id} onClick={() => openConv(conv.id, conv.clientName)}
                     className="w-full text-left px-5 py-4 border-b transition-colors hover:bg-black/[0.02]"
                     style={{
-                      borderColor: "rgba(13,59,68,0.05)",
-                      background: isActive ? "rgba(13,59,68,0.04)" : "transparent",
+                      borderColor: "rgba(42,74,26,0.05)",
+                      background: isActive ? "rgba(42,74,26,0.04)" : "transparent",
                     }}>
                     <div className="flex items-center gap-3">
                       {/* Avatar with unread dot */}
                       <div className="relative flex-shrink-0">
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold"
-                          style={{ background: "linear-gradient(135deg, #4ECDC4, #2BA8A0)", color: "white" }}>
+                          style={{ background: "linear-gradient(135deg, #8DC63F, #6BA028)", color: "white" }}>
                           {conv.clientName?.[0]?.toUpperCase() ?? "C"}
                         </div>
                         {unread > 0 && (
                           <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-white"
-                            style={{ background: "#E8604C", fontSize: "9px", fontWeight: 700 }}>
+                            style={{ background: "#F7941D", fontSize: "9px", fontWeight: 700 }}>
                             {unread > 9 ? "9+" : unread}
                           </span>
                         )}
@@ -318,7 +318,7 @@ export default function DoctorMessagesPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1">
                           <p className="text-sm truncate"
-                            style={{ color: "#0D3B44", fontWeight: unread > 0 ? 700 : 600 }}>
+                            style={{ color: "#2A4A1A", fontWeight: unread > 0 ? 700 : 600 }}>
                             {conv.clientName}
                           </p>
                           <span className="text-xs flex-shrink-0" style={{ color: "#C4C4C4" }}>
@@ -327,7 +327,7 @@ export default function DoctorMessagesPage() {
                         </div>
                         <p className="text-xs truncate mt-0.5"
                           style={{
-                            color:      unread > 0 ? "#0D3B44" : "#8A9BA8",
+                            color:      unread > 0 ? "#2A4A1A" : "#8A9BA8",
                             fontWeight: unread > 0 ? 500 : 400,
                           }}>
                           {lastMsgPrefix}{conv.lastMessage || "No messages yet"}
@@ -341,7 +341,7 @@ export default function DoctorMessagesPage() {
           </div>
 
           {/* Footer */}
-          <div className="p-4 border-t" style={{ borderColor: "rgba(13,59,68,0.08)" }}>
+          <div className="p-4 border-t" style={{ borderColor: "rgba(42,74,26,0.08)" }}>
             <p className="flex items-center gap-1.5 text-xs" style={{ color: "#C4C4C4" }}>
               <Lock size={10} /> Messages are private and HIPAA compliant
             </p>
@@ -358,17 +358,17 @@ export default function DoctorMessagesPage() {
             <>
               {/* Chat header */}
               <div className="flex items-center gap-3 px-5 py-4 border-b flex-shrink-0"
-                style={{ borderColor: "rgba(13,59,68,0.08)" }}>
+                style={{ borderColor: "rgba(42,74,26,0.08)" }}>
                 <button onClick={() => setMobileView("list")}
                   className="md:hidden p-1 rounded-lg hover:bg-black/5">
                   <ChevronLeft size={18} style={{ color: "#4A5568" }} />
                 </button>
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
-                  style={{ background: "linear-gradient(135deg, #4ECDC4, #2BA8A0)", color: "white" }}>
+                  style={{ background: "linear-gradient(135deg, #8DC63F, #6BA028)", color: "white" }}>
                   {clientName?.[0]?.toUpperCase() ?? "C"}
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold" style={{ color: "#0D3B44" }}>{clientName}</p>
+                  <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>{clientName}</p>
                   <p className="text-xs flex items-center gap-1" style={{ color: "#8A9BA8" }}>
                     <Clock size={10}/>
                     Last active {timeLabel(activeConv.lastMessageAt)}
@@ -377,7 +377,7 @@ export default function DoctorMessagesPage() {
                 {/* Unread badge in header */}
                 {(activeConv.unreadDoctor ?? 0) > 0 && (
                   <span className="text-xs px-2.5 py-1 rounded-full font-semibold"
-                    style={{ background: "rgba(232,96,76,0.1)", color: "#E8604C" }}>
+                    style={{ background: "rgba(247,148,29,0.1)", color: "#F7941D" }}>
                     {activeConv.unreadDoctor} new
                   </span>
                 )}
@@ -385,18 +385,18 @@ export default function DoctorMessagesPage() {
 
               {/* Messages */}
               <div className="flex-1 overflow-y-auto px-5 py-4"
-                style={{ background: "rgba(13,59,68,0.01)" }}>
+                style={{ background: "rgba(42,74,26,0.01)" }}>
                 {msgLoading ? (
                   <div className="flex items-center justify-center h-full">
-                    <Loader2 size={24} className="animate-spin" style={{ color: "#4ECDC4" }} />
+                    <Loader2 size={24} className="animate-spin" style={{ color: "#8DC63F" }} />
                   </div>
                 ) : messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center px-6">
                     <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-                      style={{ background: "rgba(78,205,196,0.08)" }}>
-                      <MessageCircle size={20} style={{ color: "#4ECDC4" }} />
+                      style={{ background: "rgba(141,198,63,0.08)" }}>
+                      <MessageCircle size={20} style={{ color: "#8DC63F" }} />
                     </div>
-                    <p className="text-sm font-medium mb-1" style={{ color: "#0D3B44" }}>
+                    <p className="text-sm font-medium mb-1" style={{ color: "#2A4A1A" }}>
                       Start the conversation
                     </p>
                     <p className="text-xs" style={{ color: "#8A9BA8" }}>
@@ -422,12 +422,12 @@ export default function DoctorMessagesPage() {
                         <div key={msg.id}>
                           {showDateDiv && (
                             <div className="flex items-center gap-3 my-4">
-                              <div className="flex-1 h-px" style={{ background: "rgba(13,59,68,0.08)" }} />
+                              <div className="flex-1 h-px" style={{ background: "rgba(42,74,26,0.08)" }} />
                               <span className="text-xs px-3 py-1 rounded-full"
-                                style={{ color: "#8A9BA8", background: "rgba(13,59,68,0.04)" }}>
+                                style={{ color: "#8A9BA8", background: "rgba(42,74,26,0.04)" }}>
                                 {dateDivider(msg.createdAt)}
                               </span>
-                              <div className="flex-1 h-px" style={{ background: "rgba(13,59,68,0.08)" }} />
+                              <div className="flex-1 h-px" style={{ background: "rgba(42,74,26,0.08)" }} />
                             </div>
                           )}
                           <Bubble msg={msg} isOwn={isOwn} isLastInGroup={isLastInGroup} />
@@ -442,11 +442,11 @@ export default function DoctorMessagesPage() {
               {/* Quick replies panel */}
               {showQuick && (
                 <div className="px-5 pt-3 pb-1 border-t flex-shrink-0 flex flex-wrap gap-2"
-                  style={{ borderColor: "rgba(13,59,68,0.06)" }}>
+                  style={{ borderColor: "rgba(42,74,26,0.06)" }}>
                   {QUICK_REPLIES.map(r => (
                     <button key={r} onClick={() => applyQuickReply(r)}
                       className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all hover:-translate-y-0.5"
-                      style={{ background: "rgba(13,59,68,0.06)", color: "#0D3B44" }}>
+                      style={{ background: "rgba(42,74,26,0.06)", color: "#2A4A1A" }}>
                       {r}
                     </button>
                   ))}
@@ -455,12 +455,12 @@ export default function DoctorMessagesPage() {
 
               {/* Input area */}
               <div className="px-5 py-4 border-t flex-shrink-0"
-                style={{ borderColor: "rgba(13,59,68,0.08)" }}>
+                style={{ borderColor: "rgba(42,74,26,0.08)" }}>
 
                 {/* FIX: Send error feedback — was completely missing */}
                 {sendError && (
                   <div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-xl text-xs"
-                    style={{ background: "rgba(232,96,76,0.08)", color: "#E8604C" }}>
+                    style={{ background: "rgba(247,148,29,0.08)", color: "#F7941D" }}>
                     <AlertCircle size={12}/>
                     {sendError}
                     <button onClick={handleSend} className="ml-auto font-semibold underline">
@@ -474,7 +474,7 @@ export default function DoctorMessagesPage() {
                   <button onClick={() => setShowQuick(q => !q)}
                     className="p-2.5 rounded-xl flex-shrink-0 transition-colors mb-0.5"
                     style={{
-                      background: showQuick ? "rgba(13,59,68,0.08)" : "transparent",
+                      background: showQuick ? "rgba(42,74,26,0.08)" : "transparent",
                       color: "#8A9BA8",
                     }}
                     title="Quick replies">
@@ -492,8 +492,8 @@ export default function DoctorMessagesPage() {
                     rows={1}
                     className="flex-1 px-4 py-3 rounded-2xl text-sm border resize-none focus:outline-none leading-relaxed"
                     style={{
-                      borderColor: "rgba(13,59,68,0.15)",
-                      background:  "rgba(13,59,68,0.02)",
+                      borderColor: "rgba(42,74,26,0.15)",
+                      background:  "rgba(42,74,26,0.02)",
                       maxHeight:   "120px",
                     }}
                   />
@@ -501,7 +501,7 @@ export default function DoctorMessagesPage() {
                   <button onClick={handleSend}
                     disabled={!text.trim() || sending}
                     className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 disabled:opacity-40 transition-all hover:-translate-y-0.5 mb-0.5"
-                    style={{ background: "linear-gradient(135deg, #0D3B44, #1A535C)" }}>
+                    style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
                     {sending
                       ? <Loader2 size={16} className="animate-spin text-white" />
                       : <Send    size={16} className="text-white" />}
@@ -517,10 +517,10 @@ export default function DoctorMessagesPage() {
             /* Empty state */
             <div className="flex-1 flex flex-col items-center justify-center text-center px-8">
               <div className="w-16 h-16 rounded-3xl flex items-center justify-center mb-4"
-                style={{ background: "rgba(13,59,68,0.05)" }}>
+                style={{ background: "rgba(42,74,26,0.05)" }}>
                 <MessageCircle size={28} style={{ color: "#8A9BA8" }} />
               </div>
-              <p className="text-base font-semibold mb-1" style={{ color: "#0D3B44" }}>
+              <p className="text-base font-semibold mb-1" style={{ color: "#2A4A1A" }}>
                 Select a conversation
               </p>
               <p className="text-sm" style={{ color: "#8A9BA8" }}>

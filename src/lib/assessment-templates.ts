@@ -74,10 +74,10 @@ export const PHQ9: SystemTemplate = {
     maxScore: 27,
     notes: "Item 9 (suicidal ideation) should always be reviewed regardless of total score. Any score ≥ 1 on item 9 warrants clinical follow-up.",
     ranges: [
-      { min:0,  max:4,  label:"Minimal depression",          color:"#2BA8A0", description:"Minimal or no depressive symptoms. Monitor and reassess as needed." },
-      { min:5,  max:9,  label:"Mild depression",             color:"#4ECDC4", description:"Mild symptoms. Watchful waiting; repeat PHQ-9 at follow-up." },
-      { min:10, max:14, label:"Moderate depression",         color:"#D4A853", description:"Treatment plan, considering counselling and/or pharmacotherapy." },
-      { min:15, max:19, label:"Moderately severe depression",color:"#E8604C", description:"Active treatment with pharmacotherapy and/or psychotherapy." },
+      { min:0,  max:4,  label:"Minimal depression",          color:"#6BA028", description:"Minimal or no depressive symptoms. Monitor and reassess as needed." },
+      { min:5,  max:9,  label:"Mild depression",             color:"#8DC63F", description:"Mild symptoms. Watchful waiting; repeat PHQ-9 at follow-up." },
+      { min:10, max:14, label:"Moderate depression",         color:"#F7941D", description:"Treatment plan, considering counselling and/or pharmacotherapy." },
+      { min:15, max:19, label:"Moderately severe depression",color:"#F7941D", description:"Active treatment with pharmacotherapy and/or psychotherapy." },
       { min:20, max:27, label:"Severe depression",           color:"#C0392B", description:"Immediate initiation of pharmacotherapy and referral to specialist." },
     ],
   },
@@ -109,10 +109,10 @@ export const GAD7: SystemTemplate = {
   scoring: {
     maxScore: 21,
     ranges: [
-      { min:0,  max:4,  label:"Minimal anxiety",  color:"#2BA8A0", description:"Minimal anxiety symptoms. Consider monitoring." },
-      { min:5,  max:9,  label:"Mild anxiety",     color:"#4ECDC4", description:"Mild anxiety. Self-help strategies may be appropriate." },
-      { min:10, max:14, label:"Moderate anxiety", color:"#D4A853", description:"Consider further evaluation and possible treatment." },
-      { min:15, max:21, label:"Severe anxiety",   color:"#E8604C", description:"Active treatment strongly recommended." },
+      { min:0,  max:4,  label:"Minimal anxiety",  color:"#6BA028", description:"Minimal anxiety symptoms. Consider monitoring." },
+      { min:5,  max:9,  label:"Mild anxiety",     color:"#8DC63F", description:"Mild anxiety. Self-help strategies may be appropriate." },
+      { min:10, max:14, label:"Moderate anxiety", color:"#F7941D", description:"Consider further evaluation and possible treatment." },
+      { min:15, max:21, label:"Severe anxiety",   color:"#F7941D", description:"Active treatment strongly recommended." },
     ],
   },
 };
@@ -157,8 +157,8 @@ export const PCL5: SystemTemplate = {
     maxScore: 80,
     notes: "A provisional PTSD diagnosis can be made by assigning symptoms to DSM-5 criteria and checking that each criterion is met. A score of 31–33 or above is commonly used as a cutoff for probable PTSD.",
     ranges: [
-      { min:0,  max:30, label:"Below PTSD threshold",  color:"#2BA8A0", description:"Symptoms below the threshold commonly used for probable PTSD. Monitor and reassess." },
-      { min:31, max:80, label:"Probable PTSD",         color:"#E8604C", description:"Score meets or exceeds the commonly used threshold (31–33) for probable PTSD. Further clinical evaluation and DSM-5 criteria review recommended." },
+      { min:0,  max:30, label:"Below PTSD threshold",  color:"#6BA028", description:"Symptoms below the threshold commonly used for probable PTSD. Monitor and reassess." },
+      { min:31, max:80, label:"Probable PTSD",         color:"#F7941D", description:"Score meets or exceeds the commonly used threshold (31–33) for probable PTSD. Further clinical evaluation and DSM-5 criteria review recommended." },
     ],
   },
 };
@@ -189,8 +189,8 @@ export const ASRS: SystemTemplate = {
     maxScore: 20,
     notes: "ASRS scoring uses a shading method rather than a simple sum. Q1–Q4: 'Sometimes', 'Often', or 'Very Often' = positive. Q5–Q6: 'Often' or 'Very Often' = positive. 4 or more positives = highly consistent with ADHD. The total score displayed here is a sum for reference; apply the shading method clinically.",
     ranges: [
-      { min:0,  max:11, label:"Unlikely ADHD",  color:"#2BA8A0", description:"Scores suggest ADHD symptoms are unlikely. Use clinical judgment." },
-      { min:12, max:20, label:"Consistent with ADHD", color:"#E8604C", description:"Scores are highly consistent with ADHD in adults. Full diagnostic evaluation recommended." },
+      { min:0,  max:11, label:"Unlikely ADHD",  color:"#6BA028", description:"Scores suggest ADHD symptoms are unlikely. Use clinical judgment." },
+      { min:12, max:20, label:"Consistent with ADHD", color:"#F7941D", description:"Scores are highly consistent with ADHD in adults. Full diagnostic evaluation recommended." },
     ],
   },
 };
@@ -226,9 +226,9 @@ export const PSS: SystemTemplate = {
     maxScore: 40,
     notes: "Items 4, 5, 7, and 10 are reverse-scored (marked with reverse:true). The score displayed has already applied reverse scoring. Higher scores indicate higher perceived stress.",
     ranges: [
-      { min:0,  max:13, label:"Low stress",      color:"#2BA8A0", description:"Low perceived stress. Psychoeducation and wellness strategies may be appropriate." },
-      { min:14, max:26, label:"Moderate stress", color:"#D4A853", description:"Moderate stress. Stress management interventions may be beneficial." },
-      { min:27, max:40, label:"High stress",     color:"#E8604C", description:"High perceived stress. Clinical attention recommended; consider comprehensive evaluation." },
+      { min:0,  max:13, label:"Low stress",      color:"#6BA028", description:"Low perceived stress. Psychoeducation and wellness strategies may be appropriate." },
+      { min:14, max:26, label:"Moderate stress", color:"#F7941D", description:"Moderate stress. Stress management interventions may be beneficial." },
+      { min:27, max:40, label:"High stress",     color:"#F7941D", description:"High perceived stress. Clinical attention recommended; consider comprehensive evaluation." },
     ],
   },
 };
@@ -269,10 +269,10 @@ export const HAMD: SystemTemplate = {
     maxScore: 52,
     notes: "The HAM-D is clinician-rated and should be completed after a structured interview. It is not a self-report instrument. Total score interpretation below. Note: Item 16 option 'Not assessed' scores 0.",
     ranges: [
-      { min:0,  max:7,  label:"Normal / no depression",    color:"#2BA8A0", description:"No significant depressive symptoms." },
-      { min:8,  max:13, label:"Mild depression",           color:"#4ECDC4", description:"Mild depressive symptoms." },
-      { min:14, max:18, label:"Mild to moderate",          color:"#D4A853", description:"Mild to moderate depression." },
-      { min:19, max:22, label:"Moderate to severe",        color:"#E8604C", description:"Moderate to severe depression. Active treatment recommended." },
+      { min:0,  max:7,  label:"Normal / no depression",    color:"#6BA028", description:"No significant depressive symptoms." },
+      { min:8,  max:13, label:"Mild depression",           color:"#8DC63F", description:"Mild depressive symptoms." },
+      { min:14, max:18, label:"Mild to moderate",          color:"#F7941D", description:"Mild to moderate depression." },
+      { min:19, max:22, label:"Moderate to severe",        color:"#F7941D", description:"Moderate to severe depression. Active treatment recommended." },
       { min:23, max:52, label:"Very severe depression",    color:"#C0392B", description:"Very severe depression. Urgent intervention may be required." },
     ],
   },
@@ -340,9 +340,9 @@ export const PID5: SystemTemplate = {
 
 Total score and domain averages are shown below. Higher scores within a domain indicate greater pathological trait expression. No single cut-off defines a personality disorder — interpret in full clinical context.`,
     ranges: [
-      { min:0,  max:25, label:"Low trait expression",      color:"#2BA8A0", description:"Low overall personality trait pathology across domains." },
-      { min:26, max:50, label:"Moderate trait expression", color:"#D4A853", description:"Moderate pathological trait expression. Review domain scores individually." },
-      { min:51, max:75, label:"High trait expression",     color:"#E8604C", description:"Elevated pathological trait expression across multiple domains. Comprehensive personality evaluation recommended." },
+      { min:0,  max:25, label:"Low trait expression",      color:"#6BA028", description:"Low overall personality trait pathology across domains." },
+      { min:26, max:50, label:"Moderate trait expression", color:"#F7941D", description:"Moderate pathological trait expression. Review domain scores individually." },
+      { min:51, max:75, label:"High trait expression",     color:"#F7941D", description:"Elevated pathological trait expression across multiple domains. Comprehensive personality evaluation recommended." },
     ],
   },
 };
@@ -351,12 +351,12 @@ Total score and domain averages are shown below. Higher scores within a domain i
 export const SYSTEM_TEMPLATES: SystemTemplate[] = [PHQ9, GAD7, PCL5, ASRS, PSS, HAMD, PID5];
 
 export const CATEGORY_COLORS: Record<string, { bg: string; color: string }> = {
-  Mood:        { bg:"rgba(78,205,196,0.12)",  color:"#2BA8A0" },
-  Anxiety:     { bg:"rgba(212,168,83,0.12)",  color:"#B8860B" },
-  Trauma:      { bg:"rgba(232,96,76,0.12)",   color:"#E8604C" },
+  Mood:        { bg:"rgba(141,198,63,0.12)",  color:"#6BA028" },
+  Anxiety:     { bg:"rgba(247,148,29,0.12)",  color:"#C4700A" },
+  Trauma:      { bg:"rgba(247,148,29,0.12)",   color:"#F7941D" },
   ADHD:        { bg:"rgba(52,152,219,0.12)",  color:"#2980B9" },
   Stress:      { bg:"rgba(142,68,173,0.12)",  color:"#8E44AD" },
-  Personality: { bg:"rgba(13,59,68,0.1)",     color:"#0D3B44" },
+  Personality: { bg:"rgba(42,74,26,0.1)",     color:"#2A4A1A" },
   Cognitive:   { bg:"rgba(46,204,113,0.12)",  color:"#27AE60" },
 };
 
