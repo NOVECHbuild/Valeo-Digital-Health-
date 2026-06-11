@@ -530,14 +530,26 @@ function GoogleCalendarPanel({ calendarId, onChange }: { calendarId: string; onC
   const connected = !!calendarId;
 
   async function testConnection() {
-    if (!input.trim()) return;
     setSyncing(true);
     setSyncMsg(null);
-    await new Promise(r => setTimeout(r, 1200)); // simulate API call
-    setSyncing(false);
-    // In production, this would call /api/calendar/test with the calendarId
-    setSyncMsg({ type:"success", text:"Calendar connected! Appointments will sync automatically when approved." });
-    onChange(input.trim());
+    try {
+      const res  = await fetch("/api/calendar/test");
+      const data = await res.json();
+      if (data.ok) {
+        setSyncMsg({
+          type: "success",
+          text: `Connected to Google Calendar${data.calendar ? ` (${data.calendar})` : ""}. Appointments sync on approval and your booking availability now respects your calendar.`,
+        });
+        // Persist the calendar id (default to "primary" so the connection is marked active)
+        onChange(input.trim() || "primary");
+      } else {
+        setSyncMsg({ type: "error", text: data.error || "Could not connect to Google Calendar." });
+      }
+    } catch {
+      setSyncMsg({ type: "error", text: "Could not reach the calendar service. Please try again." });
+    } finally {
+      setSyncing(false);
+    }
   }
 
   return (

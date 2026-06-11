@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, Suspense } from "react";
+import { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useSearchParams } from "next/navigation";
 import { db } from "@/lib/firebase";
@@ -10,9 +10,13 @@ import {
   type Appointment,
 } from "@/hooks/useAppointments";
 import {
-  collection, query, where, getDocs,
+  collection, query, where, getDocs, getDoc,
   doc, updateDoc, serverTimestamp,
 } from "firebase/firestore";
+import {
+  availableSlotsForDate,
+  type AvailabilitySchedule,
+} from "@/lib/availability";
 import {
   Calendar, Clock, Plus, X, CheckCircle, AlertCircle,
   XCircle, Loader2, ChevronLeft, ChevronRight, Video,
@@ -77,6 +81,23 @@ function useBookedSlots(doctorId: string, date: string) {
     })();
   }, [doctorId, date]);
   return bookedSlots;
+}
+
+// Load the doctor's saved availability schedule (schedules/{doctorId})
+function useDoctorSchedule(doctorId: string) {
+  const [schedule, setSchedule] = useState<AvailabilitySchedule | null>(null);
+  useEffect(() => {
+    if (!doctorId) { setSchedule(null); return; }
+    (async () => {
+      try {
+        const snap = await getDoc(doc(db, "schedules", doctorId));
+        setSchedule(snap.exists() ? (snap.data() as AvailabilitySchedule) : null);
+      } catch {
+        setSchedule(null); // fall back to default slots
+      }
+    })();
+  }, [doctorId]);
+  return schedule;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -361,6 +382,42 @@ function ClientAppointmentsPageInner() {
 
   // FIX 8: Booked slots for selected date
   const bookedSlots = useBookedSlots(doctorId, selectedDate);
+
+  // Layer 1: real availability from Dr. Miller's saved schedule.
+  // Falls back to the default list if she hasn't configured a schedule yet.
+  const schedule = useDoctorSchedule(doctorId);
+  const daySlots = useMemo(() => {
+    if (!selectedDate) return [] as string[];
+    if (schedule) return availableSlotsForDate(schedule, selectedDate);
+    return TIME_SLOTS;
+  }, [schedule, selectedDate]);
+
+  // Layer 2: Google Calendar free/busy. Fails safe — on any error the list is
+  // empty and booking proceeds on platform availability alone.
+  const [busySlots, setBusySlots] = useState<string[]>([]);
+  useEffect(() => {
+    if (!selectedDate || daySlots.length === 0) { setBusySlots([]); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/calendar/freebusy", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({
+            date:     selectedDate,
+            slots:    daySlots,
+            duration: selectedTypeObj?.duration ?? 60,
+            timezone: schedule?.timezone,
+          }),
+        });
+        const data = await res.json();
+        if (!cancelled) setBusySlots(Array.isArray(data?.busy) ? data.busy : []);
+      } catch {
+        if (!cancelled) setBusySlots([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [selectedDate, daySlots, selectedTypeObj?.duration, schedule?.timezone]);
 
   // FIX 2: Toast auto-dismiss — effect depends on toast object, dismisses on its own timer
   useEffect(() => {
@@ -728,30 +785,37 @@ setRedirecting(false);
                         Available times —{" "}
                         {new Date(selectedDate + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
                       </p>
-                      <div className="grid grid-cols-4 gap-2">
-                        {TIME_SLOTS.map(time => {
-                          // FIX 8: Grey out already-booked slots
-                          const isBooked = bookedSlots.includes(time);
-                          const isSel    = selectedTime === time;
-                          return (
-                            <button key={time} onClick={() => !isBooked && setSelectedTime(time)}
-                              disabled={isBooked}
-                              className="py-2 rounded-lg text-xs font-medium border-2 transition-all relative"
-                              style={{
-                                borderColor: isSel ? "#2A4A1A" : isBooked ? "rgba(42,74,26,0.06)" : "rgba(42,74,26,0.12)",
-                                background:  isSel ? "#2A4A1A" : isBooked ? "rgba(42,74,26,0.03)" : "white",
-                                color:       isSel ? "white" : isBooked ? "#C4C4C4" : "#22272B",
-                                cursor:      isBooked ? "not-allowed" : "pointer",
-                                textDecoration: isBooked ? "line-through" : "none",
-                              }}>
-                              {time}
-                              {isBooked && (
-                                <span className="block text-[9px] mt-0.5" style={{ color: "#C4C4C4" }}>Booked</span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      {daySlots.length === 0 ? (
+                        <div className="rounded-xl p-4 text-center text-xs"
+                          style={{ background: "rgba(247,148,29,0.06)", color: "#C4700A", border: "1px solid rgba(247,148,29,0.15)" }}>
+                          Dr. Miller isn&apos;t available on this day. Please choose another date.
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-4 gap-2">
+                          {daySlots.map(time => {
+                            // Grey out slots already booked on the platform OR busy on Google Calendar
+                            const isBooked = bookedSlots.includes(time) || busySlots.includes(time);
+                            const isSel    = selectedTime === time;
+                            return (
+                              <button key={time} onClick={() => !isBooked && setSelectedTime(time)}
+                                disabled={isBooked}
+                                className="py-2 rounded-lg text-xs font-medium border-2 transition-all relative"
+                                style={{
+                                  borderColor: isSel ? "#2A4A1A" : isBooked ? "rgba(42,74,26,0.06)" : "rgba(42,74,26,0.12)",
+                                  background:  isSel ? "#2A4A1A" : isBooked ? "rgba(42,74,26,0.03)" : "white",
+                                  color:       isSel ? "white" : isBooked ? "#C4C4C4" : "#22272B",
+                                  cursor:      isBooked ? "not-allowed" : "pointer",
+                                  textDecoration: isBooked ? "line-through" : "none",
+                                }}>
+                                {time}
+                                {isBooked && (
+                                  <span className="block text-[9px] mt-0.5" style={{ color: "#C4C4C4" }}>Booked</span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   )}
 
