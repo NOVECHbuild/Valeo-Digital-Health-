@@ -148,7 +148,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 min-h-0 px-3 py-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
           <p
             className="text-xs font-semibold tracking-widest uppercase px-3 py-2"
             style={{ color: "rgba(255,255,255,0.3)" }}
@@ -171,8 +171,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 )}
                 style={active ? { background: "#8DC63F", color: "#2A4A1A" } : {}}
               >
-                <Icon size={17} />
-                <span className="flex-1">{label}</span>
+                <Icon size={17} className="flex-shrink-0" />
+                <span className="flex-1 min-w-0 truncate">{label}</span>
 
                 {/* FIX: Unread badge on Messages nav item */}
                 {isMsgs && unreadMessages > 0 && (

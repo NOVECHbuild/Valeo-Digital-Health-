@@ -123,7 +123,7 @@ export default function AdminLayout({
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 min-h-0 px-3 py-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
           <p
             className="text-xs font-semibold tracking-widest uppercase px-3 py-2"
             style={{ color: "rgba(255,255,255,0.25)" }}
@@ -143,9 +143,9 @@ export default function AdminLayout({
                 )}
                 style={active ? { background: "#F7941D", color: "white" } : {}}
               >
-                <Icon size={17} />
-                <span className="flex-1">{label}</span>
-                {active && <ChevronRight size={13} />}
+                <Icon size={17} className="flex-shrink-0" />
+                <span className="flex-1 min-w-0 truncate">{label}</span>
+                {active && <ChevronRight size={13} className="flex-shrink-0" />}
               </Link>
             );
           })}
