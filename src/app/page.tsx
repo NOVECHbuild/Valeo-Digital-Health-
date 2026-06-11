@@ -4,6 +4,8 @@ import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
+const CALENDLY = 'https://calendly.com/thevaleoexperience';
+
 export default function HomePage() {
   const navRef = useRef<HTMLElement>(null);
 
@@ -273,7 +275,7 @@ export default function HomePage() {
         </ul>
         <div className="nav-actions">
           <Link href="/login" className="btn-ghost">Sign In</Link>
-          <Link href="/register" className="btn-cta">Get Started</Link>
+          <a href={CALENDLY} target="_blank" rel="noopener noreferrer" className="btn-cta">Get Started</a>
         </div>
       </nav>
 
@@ -292,7 +294,7 @@ export default function HomePage() {
             Expert psychological support rooted in Caribbean understanding. Whether navigating anxiety, healing from trauma, or stepping into your fullest potential—your journey begins here.
           </p>
           <div className="hero-actions">
-            <Link href="/register" className="btn-hero-primary">Begin Your Transformation</Link>
+            <a href={CALENDLY} target="_blank" rel="noopener noreferrer" className="btn-hero-primary">Begin Your Transformation</a>
             <a href="#services" className="btn-hero-secondary">Explore Services</a>
           </div>
           <div className="hero-trust-row">
@@ -376,7 +378,7 @@ export default function HomePage() {
               <div className={`service-icon-wrap ${s.cls}`}>{s.icon}</div>
               <div className="service-title">{s.title}</div>
               <p className="service-desc">{s.desc}</p>
-              <Link href="/register" className="service-link">{s.link}</Link>
+              <a href={CALENDLY} target="_blank" rel="noopener noreferrer" className="service-link">{s.link}</a>
             </div>
           ))}
         </div>
@@ -418,7 +420,7 @@ export default function HomePage() {
                 </li>
               ))}
             </ul>
-            <Link href="/register" className="btn-cta">Meet Dr. Miller</Link>
+            <a href={CALENDLY} target="_blank" rel="noopener noreferrer" className="btn-cta">Meet Dr. Miller</a>
           </div>
         </div>
       </section>
@@ -450,7 +452,7 @@ export default function HomePage() {
             </div>
             <div className="pricing-chip"><span className="amount">$75</span><span className="per">/ session</span></div>
             <br />
-            <Link href="/register" className="btn-hero-primary">Book Free Consultation</Link>
+            <a href={CALENDLY} target="_blank" rel="noopener noreferrer" className="btn-hero-primary">Book Free Consultation</a>
           </div>
         </div>
 
@@ -466,7 +468,7 @@ export default function HomePage() {
             </div>
             <div className="pricing-chip"><span className="amount">Request</span><span className="per">/ a Quote</span></div>
             <br />
-            <Link href="/register" className="btn-hero-primary">Start Coaching</Link>
+            <a href={CALENDLY} target="_blank" rel="noopener noreferrer" className="btn-hero-primary">Start Coaching</a>
           </div>
         </div>
 
@@ -482,7 +484,7 @@ export default function HomePage() {
             </div>
             <div className="pricing-chip"><span className="amount">Request</span><span className="per">a Quote</span></div>
             <br />
-            <Link href="/register" className="btn-hero-primary">Request a Proposal</Link>
+            <a href={CALENDLY} target="_blank" rel="noopener noreferrer" className="btn-hero-primary">Request a Proposal</a>
           </div>
         </div>
 
@@ -498,7 +500,7 @@ export default function HomePage() {
             </div>
             <div className="pricing-chip"><span className="amount">Request</span><span className="per">a Quote</span></div>
             <br />
-            <Link href="/register" className="btn-hero-primary">Book Dr. Miller</Link>
+            <a href={CALENDLY} target="_blank" rel="noopener noreferrer" className="btn-hero-primary">Book Dr. Miller</a>
           </div>
         </div>
       </section>
@@ -561,7 +563,7 @@ export default function HomePage() {
           <p className="cta-body">Book your free 15-minute consultation today. No pressure, no commitment—just a conversation about what&apos;s possible for you.</p>
         </div>
         <div className="cta-actions reveal reveal-delay-1">
-          <Link href="/register" className="btn-cta-white">Book Free Consultation</Link>
+          <a href={CALENDLY} target="_blank" rel="noopener noreferrer" className="btn-cta-white">Book Free Consultation</a>
           <div className="cta-contact">
             <strong>(784) 498-7772</strong>
             Mon–Wed 3–9pm &nbsp;|&nbsp; Thu–Fri 2–5pm
@@ -584,12 +586,12 @@ export default function HomePage() {
           <div className="footer-col">
             <h5>Services</h5>
             <ul>
-              <li><Link href="/register">Individual Therapy</Link></li>
-              <li><Link href="/register">Couples Therapy</Link></li>
-              <li><Link href="/register">Group Therapy</Link></li>
-              <li><Link href="/register">Workplace Wellness</Link></li>
-              <li><Link href="/register">Life Coaching</Link></li>
-              <li><Link href="/register">Keynote Speaking</Link></li>
+              <li><a href={CALENDLY} target="_blank" rel="noopener noreferrer">Individual Therapy</a></li>
+              <li><a href={CALENDLY} target="_blank" rel="noopener noreferrer">Couples Therapy</a></li>
+              <li><a href={CALENDLY} target="_blank" rel="noopener noreferrer">Group Therapy</a></li>
+              <li><a href={CALENDLY} target="_blank" rel="noopener noreferrer">Workplace Wellness</a></li>
+              <li><a href={CALENDLY} target="_blank" rel="noopener noreferrer">Life Coaching</a></li>
+              <li><a href={CALENDLY} target="_blank" rel="noopener noreferrer">Keynote Speaking</a></li>
             </ul>
           </div>
           <div className="footer-col">
@@ -605,8 +607,8 @@ export default function HomePage() {
             <h5>Platform</h5>
             <ul>
               <li><Link href="/login">Sign In</Link></li>
-              <li><Link href="/register">Get Started</Link></li>
-              <li><Link href="/register">Book a Session</Link></li>
+              <li><a href={CALENDLY} target="_blank" rel="noopener noreferrer">Get Started</a></li>
+              <li><a href={CALENDLY} target="_blank" rel="noopener noreferrer">Book a Session</a></li>
             </ul>
           </div>
           <div className="footer-col">
@@ -624,10 +626,4 @@ export default function HomePage() {
           <div className="social-row">
             <a href="https://www.facebook.com/thevaleoexperience" target="_blank" rel="noopener noreferrer" className="social-btn" aria-label="Facebook">f</a>
             <a href="https://www.youtube.com/@thevaleoexperience6262" target="_blank" rel="noopener noreferrer" className="social-btn" aria-label="YouTube">▶</a>
-            <a href="https://www.instagram.com/thevaleosvg" target="_blank" rel="noopener noreferrer" className="social-btn" aria-label="Instagram">ig</a>
-          </div>
-        </div>
-      </footer>
-    </>
-  );
-}
+            <a href="https://www.instagram.com/thevaleosvg" target="_blank" rel="noop
