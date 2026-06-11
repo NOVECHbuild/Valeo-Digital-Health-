@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Valeo Experience — Brand Kit</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap');
+
+  :root {
+    --forest:      #2A4A1A;
+    --forest-mid:  #3D6B24;
+    --green:       #8DC63F;
+    --green-light: #A8D460;
+    --orange:      #F7941D;
+    --orange-dark: #C4700A;
+    --gray:        #58595B;
+    --gray-mid:    #7A7A7A;
+    --gray-light:  #D1D1D1;
+    --leaf:        #F2F8EA;
+    --ivory:       #FAFCF7;
+    --charcoal:    #22272B;
+    --white:       #FFFFFF;
+    --black:       #111111;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
+    background: var(--ivory);
+    color: var(--charcoal);
+    line-height: 1.6;
+  }
+
+  /* ── Cover ── */
+  .cover {
+    background: var(--forest);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 60px 80px;
+    page-break-after: always;
+  }
+  .cover-top { display: flex; align-items: center; gap: 20px; }
+  .cover-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--orange); }
+  .cover-label { font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: rgba(255,255,255,0.5); }
+  .cover-main { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 80px 0; }
+  .cover-logo-wrap { margin-bottom: 60px; }
+  .cover-logo-wrap svg { width: 260px; height: auto; }
+  .cover-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 64px;
+    color: white;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .cover-title em { font-style: italic; color: var(--green); }
+  .cover-subtitle { font-size: 18px; color: rgba(255,255,255,0.5); font-weight: 300; }
+  .cover-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-top: 40px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .cover-footer-left p { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 4px; }
+  .cover-footer-right { text-align: right; }
+  .cover-footer-right p { font-size: 13px; color: rgba(255,255,255,0.4); }
+
+  /* ── Sections ── */
+  .section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 80px 80px;
+    page-break-inside: avoid;
+  }
+  .section + .section { border-top: 1px solid rgba(42,74,26,0.1); }
+
+  .section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--orange);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 42px;
+    color: var(--forest);
+    margin-bottom: 16px;
+    line-height: 1.15;
+  }
+  .section-intro {
+    font-size: 16px;
+    color: var(--gray-mid);
+    max-width: 680px;
+    margin-bottom: 56px;
+    line-height: 1.75;
+  }
+
+  /* ── Logo Grid ── */
+  .logo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+  .logo-card {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--gray-light);
+  }
+  .logo-card-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 32px;
+    min-height: 180px;
+  }
+  .logo-card-preview.light  { background: var(--ivory); }
+  .logo-card-preview.dark   { background: var(--forest); }
+  .logo-card-preview.black  { background: var(--black); }
+  .logo-card-preview.green  { background: var(--green); }
+  .logo-card-preview img    { max-width: 240px; max-height: 120px; object-fit: contain; }
+  .logo-card-preview-sq img { max-width: 100px; max-height: 100px; }
+  .logo-card-info {
+    padding: 14px 20px;
+    background: white;
+    border-top: 1px solid var(--gray-light);
+  }
+  .logo-card-info h4 { font-size: 13px; font-weight: 600; color: var(--charcoal); margin-bottom: 4px; }
+  .logo-card-info p  { font-size: 12px; color: var(--gray-mid); }
+
+  .logo-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  /* ── Colours ── */
+  .color-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .color-card { border-radius: 10px; overflow: hidden; border: 1px solid rgba(0,0,0,0.06); }
+  .color-swatch { height: 90px; }
+  .color-info { padding: 12px 14px; background: white; }
+  .color-info .name  { font-size: 13px; font-weight: 600; color: var(--charcoal); margin-bottom: 4px; }
+  .color-info .hex   { font-size: 12px; color: var(--gray-mid); font-family: monospace; }
+  .color-info .role  { font-size: 11px; color: var(--gray-light); margin-top: 4px; }
+
+  .color-row-2 {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  /* ── Typography ── */
+  .type-showcase {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 48px;
+  }
+  .type-card {
+    background: white;
+    border-radius: 12px;
+    padding: 36px;
+    border: 1px solid var(--gray-light);
+  }
+  .type-specimen-serif {
+    font-family: 'DM Serif Display', serif;
+    font-size: 52px;
+    color: var(--forest);
+    margin-bottom: 16px;
+    line-height: 1.1;
+  }
+  .type-specimen-sans {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--charcoal);
+    margin-bottom: 16px;
+  }
+  .type-name    { font-size: 13px; font-weight: 700; color: var(--charcoal); margin-bottom: 4px; }
+  .type-detail  { font-size: 12px; color: var(--gray-mid); margin-bottom: 20px; }
+  .type-weights { display: flex; gap: 20px; flex-wrap: wrap; }
+  .type-weight  { font-size: 13px; color: var(--gray-mid); }
+
+  .type-hierarchy { margin-bottom: 48px; }
+  .type-row {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    padding: 18px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .type-row:last-child { border-bottom: none; }
+  .type-row-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--gray-mid); width: 120px; flex-shrink: 0; }
+  .type-row-spec  { font-size: 11px; color: var(--gray-light); width: 160px; flex-shrink: 0; font-family: monospace; }
+  .type-row-example { flex: 1; color: var(--charcoal); }
+
+  /* ── Tokens ── */
+  .tokens-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .token-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid var(--gray-light);
+  }
+  .token-swatch { width: 32px; height: 32px; border-radius: 6px; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.08); }
+  .token-name  { font-size: 13px; font-family: monospace; color: var(--forest); flex: 1; }
+  .token-value { font-size: 12px; font-family: monospace; color: var(--gray-mid); }
+
+  /* ── Do/Don't ── */
+  .rules-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+  .rule-col h3 {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid;
+  }
+  .rule-col.do h3   { color: var(--green); border-color: var(--green); }
+  .rule-col.dont h3 { color: #E53E3E; border-color: #E53E3E; }
+  .rule-item {
+    display: flex;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--gray);
+    margin-bottom: 12px;
+    line-height: 1.55;
+  }
+  .rule-item .icon { flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin-top: 2px; }
+  .rule-col.do   .icon { background: rgba(141,198,63,0.15); color: var(--green); }
+  .rule-col.dont .icon { background: rgba(229,62,62,0.12); color: #E53E3E; }
+
+  /* ── File list ── */
+  .file-section { margin-bottom: 40px; }
+  .file-section h3 { font-size: 14px; font-weight: 700; color: var(--forest); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(42,74,26,0.12); }
+  .file-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .file-item { font-size: 12px; font-family: monospace; color: var(--gray-mid); padding: 5px 10px; background: white; border-radius: 4px; border: 1px solid var(--gray-light); }
+
+  /* ── Back cover ── */
+  .back-cover {
+    background: var(--charcoal);
+    padding: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 360px;
+    page-break-before: always;
+  }
+  .back-cover h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    color: white;
+    margin-bottom: 12px;
+  }
+  .back-cover p { font-size: 15px; color: rgba(255,255,255,0.5); max-width: 560px; line-height: 1.7; }
+  .back-cover-links { display: flex; gap: 40px; margin-top: 40px; }
+  .back-cover-links div h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--green); margin-bottom: 6px; }
+  .back-cover-links div p  { font-size: 14px; color: rgba(255,255,255,0.6); }
+  .back-cover-badge { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.2); }
+
+  @media print {
+    .cover { min-height: 100vh; }
+    .section { padding: 60px 60px; }
+    .logo-grid, .logo-grid-3 { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     COVER
+═══════════════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-top">
+    <div class="cover-dot"></div>
+    <span class="cover-label">Brand Identity Kit — v1.0 — June 2026</span>
+  </div>
+
+  <div class="cover-main">
+    <div class="cover-logo-wrap">
+      <img src="../Original Logo.jpg" alt="The Valeo Experience" style="width:220px;height:auto;border-radius:8px;">
+    </div>
+
+    <h1 class="cover-title">Brand<br><em>Identity</em><br>Guidelines</h1>
+    <p class="cover-subtitle">The complete visual language for The Valeo Experience</p>
+  </div>
+
+  <div class="cover-footer">
+    <div class="cover-footer-left">
+      <p>The Valeo Experience Inc</p>
+      <p>Kingstown, St. Vincent &amp; the Grenadines</p>
+      <p>valeoexperience.com</p>
+    </div>
+    <div class="cover-footer-right">
+      <p>Confidential — Internal Reference</p>
+      <p>Version 1.0 · June 2026</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     1. BRAND OVERVIEW
+═══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">01 — Brand Overview</div>
+  <h2 class="section-title">Who We Are</h2>
+  <p class="section-intro">The Valeo Experience is a Caribbean mental health platform connecting clients with Dr. Jozelle M. Miller, PhD. Our brand communicates growth, warmth, and grounded expertise — rooted in the Caribbean, relevant to the world.</p>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:24px; margin-bottom:40px;">
+    <div style="background:white; border-radius:12px; padding:28px; border:1px solid var(--gray-light);">
+      <div style="width:40px;height:40px;background:rgba(141,198,63,0.12);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+        <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="#8DC63F" stroke-width="2"/><path d="M 7,10 L 10,13 L 14,7" stroke="#8DC63F" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h3 style="font-size:15px;font-weight:700;color:var(--forest);margin-bottom:8px;">Growth</h3>
+      <p style="font-size:13px;color:var(--gray-mid);line-height:1.65;">The lime green leaves represent personal growth and flourishing — the journey toward wellbeing.</p>
+    </div>
+    <div style="background:white; border-radius:12px; padding:28px; border:1px solid var(--gray-light);">
+      <div style="width:40px;height:40px;background:rgba(247,148,29,0.12);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+        <svg width="20" height="20" viewBox="0 0 20 20"><path d="M10,3 C10,3 14,7 14,11 A4,4 0 0 1 6,11 C6,7 10,3 10,3Z" fill="none" stroke="#F7941D" stroke-width="2" stroke-linejoin="round"/></svg>
+      </div>
+      <h3 style="font-size:15px;font-weight:700;color:var(--forest);margin-bottom:8px;">Warmth</h3>
+      <p style="font-size:13px;color:var(--gray-mid);line-height:1.65;">The orange teardrop symbolises empathy, presence, and the human connection at the heart of every session.</p>
+    </div>
+    <div style="background:white; border-radius:12px; padding:28px; border:1px solid var(--gray-light);">
+      <div style="width:40px;height:40px;background:rgba(88,89,91,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+        <svg width="20" height="20" viewBox="0 0 20 20"><ellipse cx="10" cy="14" rx="7" ry="3" fill="none" stroke="#58595B" stroke-width="1.8"/><ellipse cx="10" cy="14" rx="4" ry="1.5" fill="none" stroke="#58595B" stroke-width="1.5"/></svg>
+      </div>
+      <h3 style="font-size:15px;font-weight:700;color:var(--forest);margin-bottom:8px;">Movement</h3>
+      <p style="font-size:13px;color:var(--gray-mid);line-height:1.65;">The swoosh arcs convey motion, progress, and the dynamic energy of transformation.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     2. LOGO SYSTEM
+═══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">02 — Logo System</div>
+  <h2 class="section-title">Logo Variants</h2>
+  <p class="section-intro">The logo has three components: the Logomark (icon), the Wordmark (typography), and the Lockup (combined). Each is available in multiple configurations to suit every use case.</p>
+
+  <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--forest-mid);margin-bottom:20px;">Primary Stacked Lockup</h3>
+  <div class="logo-grid">
+    <div class="logo-card">
+      <div class="logo-card-preview light">
+        <img src="logos/png/web/logo-400x400.png" alt="Primary logo on white" style="max-width:180px;max-height:180px;">
+      </div>
+      <div class="logo-card-info">
+        <h4>Primary — Light Background</h4>
+        <p>Default version. Use on white, ivory, or light surfaces.</p>
+      </div>
+    </div>
+    <div class="logo-card">
+      <div class="logo-card-preview light">
+        <img src="logos/png/web/logo-400x400.png" alt="Primary logo" style="max-width:180px;max-height:180px;">
+      </div>
+      <div class="logo-card-info">
+        <h4>Primary — General Use</h4>
+        <p>Full-colour version for all standard applications — web, documents, presentations.</p>
+      </div>
+    </div>
+    <div class="logo-card">
+      <div class="logo-card-preview light" style="background:var(--leaf);">
+        <img src="logos/png/web/logo-400x400.png" alt="Primary logo on leaf" style="max-width:180px;max-height:180px;">
+      </div>
+      <div class="logo-card-info">
+        <h4>On Tint Background</h4>
+        <p>Works well on the leaf (#F2F8EA) or any light neutral surface.</p>
+      </div>
+    </div>
+    <div class="logo-card">
+      <div class="logo-card-preview light" style="background:var(--charcoal); display:flex; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:8px; padding:12px; display:inline-block;">
+          <img src="logos/png/web/logo-400x400.png" alt="Primary logo boxed on dark" style="max-width:140px;max-height:140px;display:block;">
+        </div>
+      </div>
+      <div class="logo-card-info">
+        <h4>On Dark — Boxed</h4>
+        <p>On dark backgrounds, place the logo in a white container. A true reversed (all-white) version requires a designer to produce a vector source file.</p>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--forest-mid);margin-bottom:20px;margin-top:48px;">Horizontal Lockup</h3>
+  <div class="logo-grid">
+    <div class="logo-card">
+      <div class="logo-card-preview light" style="min-height:130px;">
+        <img src="logos/png/web/logo-400x400.png" alt="Logo" style="max-width:160px;max-height:160px;">
+      </div>
+      <div class="logo-card-info">
+        <h4>Horizontal — Light Background</h4>
+        <p>Use in headers, email footers, and anywhere with limited vertical space. A horizontal crop can be produced from the source file.</p>
+      </div>
+    </div>
+    <div class="logo-card">
+      <div class="logo-card-preview light" style="min-height:130px; background:var(--charcoal); display:flex; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:8px; padding:10px; display:inline-block;">
+          <img src="logos/png/web/logo-400x400.png" alt="Logo" style="max-width:120px;max-height:120px;display:block;">
+        </div>
+      </div>
+      <div class="logo-card-info">
+        <h4>Horizontal — Dark Background</h4>
+        <p>Nav bars, dark footers, slide decks. Use the logo in a white container until a reversed vector version is available.</p>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--forest-mid);margin-bottom:20px;margin-top:48px;">Logomark &amp; Wordmark</h3>
+  <div class="logo-grid-3">
+    <div class="logo-card">
+      <div class="logo-card-preview light logo-card-preview-sq" style="min-height:160px;">
+        <img src="logos/png/social/profile-400x400.png" alt="Logo mark — social" style="max-width:120px;max-height:120px;">
+      </div>
+      <div class="logo-card-info">
+        <h4>Mark — Social / Profile</h4>
+        <p>Avatars, social media profiles, community platforms. Use the square 400×400 or 800×800.</p>
+      </div>
+    </div>
+    <div class="logo-card">
+      <div class="logo-card-preview light logo-card-preview-sq" style="min-height:160px;">
+        <img src="logos/png/app/app-icon-192x192.png" alt="App icon" style="max-width:120px;max-height:120px;border-radius:20px;">
+      </div>
+      <div class="logo-card-info">
+        <h4>Mark — App Icon</h4>
+        <p>PWA, Android, iOS home screen. Available at 192, 512, and 1024px.</p>
+      </div>
+    </div>
+    <div class="logo-card">
+      <div class="logo-card-preview light logo-card-preview-sq" style="min-height:160px;">
+        <img src="logos/png/favicon/favicon-64x64.png" alt="Favicon" style="max-width:64px;max-height:64px;image-rendering:pixelated;">
+      </div>
+      <div class="logo-card-info">
+        <h4>Mark — Favicon</h4>
+        <p>Browser tab icon. Available at 16, 32, 48, 64, 128, and 256px. Auto-wired to the site.</p>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--forest-mid);margin-bottom:20px;margin-top:48px;">Single Colour Versions</h3>
+  <div style="background:var(--leaf); border-left:4px solid var(--orange); border-radius:0 8px 8px 0; padding:16px 20px; margin-bottom:24px; font-size:13px; color:var(--gray); line-height:1.6;">
+    <strong>Note:</strong> Monochrome (single-colour) and reversed (all-white) logo variants require the original vector source file to produce correctly. These should be commissioned from a graphic designer when needed for print, merchandise, or single-ink applications.
+  </div>
+  <div class="logo-grid">
+    <div class="logo-card">
+      <div class="logo-card-preview light">
+        <img src="logos/png/web/logo-400x400.png" alt="Logo" style="max-width:180px;max-height:180px; filter: grayscale(100%);">
+      </div>
+      <div class="logo-card-info">
+        <h4>Greyscale (Reference Only)</h4>
+        <p>This is a CSS greyscale preview for reference. A proper monochrome version requires vector artwork.</p>
+      </div>
+    </div>
+    <div class="logo-card">
+      <div class="logo-card-preview light" style="background:var(--charcoal); display:flex; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:8px; padding:12px; display:inline-block;">
+          <img src="logos/png/web/logo-400x400.png" alt="Logo" style="max-width:150px;max-height:150px; display:block;">
+        </div>
+      </div>
+      <div class="logo-card-info">
+        <h4>On Dark — Boxed (Reference Only)</h4>
+        <p>Place the logo in a white container on dark backgrounds until a reversed white-only vector is available.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clearspace -->
+  <div style="margin-top:48px; background:white; border-radius:12px; padding:36px; border:1px solid var(--gray-light);">
+    <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--forest-mid);margin-bottom:16px;">Clear Space</h3>
+    <p style="font-size:14px;color:var(--gray-mid);line-height:1.7;max-width:600px;">Always maintain a minimum clear space around the logo equal to the height of the <strong>"E"</strong> in <strong>EXPERIENCE</strong>. This protects the logo from visual clutter and ensures legibility at all sizes.</p>
+    <p style="font-size:14px;color:var(--gray-mid);line-height:1.7;max-width:600px;margin-top:12px;"><strong>Minimum size:</strong> The full stacked lockup should never appear smaller than <strong>120px</strong> wide in digital use or <strong>25mm</strong> in print. The mark alone should never appear smaller than <strong>24px</strong>.</p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     3. COLOUR PALETTE
+═══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">03 — Colour Palette</div>
+  <h2 class="section-title">Brand Colours</h2>
+  <p class="section-intro">The Valeo palette is rooted in the logo itself — a living garden metaphor. Forest green grounds the brand in nature and expertise; lime green signals growth; orange brings warmth and energy; gray provides sophistication and balance.</p>
+
+  <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gray-mid);margin-bottom:16px;">Primary Colours</h3>
+  <div class="color-row">
+    <div class="color-card">
+      <div class="color-swatch" style="background:#2A4A1A;"></div>
+      <div class="color-info">
+        <div class="name">Forest</div>
+        <div class="hex">#2A4A1A</div>
+        <div class="hex">RGB 42, 74, 26</div>
+        <div class="role">Primary brand · Nav · Headings</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background:#3D6B24;"></div>
+      <div class="color-info">
+        <div class="name">Forest Mid</div>
+        <div class="hex">#3D6B24</div>
+        <div class="hex">RGB 61, 107, 36</div>
+        <div class="role">Hover states · Links · Accents</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background:#8DC63F;"></div>
+      <div class="color-info">
+        <div class="name">Lime Green</div>
+        <div class="hex">#8DC63F</div>
+        <div class="hex">RGB 141, 198, 63</div>
+        <div class="role">Logo leaves · "EXPERIENCE" · CTAs</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background:#F7941D;"></div>
+      <div class="color-info">
+        <div class="name">Orange</div>
+        <div class="hex">#F7941D</div>
+        <div class="hex">RGB 247, 148, 29</div>
+        <div class="role">Logo teardrop · Highlights · CTAs</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background:#58595B;"></div>
+      <div class="color-info">
+        <div class="name">Gray</div>
+        <div class="hex">#58595B</div>
+        <div class="hex">RGB 88, 89, 91</div>
+        <div class="role">Wordmark · Body text · Swoosh</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gray-mid);margin-bottom:16px;margin-top:32px;">Extended Palette</h3>
+  <div class="color-row-2">
+    <div class="color-card">
+      <div class="color-swatch" style="background:#A8D460;"></div>
+      <div class="color-info">
+        <div class="name">Green Light</div>
+        <div class="hex">#A8D460</div>
+        <div class="role">Hover · Tints</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background:#C4700A;"></div>
+      <div class="color-info">
+        <div class="name">Orange Dark</div>
+        <div class="hex">#C4700A</div>
+        <div class="role">CTA hover · Pressed states</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background:#F2F8EA;"></div>
+      <div class="color-info">
+        <div class="name">Leaf</div>
+        <div class="hex">#F2F8EA</div>
+        <div class="role">Section backgrounds</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background:#FAFCF7; border:1px solid #e8e8e8;"></div>
+      <div class="color-info">
+        <div class="name">Ivory</div>
+        <div class="hex">#FAFCF7</div>
+        <div class="role">Page background</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background:#22272B;"></div>
+      <div class="color-info">
+        <div class="name">Charcoal</div>
+        <div class="hex">#22272B</div>
+        <div class="role">Footer · Headings</div>
+      </div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background:#4A5568;"></div>
+      <div class="color-info">
+        <div class="name">Slate</div>
+        <div class="hex">#4A5568</div>
+        <div class="role">Body paragraphs</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Colour usage -->
+  <div style="background:white;border-radius:12px;padding:36px;border:1px solid var(--gray-light);">
+    <h3 style="font-size:14px;font-weight:700;color:var(--forest);margin-bottom:20px;">Colour Usage Hierarchy</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;">
+      <div>
+        <div style="width:100%;height:6px;background:var(--forest);border-radius:3px;margin-bottom:10px;"></div>
+        <p style="font-size:13px;font-weight:600;color:var(--charcoal);margin-bottom:4px;">Forest Green — Authority</p>
+        <p style="font-size:12px;color:var(--gray-mid);">Navigation, section headings, primary buttons, borders. The backbone of the identity.</p>
+      </div>
+      <div>
+        <div style="width:100%;height:6px;background:var(--green);border-radius:3px;margin-bottom:10px;"></div>
+        <p style="font-size:13px;font-weight:600;color:var(--charcoal);margin-bottom:4px;">Lime Green — Energy</p>
+        <p style="font-size:12px;color:var(--gray-mid);">Active states, "EXPERIENCE" wordmark, badges, progress indicators, links.</p>
+      </div>
+      <div>
+        <div style="width:100%;height:6px;background:var(--orange);border-radius:3px;margin-bottom:10px;"></div>
+        <p style="font-size:13px;font-weight:600;color:var(--charcoal);margin-bottom:4px;">Orange — Warmth</p>
+        <p style="font-size:12px;color:var(--gray-mid);">Hero accents, section dividers, notification dots, pricing highlights. Use sparingly.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     4. TYPOGRAPHY
+═══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">04 — Typography</div>
+  <h2 class="section-title">Typefaces</h2>
+  <p class="section-intro">Two Google Fonts form the Valeo type system. DM Serif Display brings editorial warmth and gravitas to headlines. DM Sans provides clean, friendly readability for all body and UI text.</p>
+
+  <div class="type-showcase">
+    <div class="type-card">
+      <div class="type-specimen-serif">DM Serif<br><em>Display</em></div>
+      <div class="type-name">DM Serif Display</div>
+      <div class="type-detail">Google Fonts — free · Serif · Display</div>
+      <p style="font-size:13px;color:var(--gray-mid);line-height:1.7;margin-bottom:16px;">Used for all headlines, section titles, hero text, and the wordmark "THE VALEO". Brings a premium, editorial tone with optional italic for emphasis.</p>
+      <div class="type-weights">
+        <span class="type-weight" style="font-family:'DM Serif Display',serif;font-weight:400;">Regular</span>
+        <span class="type-weight" style="font-family:'DM Serif Display',serif;font-style:italic;">Italic</span>
+      </div>
+    </div>
+    <div class="type-card">
+      <div class="type-specimen-sans" style="margin-bottom:8px;font-size:36px;">DM Sans<br><span style="font-weight:700;">Bold</span> / <span style="font-weight:300;">Light</span></div>
+      <div class="type-name">DM Sans</div>
+      <div class="type-detail">Google Fonts — free · Sans-serif · Text</div>
+      <p style="font-size:13px;color:var(--gray-mid);line-height:1.7;margin-bottom:16px;">Used for body copy, UI labels, navigation, buttons, and captions. Highly legible at all sizes with a warm, approachable personality.</p>
+      <div class="type-weights">
+        <span class="type-weight" style="font-weight:300;">Light 300</span>
+        <span class="type-weight" style="font-weight:400;">Regular 400</span>
+        <span class="type-weight" style="font-weight:500;">Medium 500</span>
+        <span class="type-weight" style="font-weight:600;">SemiBold 600</span>
+        <span class="type-weight" style="font-weight:700;">Bold 700</span>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gray-mid);margin-bottom:20px;">Type Scale</h3>
+  <div class="type-hierarchy" style="background:white;border-radius:12px;padding:28px;border:1px solid var(--gray-light);">
+    <div class="type-row">
+      <span class="type-row-label">Display</span>
+      <span class="type-row-spec">72px / Serif / 400</span>
+      <span class="type-row-example" style="font-family:'DM Serif Display',serif;font-size:40px;color:var(--forest);">Healing Starts Here</span>
+    </div>
+    <div class="type-row">
+      <span class="type-row-label">H1</span>
+      <span class="type-row-spec">48px / Serif / 400</span>
+      <span class="type-row-example" style="font-family:'DM Serif Display',serif;font-size:32px;color:var(--forest);">Our Services</span>
+    </div>
+    <div class="type-row">
+      <span class="type-row-label">H2</span>
+      <span class="type-row-spec">36px / Serif / 400</span>
+      <span class="type-row-example" style="font-family:'DM Serif Display',serif;font-size:26px;color:var(--forest);">Individual Therapy</span>
+    </div>
+    <div class="type-row">
+      <span class="type-row-label">H3</span>
+      <span class="type-row-spec">22px / Sans / 600</span>
+      <span class="type-row-example" style="font-weight:600;font-size:20px;">Session Overview</span>
+    </div>
+    <div class="type-row">
+      <span class="type-row-label">Body Large</span>
+      <span class="type-row-spec">18px / Sans / 400</span>
+      <span class="type-row-example" style="font-size:17px;color:var(--gray);">Evidence-based care rooted in the Caribbean experience.</span>
+    </div>
+    <div class="type-row">
+      <span class="type-row-label">Body</span>
+      <span class="type-row-spec">15–16px / Sans / 400</span>
+      <span class="type-row-example" style="font-size:15px;color:var(--gray);">Dr. Jozelle M. Miller, PhD brings 15+ years of clinical expertise to every session.</span>
+    </div>
+    <div class="type-row">
+      <span class="type-row-label">Label / UI</span>
+      <span class="type-row-spec">12–13px / Sans / 500–600</span>
+      <span class="type-row-example" style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--orange);">Services</span>
+    </div>
+    <div class="type-row">
+      <span class="type-row-label">Caption</span>
+      <span class="type-row-spec">11–12px / Sans / 400</span>
+      <span class="type-row-example" style="font-size:12px;color:var(--gray-mid);">All sessions are strictly confidential.</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     5. DESIGN TOKENS
+═══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">05 — Design Tokens</div>
+  <h2 class="section-title">CSS Variables</h2>
+  <p class="section-intro">These tokens are declared in <code style="background:rgba(42,74,26,0.08);padding:2px 6px;border-radius:4px;font-size:14px;">globals.css</code> and used consistently across every component. Never hardcode hex values — always reference a token.</p>
+
+  <div class="tokens-grid">
+    <div class="token-row"><div class="token-swatch" style="background:#2A4A1A;"></div><span class="token-name">--forest</span><span class="token-value">#2A4A1A</span></div>
+    <div class="token-row"><div class="token-swatch" style="background:#3D6B24;"></div><span class="token-name">--forest-mid</span><span class="token-value">#3D6B24</span></div>
+    <div class="token-row"><div class="token-swatch" style="background:#8DC63F;"></div><span class="token-name">--green</span><span class="token-value">#8DC63F</span></div>
+    <div class="token-row"><div class="token-swatch" style="background:#A8D460;"></div><span class="token-name">--green-light</span><span class="token-value">#A8D460</span></div>
+    <div class="token-row"><div class="token-swatch" style="background:#F7941D;"></div><span class="token-name">--orange</span><span class="token-value">#F7941D</span></div>
+    <div class="token-row"><div class="token-swatch" style="background:#C4700A;"></div><span class="token-name">--orange-dark</span><span class="token-value">#C4700A</span></div>
+    <div class="token-row"><div class="token-swatch" style="background:#F9A84D;"></div><span class="token-name">--orange-light</span><span class="token-value">#F9A84D</span></div>
+    <div class="token-row"><div class="token-swatch" style="background:#58595B;"></div><span class="token-name">--gray</span><span class="token-value">#58595B</span></div>
+    <div class="token-row"><div class="token-swatch" style="background:#F2F8EA;"></div><span class="token-name">--leaf</span><span class="token-value">#F2F8EA</span></div>
+    <div class="token-row"><div class="token-swatch" style="background:#F6FAF0;"></div><span class="token-name">--cream</span><span class="token-value">#F6FAF0</span></div>
+    <div class="token-row"><div class="token-swatch" style="background:#FAFCF7;border:1px solid #e8e8e8;"></div><span class="token-name">--ivory</span><span class="token-value">#FAFCF7</span></div>
+    <div class="token-row"><div class="token-swatch" style="background:#22272B;"></div><span class="token-name">--charcoal</span><span class="token-value">#22272B</span></div>
+    <div class="token-row"><div class="token-swatch" style="background:#4A5568;"></div><span class="token-name">--slate</span><span class="token-value">#4A5568</span></div>
+    <div class="token-row"><div class="token-swatch" style="background:#8A9BA8;"></div><span class="token-name">--mist</span><span class="token-value">#8A9BA8</span></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     6. LOGO DO'S & DON'TS
+═══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">06 — Usage Rules</div>
+  <h2 class="section-title">Do's &amp; Don'ts</h2>
+  <p class="section-intro">Consistent application of the logo protects brand integrity. These rules apply across all media.</p>
+
+  <div class="rules-grid">
+    <div class="rule-col do">
+      <h3>✓ Do</h3>
+      <div class="rule-item"><div class="icon">✓</div><div>Use the full-colour primary version on white, ivory, and light backgrounds.</div></div>
+      <div class="rule-item"><div class="icon">✓</div><div>Use the white reversed version on forest green, charcoal, or photographic backgrounds.</div></div>
+      <div class="rule-item"><div class="icon">✓</div><div>Maintain the required clear space around the logo at all times.</div></div>
+      <div class="rule-item"><div class="icon">✓</div><div>Use the horizontal lockup in headers, email footers, and narrow spaces.</div></div>
+      <div class="rule-item"><div class="icon">✓</div><div>Use the PNG files provided in this kit for all digital applications. Source all exports from <code style="font-size:12px;">Original Logo.jpg</code>.</div></div>
+      <div class="rule-item"><div class="icon">✓</div><div>Scale the logo proportionally — always maintain the original aspect ratio.</div></div>
+      <div class="rule-item"><div class="icon">✓</div><div>Use the monochrome version for single-colour print situations only.</div></div>
+    </div>
+    <div class="rule-col dont">
+      <h3>✗ Don't</h3>
+      <div class="rule-item"><div class="icon">✗</div><div>Do not change any of the logo colours or apply unapproved tints.</div></div>
+      <div class="rule-item"><div class="icon">✗</div><div>Do not stretch, squish, or distort the logo in any direction.</div></div>
+      <div class="rule-item"><div class="icon">✗</div><div>Do not add drop shadows, outlines, or effects to the logo.</div></div>
+      <div class="rule-item"><div class="icon">✗</div><div>Do not place the colour logo on a busy photographic background — use the reversed (white) version instead.</div></div>
+      <div class="rule-item"><div class="icon">✗</div><div>Do not rotate or tilt the logo.</div></div>
+      <div class="rule-item"><div class="icon">✗</div><div>Do not recreate or redraw the logo — always use the approved files.</div></div>
+      <div class="rule-item"><div class="icon">✗</div><div>Do not place the logo on backgrounds with insufficient contrast.</div></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     7. FILE DIRECTORY
+═══════════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">07 — Asset Library</div>
+  <h2 class="section-title">File Directory</h2>
+  <p class="section-intro">All brand assets are stored in <code style="background:rgba(42,74,26,0.08);padding:2px 6px;border-radius:4px;font-size:14px;">public/brand/</code> within the project repository. All logo exports are sourced directly from the original logo file.</p>
+
+  <div class="file-section">
+    <h3>Source Logo · <code style="font-weight:400;font-size:12px;">public/</code></h3>
+    <div class="file-list">
+      <div class="file-item">Original Logo.jpg · Master source file — do not delete</div>
+    </div>
+  </div>
+
+  <div class="file-section">
+    <h3>Favicon Files · <code style="font-weight:400;font-size:12px;">public/brand/logos/png/favicon/</code></h3>
+    <div class="file-list">
+      <div class="file-item">favicon-16x16.png</div>
+      <div class="file-item">favicon-32x32.png</div>
+      <div class="file-item">favicon-48x48.png</div>
+      <div class="file-item">favicon-64x64.png</div>
+      <div class="file-item">favicon-128x128.png</div>
+      <div class="file-item">favicon-256x256.png</div>
+    </div>
+  </div>
+
+  <div class="file-section">
+    <h3>Social Media Files · <code style="font-weight:400;font-size:12px;">public/brand/logos/png/social/</code></h3>
+    <div class="file-list">
+      <div class="file-item">profile-400x400.png · Facebook, Twitter, LinkedIn</div>
+      <div class="file-item">profile-800x800.png · Instagram, High-res</div>
+      <div class="file-item">profile-1200x1200.png · Ultra high-res / print</div>
+    </div>
+  </div>
+
+  <div class="file-section">
+    <h3>App Icon Files · <code style="font-weight:400;font-size:12px;">public/brand/logos/png/app/</code></h3>
+    <div class="file-list">
+      <div class="file-item">app-icon-192x192.png · PWA / Android</div>
+      <div class="file-item">app-icon-512x512.png · PWA / Android</div>
+      <div class="file-item">app-icon-1024x1024.png · App stores</div>
+      <div class="file-item">apple-touch-icon-180x180.png · iOS</div>
+    </div>
+  </div>
+
+  <div class="file-section">
+    <h3>Web Standard Files · <code style="font-weight:400;font-size:12px;">public/brand/logos/png/web/</code></h3>
+    <div class="file-list">
+      <div class="file-item">logo-800x800.png · Docs, presentations, high-res email</div>
+      <div class="file-item">logo-400x400.png · Standard web use</div>
+      <div class="file-item">logo-200x200.png · Small embeds, thumbnails</div>
+    </div>
+  </div>
+
+  <div class="file-section">
+    <h3>Wired to Site · <code style="font-weight:400;font-size:12px;">public/</code></h3>
+    <div class="file-list">
+      <div class="file-item">favicon.svg · Modern browsers</div>
+      <div class="file-item">favicon-16x16.png · Legacy browsers</div>
+      <div class="file-item">favicon-32x32.png · Standard favicon</div>
+      <div class="file-item">apple-touch-icon.png · iOS home screen</div>
+      <div class="file-item">android-chrome-192x192.png · PWA</div>
+      <div class="file-item">android-chrome-512x512.png · PWA</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     BACK COVER
+═══════════════════════════════════════════════════════════════ -->
+<div class="back-cover">
+  <div>
+    <h2>Questions about the brand?</h2>
+    <p>This document is the authoritative reference for the Valeo Experience visual identity. For questions about approved usage or to request additional assets, contact the platform administrator.</p>
+    <div class="back-cover-links">
+      <div>
+        <h4>Platform</h4>
+        <p>valeoexperience.com</p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <p>thevaleoexperience@gmail.com</p>
+      </div>
+      <div>
+        <h4>Version</h4>
+        <p>1.0 · June 2026</p>
+      </div>
+    </div>
+  </div>
+  <div class="back-cover-badge">© 2026 The Valeo Experience Inc · All Rights Reserved</div>
+</div>
+
+</body>
+</html>

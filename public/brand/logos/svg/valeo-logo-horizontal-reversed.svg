@@ -1,0 +1,12 @@
+<svg width="400" height="130" viewBox="0 0 400 130" xmlns="http://www.w3.org/2000/svg">
+<rect width="400" height="130" fill="#2A4A1A"/>
+<g transform="translate(72,65) scale(1.0)">
+  <path d="M -78,2  Q -10,-8  48,14" stroke="#FFFFFF" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.42"/>
+  <path d="M -50,13 Q  -2, 5  48,14" stroke="#FFFFFF" stroke-width="4.0" fill="none" stroke-linecap="round" opacity="0.62"/>
+  <path d="M -16,22 Q  18,14  48,14" stroke="#FFFFFF" stroke-width="4.5" fill="none" stroke-linecap="round" opacity="0.82"/>
+  <path d="M 0,0 C -5,-7 -13,-27 -13,-43 A 13,13 0 1 1 13,-43 C 13,-27 5,-7 0,0 Z" fill="#FFFFFF" transform="rotate(-44)"/>
+  <path d="M 0,0 C -5,-7 -13,-27 -13,-43 A 13,13 0 1 1 13,-43 C 13,-27 5,-7 0,0 Z" fill="#FFFFFF" transform="rotate(44)"/>
+  <path d="M 0,0 C -5,-7 -13,-27 -13,-43 A 13,13 0 1 1 13,-43 C 13,-27 5,-7 0,0 Z" fill="#FFFFFF"/>
+</g>
+<g transform="translate(210,32)"><text x="0" y="0" font-family="'Helvetica Neue', Arial, Helvetica, sans-serif" font-weight="700" font-size="38" fill="#FFFFFF" text-anchor="middle" letter-spacing="2">THE VALEO</text><text x="0" y="36" font-family="'Helvetica Neue', Arial, Helvetica, sans-serif" font-weight="400" font-size="23" fill="#FFFFFF" text-anchor="middle" letter-spacing="6">EXPERIENCE</text></g>
+</svg>

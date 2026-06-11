@@ -43,7 +43,6 @@ function hexToRgba(hex: string, alpha: number): string {
     '#F7941D': `rgba(247,148,29,${alpha})`,
     '#2A4A1A': `rgba(42,74,26,${alpha})`,
     '#8DC63F': `rgba(141,198,63,${alpha})`,
-    '#F7941D': `rgba(247,148,29,${alpha})`,
     '#3D6B24': `rgba(61,107,36,${alpha})`,
     '#C4700A': `rgba(196,77,58,${alpha})`,
   };
