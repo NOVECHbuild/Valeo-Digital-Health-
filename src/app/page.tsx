@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function HomePage() {
   const navRef = useRef<HTMLElement>(null);
@@ -96,7 +97,7 @@ export default function HomePage() {
         .trust-badge svg { color: var(--teal); flex-shrink: 0; }
         .hero-right { position: relative; z-index: 2; animation: fadeUp 1s 0.15s cubic-bezier(.22,1,.36,1) both; }
         .hero-card-main { background: rgba(255,255,255,0.07); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 40px; position: relative; }
-        .hero-card-photo { width: 100%; aspect-ratio: 4/5; border-radius: 14px; overflow: hidden; background: linear-gradient(160deg, rgba(78,205,196,0.3) 0%, rgba(13,59,68,0.8) 100%); display: flex; align-items: center; justify-content: center; position: relative; }
+        .hero-card-photo { width: 100%; aspect-ratio: 4/5; border-radius: 14px; overflow: hidden; background: linear-gradient(160deg, rgba(78,205,196,0.3) 0%, rgba(13,59,68,0.8) 100%); position: relative; }
         .hero-card-photo-placeholder { text-align: center; color: rgba(255,255,255,0.5); font-size: 14px; padding: 40px; }
         .hero-card-photo-placeholder .icon { font-size: 56px; margin-bottom: 12px; display: block; }
         .stat-float { position: absolute; background: white; border-radius: 14px; padding: 16px 22px; box-shadow: 0 16px 48px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 14px; }
@@ -138,7 +139,7 @@ export default function HomePage() {
         .about { background: white; }
         .about-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
         .about-image-wrap { position: relative; }
-        .about-photo { width: 100%; aspect-ratio: 3/4; background: linear-gradient(160deg, var(--sand) 0%, rgba(78,205,196,0.2) 100%); border-radius: 20px; overflow: hidden; display: flex; align-items: center; justify-content: center; color: var(--mist); font-size: 14px; }
+        .about-photo { width: 100%; aspect-ratio: 3/4; border-radius: 20px; overflow: hidden; position: relative; }
         .about-photo-inner { text-align: center; }
         .about-photo-inner .ph-icon { font-size: 64px; display: block; margin-bottom: 12px; }
         .about-badge { position: absolute; bottom: -24px; right: -24px; background: var(--ocean); color: white; border-radius: 16px; padding: 28px 32px; box-shadow: 0 16px 48px rgba(13,59,68,0.25); }
@@ -163,7 +164,7 @@ export default function HomePage() {
         .tab-btn.active { background: white; color: var(--ocean); box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
         .tab-content { display: none; }
         .tab-content.active { display: grid; grid-template-columns: 1.2fr 1fr; gap: 64px; align-items: center; }
-        .tab-image { aspect-ratio: 4/3; background: linear-gradient(135deg, rgba(78,205,196,0.2) 0%, rgba(232,96,76,0.15) 100%); border-radius: 18px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); font-size: 14px; }
+        .tab-image { aspect-ratio: 4/3; border-radius: 18px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.1); }
         .tab-title { font-family: 'DM Serif Display'; font-size: 34px; color: white; margin-bottom: 18px; }
         .tab-desc { font-size: 15px; color: rgba(255,255,255,0.7); line-height: 1.8; margin-bottom: 32px; }
         .tab-features { display: flex; flex-direction: column; gap: 14px; margin-bottom: 36px; }
@@ -312,10 +313,14 @@ export default function HomePage() {
         <div className="hero-right">
           <div className="hero-card-main">
             <div className="hero-card-photo">
-              <div className="hero-card-photo-placeholder">
-                <span className="icon">🌺</span>
-                Professional photo of<br />Dr. Jozelle Miller
-              </div>
+              <Image
+                src="/images/hero-photo.jpg"
+                alt="Dr. Jozelle Miller, Health Psychologist"
+                fill
+                style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                priority
+                sizes="(max-width: 1024px) 0px, 400px"
+              />
             </div>
           </div>
           <div className="stat-float stat-float-1">
@@ -381,11 +386,14 @@ export default function HomePage() {
       <section className="about" id="about">
         <div className="about-inner">
           <div className="about-image-wrap reveal">
-            <div className="about-photo">
-              <div className="about-photo-inner">
-                <span className="ph-icon">👩‍⚕️</span>
-                Professional portrait of<br />Dr. Jozelle M. Miller
-              </div>
+            <div className="about-photo" style={{ position: 'relative' }}>
+              <Image
+                src="/images/about-photo.jpg"
+                alt="Dr. Jozelle M. Miller, PhD"
+                fill
+                style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                sizes="(max-width: 1024px) 0px, 500px"
+              />
             </div>
             <div className="about-badge">
               <div className="about-badge-num">15+</div>
@@ -431,7 +439,9 @@ export default function HomePage() {
         </div>
 
         <div className="tab-content active" id="tab-therapy">
-          <div className="tab-image">📷 Therapy Session Image</div>
+          <div className="tab-image" style={{ position: 'relative' }}>
+            <Image src="/images/therapy-photo.jpg" alt="Individual therapy session" fill style={{ objectFit: 'cover' }} sizes="600px" />
+          </div>
           <div className="tab-body">
             <h3 className="tab-title">Individual Therapy</h3>
             <p className="tab-desc">Personalized psychological support tailored to you. Using evidence-based modalities including CBT, trauma-informed care, and culturally-adaptive techniques.</p>
@@ -445,7 +455,9 @@ export default function HomePage() {
         </div>
 
         <div className="tab-content" id="tab-coaching">
-          <div className="tab-image">📷 Coaching Session Image</div>
+          <div className="tab-image" style={{ position: 'relative' }}>
+            <Image src="/images/coaching-photo.jpg" alt="Resilience coaching session" fill style={{ objectFit: 'cover' }} sizes="600px" />
+          </div>
           <div className="tab-body">
             <h3 className="tab-title">Resilience Coaching</h3>
             <p className="tab-desc">Forward-focused coaching for those ready to break through mental barriers and operate at their fullest potential. Not therapy—transformation.</p>
@@ -459,7 +471,9 @@ export default function HomePage() {
         </div>
 
         <div className="tab-content" id="tab-workplace">
-          <div className="tab-image">📷 Workplace Workshop Image</div>
+          <div className="tab-image" style={{ position: 'relative' }}>
+            <Image src="/images/workplace-photo.jpg" alt="Workplace wellness workshop" fill style={{ objectFit: 'cover' }} sizes="600px" />
+          </div>
           <div className="tab-body">
             <h3 className="tab-title">Workplace Wellness Programs</h3>
             <p className="tab-desc">Bespoke organisational programs that reduce burnout, improve team cohesion, and create psychologically safe workplaces across the Caribbean.</p>
@@ -473,7 +487,9 @@ export default function HomePage() {
         </div>
 
         <div className="tab-content" id="tab-speaking">
-          <div className="tab-image">📷 Keynote Speaking Image</div>
+          <div className="tab-image" style={{ position: 'relative' }}>
+            <Image src="/images/speaking-photo.jpg" alt="Dr. Miller keynote speaking" fill style={{ objectFit: 'cover' }} sizes="600px" />
+          </div>
           <div className="tab-body">
             <h3 className="tab-title">Keynote Speaking</h3>
             <p className="tab-desc">Internationally acclaimed presentations on mental health, Caribbean resilience, and the psychology of transformation. Memorable, practical, and life-changing.</p>
@@ -606,9 +622,9 @@ export default function HomePage() {
         <div className="footer-bottom">
           <div className="footer-copy">© 2026 The Valeo Experience · All Rights Reserved</div>
           <div className="social-row">
-            <a href="#" className="social-btn">f</a>
-            <a href="#" className="social-btn">in</a>
-            <a href="#" className="social-btn">ig</a>
+            <a href="https://www.facebook.com/thevaleoexperience" target="_blank" rel="noopener noreferrer" className="social-btn" aria-label="Facebook">f</a>
+            <a href="https://www.youtube.com/@thevaleoexperience6262" target="_blank" rel="noopener noreferrer" className="social-btn" aria-label="YouTube">▶</a>
+            <a href="https://www.instagram.com/thevaleosvg" target="_blank" rel="noopener noreferrer" className="social-btn" aria-label="Instagram">ig</a>
           </div>
         </div>
       </footer>
