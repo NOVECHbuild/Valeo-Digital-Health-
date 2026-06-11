@@ -626,4 +626,10 @@ export default function HomePage() {
           <div className="social-row">
             <a href="https://www.facebook.com/thevaleoexperience" target="_blank" rel="noopener noreferrer" className="social-btn" aria-label="Facebook">f</a>
             <a href="https://www.youtube.com/@thevaleoexperience6262" target="_blank" rel="noopener noreferrer" className="social-btn" aria-label="YouTube">▶</a>
-            <a href="https://www.instagram.com/thevaleosvg" target="_blank" rel="noop
+            <a href="https://www.instagram.com/thevaleosvg" target="_blank" rel="noopener noreferrer" className="social-btn" aria-label="Instagram">ig</a>
+          </div>
+        </div>
+      </footer>
+    </>
+  );
+}
