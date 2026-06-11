@@ -1,17 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import {
   collection, query, where, getDocs, addDoc, updateDoc,
   deleteDoc, doc, orderBy, serverTimestamp,
 } from "firebase/firestore";
+import { useSearchParams } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import type { Appointment } from "@/hooks/useAppointments";
 import {
   FileText, Plus, Search, X, Loader2, Save,
   Edit3, Trash2, ChevronDown, CheckCircle,
   AlertCircle, Lock, Calendar, User,
-  Sparkles, Upload, FileAudio, AlertTriangle,
+  Sparkles, Upload, FileAudio, AlertTriangle, Link2,
 } from "lucide-react";
 
 // ── AI report formatter ─────────────────────────────────────────────────────
@@ -51,6 +53,8 @@ interface Note {
   id: string; clientId: string; clientName: string; doctorId: string;
   title: string; content: string; sessionDate: string; sessionType: string;
   tags: string[]; createdAt: any; updatedAt: any;
+  // Optional link to a specific appointment/session (P2)
+  appointmentId?: string; appointmentTime?: string;
 }
 
 const SESSION_TYPES = ["Individual Therapy","Couples Therapy","Life Coaching","Workplace Wellness","Free Consultation"];
@@ -75,20 +79,36 @@ function TagChip({ tag }: { tag: string }) {
   );
 }
 
-function NoteEditor({ note, clients, doctorId, onSave, onClose }: {
-  note: Partial<Note>|null; clients: Client[]; doctorId: string;
+function NoteEditor({ note, clients, appointments, doctorId, onSave, onClose }: {
+  note: Partial<Note>|null; clients: Client[]; appointments: Appointment[]; doctorId: string;
   onSave: (n: Omit<Note,"id"|"createdAt"|"updatedAt">) => Promise<void>;
   onClose: () => void;
 }) {
   const isEdit = !!(note as Note)?.id;
-  const [clientId,    setClientId]    = useState(note?.clientId    ?? "");
-  const [title,       setTitle]       = useState(note?.title       ?? "");
-  const [content,     setContent]     = useState(note?.content     ?? "");
-  const [sessionDate, setSessionDate] = useState(note?.sessionDate ?? new Date().toISOString().split("T")[0]);
-  const [sessionType, setSessionType] = useState(note?.sessionType ?? "");
-  const [tags,        setTags]        = useState<string[]>(note?.tags ?? []);
-  const [saving,      setSaving]      = useState(false);
-  const [error,       setError]       = useState<string|null>(null);
+  const [clientId,      setClientId]      = useState(note?.clientId    ?? "");
+  const [title,         setTitle]         = useState(note?.title       ?? "");
+  const [content,       setContent]       = useState(note?.content     ?? "");
+  const [sessionDate,   setSessionDate]   = useState(note?.sessionDate ?? new Date().toISOString().split("T")[0]);
+  const [sessionType,   setSessionType]   = useState(note?.sessionType ?? "");
+  const [appointmentId, setAppointmentId] = useState(note?.appointmentId ?? "");
+  const [tags,          setTags]          = useState<string[]>(note?.tags ?? []);
+  const [saving,        setSaving]        = useState(false);
+  const [error,         setError]         = useState<string|null>(null);
+
+  // Appointments belonging to the selected client, newest first
+  const clientAppointments = appointments
+    .filter(a => a.clientId === clientId)
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
+
+  // When linking a session, pull the appointment's date + type onto the note
+  function linkAppointment(id: string) {
+    setAppointmentId(id);
+    const appt = appointments.find(a => a.id === id);
+    if (appt) {
+      if (appt.date) setSessionDate(appt.date);
+      if (appt.type) setSessionType(appt.type);
+    }
+  }
 
   // ── AI Assist state ──────────────────────────────────────────────────────
   const [aiOpen,       setAiOpen]       = useState(false);
@@ -164,8 +184,10 @@ function NoteEditor({ note, clients, doctorId, onSave, onClose }: {
     }
     setSaving(true);
     try {
+      const linkedAppt = appointments.find(a => a.id === appointmentId);
       await onSave({ clientId, clientName: selectedClient?.displayName??"", doctorId,
-        title:title.trim(), content:content.trim(), sessionDate, sessionType, tags });
+        title:title.trim(), content:content.trim(), sessionDate, sessionType, tags,
+        appointmentId: appointmentId || "", appointmentTime: linkedAppt?.time ?? "" });
       onClose();
     } catch { setError("Failed to save. Please try again."); }
     finally { setSaving(false); }
@@ -201,7 +223,7 @@ function NoteEditor({ note, clients, doctorId, onSave, onClose }: {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color:"#8A9BA8" }}>Client *</label>
-              <select value={clientId} onChange={e=>setClientId(e.target.value)}
+              <select value={clientId} onChange={e=>{ setClientId(e.target.value); setAppointmentId(""); }}
                 className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none"
                 style={{ borderColor:"rgba(42,74,26,0.15)", background:"white", color:clientId?"#22272B":"#8A9BA8" }}>
                 <option value="">Select client</option>
@@ -218,6 +240,29 @@ function NoteEditor({ note, clients, doctorId, onSave, onClose }: {
               </select>
             </div>
           </div>
+
+          {/* Link to a specific appointment/session (optional) */}
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1.5" style={{ color:"#8A9BA8" }}>
+              <Link2 size={11}/> Link to Session <span style={{ color:"#C4C4C4" }}>(optional)</span>
+            </label>
+            <select value={appointmentId} onChange={e=>linkAppointment(e.target.value)} disabled={!clientId}
+              className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none disabled:opacity-50"
+              style={{ borderColor:"rgba(42,74,26,0.15)", background:"white", color:appointmentId?"#22272B":"#8A9BA8" }}>
+              <option value="">{clientId ? "— No specific session —" : "Select a client first"}</option>
+              {clientAppointments.map(a=>(
+                <option key={a.id} value={a.id}>
+                  {new Date(a.date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})} · {a.time} · {a.type} ({a.status})
+                </option>
+              ))}
+            </select>
+            {appointmentId && (
+              <p className="text-xs mt-1 flex items-center gap-1" style={{ color:"#6BA028" }}>
+                <CheckCircle size={10}/> This note is linked to the selected session.
+              </p>
+            )}
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color:"#8A9BA8" }}>Session Date *</label>
@@ -378,6 +423,12 @@ function NoteCard({ note, onEdit, onDelete }: { note:Note; onEdit:()=>void; onDe
                 <Calendar size={10}/>
                 {new Date(note.sessionDate+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
               </span>
+              {note.appointmentId && (
+                <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
+                  style={{ background:"rgba(141,198,63,0.12)", color:"#6BA028" }}>
+                  <Link2 size={10}/> Linked session
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -427,16 +478,19 @@ function NoteCard({ note, onEdit, onDelete }: { note:Note; onEdit:()=>void; onDe
   );
 }
 
-export default function DoctorNotesPage() {
+function NotesPageInner() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
   const [notes,        setNotes]        = useState<Note[]>([]);
   const [clients,      setClients]      = useState<Client[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading,      setLoading]      = useState(true);
   const [search,       setSearch]       = useState("");
   const [filterClient, setFilterClient] = useState("all");
   const [editNote,     setEditNote]     = useState<Partial<Note>|null|false>(false);
   const [deleting,     setDeleting]     = useState<string|null>(null);
   const [toast,        setToast]        = useState<{type:"success"|"error";msg:string}|null>(null);
+  const [prefilled,    setPrefilled]    = useState(false);
 
   function showToast(type:"success"|"error", msg:string) {
     setToast({type,msg}); setTimeout(()=>setToast(null),4000);
@@ -449,6 +503,7 @@ export default function DoctorNotesPage() {
       setNotes(notesSnap.docs.map(d=>({id:d.id,...d.data()}) as Note));
 
       const apptSnap = await getDocs(query(collection(db,"appointments"),where("doctorId","==",user.uid)));
+      setAppointments(apptSnap.docs.map(d=>({id:d.id,...d.data()}) as Appointment));
       const clientIds = [...new Set(apptSnap.docs.map(d=>(d.data() as any).clientId as string))];
 
       if(clientIds.length > 0) {
@@ -461,6 +516,24 @@ export default function DoctorNotesPage() {
       setLoading(false);
     })();
   },[user]);
+
+  // ── Deep-link from the schedule page: ?appointmentId=… opens a pre-linked note
+  useEffect(()=>{
+    if (prefilled) return;
+    const apptId = searchParams.get("appointmentId");
+    if (!apptId || appointments.length === 0) return;
+    const appt = appointments.find(a => a.id === apptId);
+    if (appt) {
+      setEditNote({
+        clientId:      appt.clientId,
+        clientName:    appt.clientName,
+        sessionType:   appt.type,
+        sessionDate:   appt.date,
+        appointmentId: appt.id,
+      });
+    }
+    setPrefilled(true);
+  },[appointments, searchParams, prefilled]);
 
   async function handleSave(data: Omit<Note,"id"|"createdAt"|"updatedAt">) {
     if(!user) return;
@@ -595,8 +668,21 @@ export default function DoctorNotesPage() {
       )}
 
       {editNote !== false && (
-        <NoteEditor note={editNote} clients={clients} doctorId={user?.uid??""} onSave={handleSave} onClose={()=>setEditNote(false)}/>
+        <NoteEditor note={editNote} clients={clients} appointments={appointments} doctorId={user?.uid??""} onSave={handleSave} onClose={()=>setEditNote(false)}/>
       )}
     </div>
+  );
+}
+
+// useSearchParams() must be wrapped in a Suspense boundary (Next.js App Router)
+export default function DoctorNotesPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center py-24">
+        <Loader2 size={28} className="animate-spin" style={{ color:"#8DC63F" }}/>
+      </div>
+    }>
+      <NotesPageInner/>
+    </Suspense>
   );
 }

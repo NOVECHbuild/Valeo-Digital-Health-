@@ -183,6 +183,13 @@ service cloud.firestore {
     match /manualPayments/{id} {
       allow read, write: if isAdmin();
     }
+    // ── Resources library ─────────────────────────────────────────────────────
+    // Shared, client-facing content. Any signed-in user can read; only the
+    // doctor or admin can add / edit / remove resources.
+    match /resources/{id} {
+      allow read:  if isAuth();
+      allow write: if isDoctorOrAdmin();
+    }
     // ── Deny everything else ──────────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;

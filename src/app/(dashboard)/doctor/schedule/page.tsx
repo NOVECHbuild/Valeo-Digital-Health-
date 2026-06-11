@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, onSnapshot } from "firebase/firestore";
+import Link from "next/link";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { useDoctorAppointments, updateAppointmentStatus, type Appointment } from "@/hooks/useAppointments";
@@ -143,8 +144,8 @@ function FilterTab({ label, count, active, onClick }: { label:string; count:numb
   );
 }
 
-function AppointmentCard({ appt, onApprove, onReject, loading }: {
-  appt:Appointment; onApprove:(id:string)=>Promise<void>; onReject:(id:string)=>Promise<void>; loading:string|null;
+function AppointmentCard({ appt, onApprove, onReject, loading, hasNote }: {
+  appt:Appointment; onApprove:(id:string)=>Promise<void>; onReject:(id:string)=>Promise<void>; loading:string|null; hasNote?:boolean;
 }) {
   const isActing = loading === appt.id;
   return (
@@ -209,6 +210,19 @@ function AppointmentCard({ appt, onApprove, onReject, loading }: {
           style={{ background:"rgba(42,74,26,0.08)", color:"#2A4A1A" }}>
           {isActing ? <Loader2 size={14} className="animate-spin"/> : <CheckCircle size={14}/>} Mark Completed
         </button>
+      )}
+
+      {/* Session note link — available once a session is approved or completed */}
+      {(appt.status === "approved" || appt.status === "completed") && (
+        <Link href={`/doctor/notes?appointmentId=${appt.id}`}
+          className="mt-2 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all hover:-translate-y-0.5"
+          style={{
+            background: hasNote ? "rgba(141,198,63,0.12)" : "white",
+            color: "#2A4A1A",
+            border: "1px solid rgba(141,198,63,0.3)",
+          }}>
+          <FileText size={14}/> {hasNote ? "View session note" : "Add session note"}
+        </Link>
       )}
     </div>
   );
@@ -629,6 +643,8 @@ export default function DoctorSchedulePage() {
   const { appointments, loading: apptLoading } = useDoctorAppointments();
   const [apptFilter, setApptFilter] = useState<ApptFilter>("pending");
   const [acting,     setActing]     = useState<string|null>(null);
+  // Appointment IDs that already have a session note (live)
+  const [notedApptIds, setNotedApptIds] = useState<Set<string>>(new Set());
 
   const [avail,        setAvail]        = useState<AvailabilitySchedule>(DEFAULT_AVAIL);
   const [availLoading, setAvailLoading] = useState(true);
@@ -651,6 +667,21 @@ export default function DoctorSchedulePage() {
       }
       setAvailLoading(false);
     })();
+  }, [user]);
+
+  // Live set of appointment IDs that have a session note
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db,"notes"), where("doctorId","==",user.uid));
+    const unsub = onSnapshot(q, snap => {
+      const ids = new Set<string>();
+      snap.docs.forEach(d => {
+        const aid = (d.data() as any).appointmentId;
+        if (aid) ids.add(aid);
+      });
+      setNotedApptIds(ids);
+    });
+    return () => unsub();
   }, [user]);
 
   function showToast(type:"success"|"error", msg:string) {
@@ -795,7 +826,7 @@ export default function DoctorSchedulePage() {
           ) : (
             <div className="grid gap-4 lg:grid-cols-2">
               {filtered.map(appt => (
-                <AppointmentCard key={appt.id} appt={appt} onApprove={handleApprove} onReject={handleReject} loading={acting}/>
+                <AppointmentCard key={appt.id} appt={appt} onApprove={handleApprove} onReject={handleReject} loading={acting} hasNote={notedApptIds.has(appt.id)}/>
               ))}
             </div>
           )}

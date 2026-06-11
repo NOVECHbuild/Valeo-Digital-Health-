@@ -12,7 +12,7 @@ import {
   LayoutDashboard, Calendar, Users, ClipboardList,
   FileText, BarChart2, LogOut, Menu, X, Bell,
   Stethoscope, MessageCircle, ChevronRight,
-  Settings,
+  Settings, BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +26,7 @@ const navItems = [
   { href: "/doctor/messages",    label: "Messages",    icon: MessageCircle   },
   { href: "/doctor/assessments", label: "Assessments", icon: ClipboardList   },
   { href: "/doctor/notes",       label: "Notes",       icon: FileText        },
+  { href: "/doctor/resources",   label: "Resources",   icon: BookOpen        },
   { href: "/doctor/analytics",   label: "Analytics",   icon: BarChart2       },
   { href: "/doctor/settings",    label: "Settings",    icon: Settings        },
 ];

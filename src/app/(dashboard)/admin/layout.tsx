@@ -21,6 +21,7 @@ import {
   UserCheck,
   Megaphone,
   CreditCard,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,7 @@ const navItems = [
   { href: "/admin/analytics",   label: "Analytics",   icon: BarChart2 },
   { href: "/admin/settings",    label: "Settings",    icon: Settings },
   { href: "/admin/announcements", label: "Announcements",    icon: Megaphone },
+  { href: "/admin/resources",   label: "Resources",   icon: BookOpen },
 ];
 
 export default function AdminLayout({

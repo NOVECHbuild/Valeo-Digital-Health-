@@ -22,6 +22,7 @@ import {
   Heart,
   Settings,
   ChevronRight,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +32,7 @@ const navItems = [
   { href: "/client",              label: "Dashboard",    icon: LayoutDashboard },
   { href: "/client/appointments", label: "Appointments", icon: Calendar        },
   { href: "/client/my-doctor",    label: "My Therapist", icon: Heart           },
+  { href: "/client/resources",    label: "Resources",    icon: BookOpen        },
   { href: "/client/assessments",  label: "Assessments",  icon: ClipboardList   },
   { href: "/client/messages",     label: "Messages",     icon: MessageSquare   },
   { href: "/client/payments",     label: "Payments",     icon: CreditCard      },
