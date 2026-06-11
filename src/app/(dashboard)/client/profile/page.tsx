@@ -43,7 +43,6 @@ const ACCENT_RGBA: Record<string, string> = {
   "#2A4A1A": "rgba(42,74,26,0.1)",
   "#8DC63F": "rgba(141,198,63,0.1)",
   "#F7941D": "rgba(247,148,29,0.1)",
-  "#F7941D": "rgba(247,148,29,0.1)",
 };
 
 // S1: First + last initial when name has a space

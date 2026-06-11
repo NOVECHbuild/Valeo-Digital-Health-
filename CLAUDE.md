@@ -70,6 +70,11 @@ Sandbox-to-live WiPay switch: change `WIPAY_ENVIRONMENT`, `WIPAY_ACCOUNT_NUMBER`
 - WiPay routes — `/api/wipay/create-payment`, `/api/wipay/verify-callback`
 - Payment result pages — `/payment/callback`, `/payment/success`, `/payment/failed`
 - Firebase Admin dual import — `firebaseAdmin.ts` + `firebase-admin.ts` alias
+- Legal pages — `/legal/privacy`, `/legal/terms`, `/legal/hipaa`, `/legal/disclaimer` (all built, footer wired)
+- OG meta tags — full OpenGraph + Twitter Card metadata in `layout.tsx`
+- OG image — `public/images/og-image.png` (1200×630, brand palette)
+- Google Meet OAuth redirect URI — updated to live domain via env var
+- Full brand rebrand — 44 files aligned to Valeo logo palette (forest green / lime / orange)
 
 ### 🔴 Blocked / Outstanding
 | Item | Notes |
@@ -78,8 +83,7 @@ Sandbox-to-live WiPay switch: change `WIPAY_ENVIRONMENT`, `WIPAY_ACCOUNT_NUMBER`
 | Google Meet OAuth redirect URI | Hardcoded to `localhost:3000` in `/api/meet/create/route.ts` — must be updated to live domain before production testing |
 | Real photos (Dr. Miller) | Hero, about, service tab images still placeholders |
 | Social links in footer | Facebook, Instagram, YouTube still `#` |
-| Legal pages | Privacy Policy, Terms of Service, HIPAA Notice, Disclaimer — not built |
-| Homepage CTAs | All route to beta-gated `/register` — no path for real prospects |
+| Homepage CTAs | All route to beta-gated `/register` — no path for real prospects. Awaiting Calendly URL. |
 | OG meta tags | Missing — social sharing shows blank preview |
 | Google Analytics | Not integrated |
 

@@ -612,10 +612,10 @@ export default function HomePage() {
           <div className="footer-col">
             <h5>Legal</h5>
             <ul>
-              <li><a href="#">Privacy Policy</a></li>
-              <li><a href="#">Terms of Service</a></li>
-              <li><a href="#">HIPAA Notice</a></li>
-              <li><a href="#">Disclaimer</a></li>
+              <li><Link href="/legal/privacy">Privacy Policy</Link></li>
+              <li><Link href="/legal/terms">Terms of Service</Link></li>
+              <li><Link href="/legal/hipaa">HIPAA Notice</Link></li>
+              <li><Link href="/legal/disclaimer">Disclaimer</Link></li>
             </ul>
           </div>
         </div>
