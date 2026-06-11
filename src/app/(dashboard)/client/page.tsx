@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
+import { useUnreadCount } from "@/lib/useMessages";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 interface ActivityItem {
@@ -140,11 +141,13 @@ export default function ClientDashboard() {
   const [totalSessions,   setTotalSessions]   = useState(0);
   const [upcomingCount,   setUpcomingCount]   = useState(0);
   const [pendingAssess,   setPendingAssess]   = useState(0);
-  const [unreadMessages,  setUnreadMessages]  = useState(0);
   const [activity,        setActivity]        = useState<ActivityItem[]>([]);
   const [nextSession,     setNextSession]     = useState<UpcomingSession | null>(null);
 
   const firstName = user?.displayName?.split(" ")[0] ?? "there";
+
+  // Real unread count from the conversations' unreadClient counters
+  const unreadMessages = useUnreadCount(user?.uid ?? "", "client");
 
   // ── FIX: greeting computed in useEffect to avoid hydration mismatch ────
   useEffect(() => {
@@ -202,22 +205,7 @@ export default function ClientDashboard() {
       setPendingAssess(snap.size);
     });
 
-    // 3. Unread messages ──────────────────────────────────────────────────
-    const msgsQ = query(
-      collection(db, "messages"),
-      where("participants", "array-contains", uid),
-    );
-    const unsubMsgs = onSnapshot(msgsQ, snap => {
-      let unread = 0;
-      snap.docs.forEach(d => {
-        const data = d.data();
-        if (data.lastSenderId !== uid && data.lastMessage && !data.readByClient)
-          unread++;
-      });
-      setUnreadMessages(unread);
-    });
-
-    // 4. Recent activity (last 5 events across appointments + assessments) ─
+    // 3. Recent activity (last 5 events across appointments + assessments) ─
     // We pull the most recent 8 appointments + 8 assessments and merge them
     (async () => {
       try {
@@ -301,7 +289,6 @@ export default function ClientDashboard() {
     return () => {
       unsubAppts();
       unsubAssess();
-      unsubMsgs();
     };
   }, [user]);
 

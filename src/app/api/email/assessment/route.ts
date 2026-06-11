@@ -2,13 +2,13 @@
 // Emails a client when an assessment is assigned to them. Fail-safe.
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
-import { sendEmail, renderEmail, prefAllows } from "@/lib/email";
+import { sendEmail, renderEmail, prefAllows, formatDoctorName } from "@/lib/email";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.valeoexperience.com";
 
 export async function POST(req: NextRequest) {
   try {
-    const { clientId, title, dueDate } = await req.json();
+    const { clientId, title, dueDate, doctorId } = await req.json();
     if (!clientId) return NextResponse.json({ error: "clientId required" }, { status: 400 });
 
     const snap   = await adminDb.collection("users").doc(clientId).get();
@@ -18,6 +18,13 @@ export async function POST(req: NextRequest) {
 
     if (!email || !prefAllows(client.notifPrefs, "emailAssessments")) {
       return NextResponse.json({ ok: true, skipped: true });
+    }
+
+    // Resolve the assigning doctor (multi-doctor aware)
+    let doctorName = "Your therapist";
+    if (doctorId) {
+      const docSnap = await adminDb.collection("users").doc(doctorId).get();
+      if (docSnap.exists) doctorName = formatDoctorName(docSnap.data()?.displayName);
     }
 
     let due = "";
@@ -33,8 +40,8 @@ export async function POST(req: NextRequest) {
         heading: "New assessment assigned",
         greeting: `Hi ${first},`,
         paragraphs: [
-          `Dr. Miller has assigned you a new assessment${title ? `: <strong>${title}</strong>` : ""}.`,
-          "Completing it helps Dr. Miller understand how you're doing and tailor your care.",
+          `${doctorName} has assigned you a new assessment${title ? `: <strong>${title}</strong>` : ""}.`,
+          "Completing it helps your therapist understand how you're doing and tailor your care.",
         ],
         details: due ? [{ label: "Please complete by", value: due }] : undefined,
         cta: { label: "Complete assessment", url: `${APP_URL}/client/assessments` },

@@ -17,7 +17,9 @@
 - **Deployment:** Vercel
 - **Payments:** WiPay (Caribbean gateway, Barbados merchant account — bb.wipayfinancial.com)
 - **Video:** Google Meet API (via Google Calendar API + OAuth2)
+- **Calendar:** Google Calendar free/busy for booking availability (`/api/calendar/*`)
 - **AI:** Gemini (Google Generative AI) — session summaries, SOAP notes
+- **Email:** Resend (transactional, via REST — no SDK). Domain `valeoexperience.com` verified.
 - **Styling:** Tailwind CSS + inline styles (DM Sans / DM Serif Display fonts)
 - **Language:** TypeScript
 
@@ -48,11 +50,17 @@ NEXT_PUBLIC_BASE_URL       # https://www.valeoexperience.com
 GOOGLE_CLIENT_ID
 GOOGLE_CLIENT_SECRET
 GOOGLE_REFRESH_TOKEN
+GOOGLE_REDIRECT_URI        # defaults to live-domain /api/auth/callback/google
 DOCTOR_EMAIL               # Dr. Miller's Google account for calendar events
 GEMINI_API_KEY
+RESEND_API_KEY            # Resend transactional email
+EMAIL_FROM                # e.g. "Valeo Experience <noreply@valeoexperience.com>"
+CRON_SECRET               # authorises the Vercel Cron reminder job
 ```
 
 Sandbox-to-live WiPay switch: change `WIPAY_ENVIRONMENT`, `WIPAY_ACCOUNT_NUMBER`, `WIPAY_API_KEY` only. No code changes needed.
+
+All third-party integrations are **fail-safe**: if `RESEND_API_KEY` or the Google Calendar credentials are missing, those features no-op silently and the app runs normally.
 
 ---
 
@@ -76,16 +84,38 @@ Sandbox-to-live WiPay switch: change `WIPAY_ENVIRONMENT`, `WIPAY_ACCOUNT_NUMBER`
 - Google Meet OAuth redirect URI — updated to live domain via env var
 - Full brand rebrand — 44 files aligned to Valeo logo palette (forest green / lime / orange)
 
+### ✅ Shipped this session (June 2026)
+**P1 fixes**
+- Admin nav active-state fix (`isActive` startsWith, all three console layouts)
+- Sidebar flex-scroll fix — `min-h-0 overflow-x-hidden` on nav (admin/doctor/client)
+- AI SOAP notes wired into Doctor Notes — "Generate with AI" (paste transcript or upload audio) → `/api/ai/session-summary` **preview mode** (returns SOAP without saving); appends to the note, suggests tags
+- Announcement banner surfaced on client + doctor dashboards (`src/components/AnnouncementBanner.tsx`, dismissal in localStorage)
+- Admin Platform Settings (`src/components/PlatformSettings.tsx` → `settings/platform`: default price, fee %, currency, maintenance + beta toggles)
+
+**P2 features**
+- Notes ↔ appointments — optional `appointmentId` on notes, "Link to Session" selector + linked chip; schedule cards have "Add / View session note" deep-linking to `/doctor/notes?appointmentId=…`
+- Resources library — client page `/client/resources`, manager in doctor + admin consoles (`src/components/ResourcesManager.tsx`), `resources` Firestore collection, `src/lib/resources.ts`
+- Google Calendar real availability — booking slots generated from the doctor's saved schedule (`src/lib/availability.ts`); `/api/calendar/freebusy` greys Google-busy slots (**fails safe** → falls back to platform availability); `/api/calendar/test` powers the connect button
+- Email notifications (Resend) — `src/lib/email.ts`, routes `/api/email/appointment`, `/api/email/assessment`, `/api/cron/reminders` (Vercel Cron in `vercel.json`, daily 13:00 UTC). Triggers: booking, approve, cancel/reject, assessment-assign. Respects `users.notifPrefs`. Message emails deferred.
+
+**Security / infra**
+- `firestore.rules` + `firebase.json` + `.firebaserc` now in repo (was console-only). Deploy with `firebase deploy --only firestore:rules`.
+- Hardened the conversation `messages` subcollection rule (participants-only, was any signed-in user)
+- Added `resources` collection rule (read = signed-in, write = doctor/admin)
+- Repaired 3 files corrupted with trailing NUL bytes (`page.tsx`, `client/settings`, `client/profile`)
+
 ### 🔴 Blocked / Outstanding
 | Item | Notes |
 |------|-------|
 | WiPay end-to-end test | Blocked — awaiting resolution with WiPay support. Do not touch WiPay code until resolved. |
-| Google Meet OAuth redirect URI | Hardcoded to `localhost:3000` in `/api/meet/create/route.ts` — must be updated to live domain before production testing |
+| Unread-message badges | Dashboards/sidebars count a top-level `messages` collection the chat code never writes to (chat lives in `conversations/{id}/messages`); counts stay 0. Needs a code reconciliation (P3). |
 | Real photos (Dr. Miller) | Hero, about, service tab images still placeholders |
 | Social links in footer | Facebook, Instagram, YouTube still `#` |
 | Homepage CTAs | All route to beta-gated `/register` — no path for real prospects. Awaiting Calendly URL. |
-| OG meta tags | Missing — social sharing shows blank preview |
 | Google Analytics | Not integrated |
+| Resource file uploads | Resources are link-only (Layer 1). Firebase Storage uploads for downloadable worksheets = future. |
+
+> Note: the Google Meet "localhost redirect" item is **resolved** — `/api/meet/create` reads `GOOGLE_REDIRECT_URI` from env with a live-domain default.
 
 ---
 
@@ -115,6 +145,17 @@ Sandbox-to-live WiPay switch: change `WIPAY_ENVIRONMENT`, `WIPAY_ACCOUNT_NUMBER`
 - Fee structure: `merchant_absorb`
 - Currency: `USD`, Country code: `BB`
 - **Do not change WiPay code while support ticket is open**
+
+### Email (Resend)
+- Sent via `src/lib/email.ts` using the Resend REST API (no SDK dependency). `sendEmail()` no-ops if `RESEND_API_KEY` is unset.
+- Use `renderEmail()` for the branded template; check `prefAllows(notifPrefs, key)` before sending.
+- Client-side triggers are **fire-and-forget** (`fetch(...).catch(()=>{})`) — never block a user action on email.
+- Email routes load data with the Admin SDK (bypass Firestore rules).
+
+### Calendar / Availability
+- `src/lib/availability.ts` generates booking slots from `schedules/{doctorId}`. Booking falls back to the legacy fixed list if no schedule is set.
+- `/api/calendar/freebusy` **fails safe**: any error returns no conflicts so booking still works on platform availability.
+- Reuse the Meet route's OAuth2 pattern for any new Google Calendar call.
 
 ### CSS / Styling
 - Use `rgba()` for transparent colors — never hex-alpha string concatenation (`${accent}40` or `accent + "12"` are invalid)

@@ -7,7 +7,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { useUnreadCount } from "@/lib/useMessages";
 import {
   LayoutDashboard,
   Calendar,
@@ -44,29 +44,12 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const pathname = usePathname();
   const router   = useRouter();
   const { user } = useAuth();
-  const [sidebarOpen,    setSidebarOpen]    = useState(false);
-  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const firstName = user?.displayName?.split(" ")[0] ?? "there";
 
-  // ── FIX: Real unread message count via onSnapshot ─────────────────────
-  useEffect(() => {
-    if (!user) return;
-    const q = query(
-      collection(db, "messages"),
-      where("participants", "array-contains", user.uid),
-    );
-    const unsub = onSnapshot(q, snap => {
-      let unread = 0;
-      snap.docs.forEach(d => {
-        const data = d.data();
-        if (data.lastSenderId !== user.uid && data.lastMessage && !data.readByClient)
-          unread++;
-      });
-      setUnreadMessages(unread);
-    });
-    return () => unsub();
-  }, [user]);
+  // Real unread message count from the conversations' unreadClient counters
+  const unreadMessages = useUnreadCount(user?.uid ?? "", "client");
 
   // ── FIX: Escape key closes mobile sidebar ─────────────────────────────
   const handleKeyDown = useCallback((e: KeyboardEvent) => {

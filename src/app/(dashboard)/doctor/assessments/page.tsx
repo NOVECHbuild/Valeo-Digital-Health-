@@ -591,7 +591,7 @@ export default function DoctorAssessmentsPage() {
     fetch("/api/email/assessment", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({ clientId, title, dueDate: dueDate || "" }),
+      body:    JSON.stringify({ clientId, title, dueDate: dueDate || "", doctorId: user.uid }),
     }).catch(() => {});
     // onSnapshot handles the state update automatically
     showToast("success", `Assigned to ${client.displayName}.`);

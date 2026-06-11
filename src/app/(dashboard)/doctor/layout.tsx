@@ -7,7 +7,8 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, collection, query, where, onSnapshot } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
+import { useUnreadCount } from "@/lib/useMessages";
 import {
   LayoutDashboard, Calendar, Users, ClipboardList,
   FileText, BarChart2, LogOut, Menu, X, Bell,
@@ -37,8 +38,9 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
   const { user } = useAuth();
   const [sidebarOpen,    setSidebarOpen]    = useState(false);
   const [specialization, setSpecialization] = useState("Health Psychologist");
-  const [unreadMessages, setUnreadMessages] = useState(0);   // FIX 4
-  const [notifCount,     setNotifCount]     = useState(0);   // FIX 1
+  const [notifCount]                        = useState(0);
+  // Real unread count from the conversations' unreadDoctor counters
+  const unreadMessages = useUnreadCount(user?.uid ?? "", "doctor");
 
   // ── Dr. name — strip leading "Dr." so we never get "Dr. Dr. Name" ─────────
   const rawName   = user?.displayName ?? "Doctor";
@@ -60,31 +62,6 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
         // silent — fallback value is already set
       }
     })();
-  }, [user]);
-
-  // ── FIX 1 + 4: Real-time unread messages + notification count ────────────
-  useEffect(() => {
-    if (!user) return;
-
-    // Unread messages — conversations where doctor hasn't read last message
-    const convQ = query(
-      collection(db, "messages"),
-      where("participants", "array-contains", user.uid),
-    );
-    const unsubConv = onSnapshot(convQ, snap => {
-      let unread = 0;
-      snap.docs.forEach(d => {
-        const data = d.data();
-        if (
-          data.lastSenderId !== user.uid &&
-          data.lastMessage &&
-          !data.readByDoctor
-        ) unread++;
-      });
-      setUnreadMessages(unread);
-    });
-
-    return () => unsubConv();
   }, [user]);
 
   // ── FIX 5: Escape key closes mobile sidebar ───────────────────────────────

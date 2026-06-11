@@ -143,6 +143,31 @@ export function useConversations(userId: string, role: "client" | "doctor") {
   return { conversations, loading };
 }
 
+// ── Hook: live total unread message count for a user ──────────────────────
+// Sums the unreadClient / unreadDoctor counters that sendMessage() maintains
+// on each conversation. (The dashboards previously queried a top-level
+// "messages" collection that the chat never writes to, so counts stayed 0.)
+export function useUnreadCount(userId: string, role: "client" | "doctor") {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!userId) { setCount(0); return; }
+    const field = role === "client" ? "clientId" : "doctorId";
+    const q = query(collection(db, "conversations"), where(field, "==", userId));
+    const unsub = onSnapshot(q, snap => {
+      let total = 0;
+      snap.docs.forEach(d => {
+        const data = d.data() as any;
+        total += (role === "client" ? data.unreadClient : data.unreadDoctor) || 0;
+      });
+      setCount(total);
+    });
+    return unsub;
+  }, [userId, role]);
+
+  return count;
+}
+
 // ── Hook: live messages in a conversation ─────────────────────────────────
 export function useMessages(conversationId: string | null) {
   const [messages, setMessages] = useState<Message[]>([]);

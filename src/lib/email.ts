@@ -105,3 +105,10 @@ export function prefAllows(notifPrefs: any, key: "emailAppointments" | "emailMes
   if (!notifPrefs) return true;
   return notifPrefs[key] !== false;
 }
+
+// Render a doctor's display name with a single "Dr." prefix (no doubling).
+export function formatDoctorName(name?: string): string {
+  const n = (name || "").trim();
+  if (!n) return "your therapist";
+  return /^dr\.?\s/i.test(n) ? n : `Dr. ${n}`;
+}

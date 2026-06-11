@@ -3,7 +3,7 @@
 // "tomorrow". Guarded by CRON_SECRET when set. Fail-safe per recipient.
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
-import { sendEmail, renderEmail, prefAllows } from "@/lib/email";
+import { sendEmail, renderEmail, prefAllows, formatDoctorName } from "@/lib/email";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.valeoexperience.com";
 
@@ -44,6 +44,13 @@ export async function GET(req: NextRequest) {
 
       if (!email || !prefAllows(client.notifPrefs, "emailAppointments")) { skipped++; continue; }
 
+      // Resolve the appointment's doctor (multi-doctor aware)
+      let doctorName = "your therapist";
+      if (appt.doctorId) {
+        const dSnap = await adminDb.collection("users").doc(appt.doctorId).get();
+        if (dSnap.exists) doctorName = formatDoctorName(dSnap.data()?.displayName);
+      }
+
       const r = await sendEmail({
         to: email,
         subject: "Reminder: your session is tomorrow — Valeo Experience",
@@ -51,7 +58,7 @@ export async function GET(req: NextRequest) {
           heading: "Your session is tomorrow",
           greeting: `Hi ${first},`,
           paragraphs: [
-            "This is a friendly reminder about your upcoming session with Dr. Miller.",
+            `This is a friendly reminder about your upcoming session with ${doctorName}.`,
             appt.meetLink ? "You can join the video call using the button below at your session time." : "Your video link will be available in your appointments.",
           ],
           details: [
