@@ -5,16 +5,7 @@
 // platform's own availability (Layer 1) and never breaks.
 import { NextRequest, NextResponse } from "next/server";
 import { google } from "googleapis";
-
-function getAuth() {
-  const oauth2Client = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI ?? "https://www.valeoexperience.com/api/auth/callback/google"
-  );
-  oauth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
-  return oauth2Client;
-}
+import { getDoctorAuth } from "@/lib/googleAuth";
 
 // Parse an ISO instant into { date:"YYYY-MM-DD", min } in a specific timezone.
 function tzParts(iso: string, tz: string): { date: string; min: number } {
@@ -38,7 +29,7 @@ function labelToMinutes(label: string): number {
 
 export async function POST(req: NextRequest) {
   try {
-    const { date, slots, duration, timezone, calendarId } = await req.json();
+    const { date, slots, duration, timezone, calendarId, doctorId } = await req.json();
     const tz  = timezone || "America/Barbados";
     const dur = Number(duration) || 60;
     const cal = calendarId || "primary";
@@ -46,17 +37,14 @@ export async function POST(req: NextRequest) {
     if (!date || !Array.isArray(slots) || slots.length === 0) {
       return NextResponse.json({ connected: true, busy: [] });
     }
-    if (!process.env.GOOGLE_REFRESH_TOKEN) {
-      // Calendar not connected — fall back to platform availability.
-      return NextResponse.json({ connected: false, busy: [] });
-    }
 
     // Query a window wide enough to capture the doctor's local day in any timezone.
     const dayStartUtc = new Date(`${date}T00:00:00Z`).getTime();
     const timeMin = new Date(dayStartUtc - 24 * 3600 * 1000).toISOString();
     const timeMax = new Date(dayStartUtc + 48 * 3600 * 1000).toISOString();
 
-    const calendar = google.calendar({ version: "v3", auth: getAuth() });
+    // Use THIS doctor's Google connection (falls back to the shared account).
+    const calendar = google.calendar({ version: "v3", auth: await getDoctorAuth(doctorId) });
     const fb = await calendar.freebusy.query({
       requestBody: { timeMin, timeMax, timeZone: tz, items: [{ id: cal }] },
     });

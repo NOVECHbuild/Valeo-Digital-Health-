@@ -2,20 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { google } from "googleapis";
 import { adminDb } from "@/lib/firebase-admin";
-
-function getAuth() {
-  const oauth2Client = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI ?? "https://www.valeoexperience.com/api/auth/callback/google"
-  );
-
-  oauth2Client.setCredentials({
-    refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
-  });
-
-  return oauth2Client;
-}
+import { getDoctorAuth } from "@/lib/googleAuth";
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,9 +18,13 @@ export async function POST(req: NextRequest) {
     }
     const appt = apptSnap.data()!;
 
-    // Load client details
+    // Load client + doctor details
     const clientSnap = await adminDb.collection("users").doc(appt.clientId).get();
     const client     = clientSnap.data();
+    const doctorSnap = appt.doctorId ? await adminDb.collection("users").doc(appt.doctorId).get() : null;
+    const doctor     = doctorSnap?.data();
+    const doctorEmail = doctor?.email ?? process.env.DOCTOR_EMAIL;
+    const doctorName  = appt.doctorName ?? doctor?.displayName ?? "Your therapist";
 
     // Parse date/time → ISO datetime
     const [timePart, meridiem] = appt.time.split(" ");
@@ -46,8 +37,9 @@ export async function POST(req: NextRequest) {
     );
     const endDate = new Date(startDate.getTime() + appt.duration * 60 * 1000);
 
-    // Build Google Calendar event
-    const auth     = getAuth();
+    // Build Google Calendar event — on THIS doctor's calendar (falls back to the
+    // shared account if they haven't connected their own).
+    const auth     = await getDoctorAuth(appt.doctorId);
     const calendar = google.calendar({ version: "v3", auth });
 
     const event = {
@@ -62,7 +54,7 @@ export async function POST(req: NextRequest) {
         timeZone: "America/Port_of_Spain",
       },
       attendees: [
-        { email: process.env.DOCTOR_EMAIL!, displayName: "Dr. Jozelle M. Miller" },
+        ...(doctorEmail ? [{ email: doctorEmail, displayName: doctorName }] : []),
         ...(client?.email ? [{ email: client.email, displayName: appt.clientName }] : []),
       ],
       conferenceData: {

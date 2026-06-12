@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
+import { useAssignedDoctor } from "@/hooks/useAssignedDoctor";
 import {
   useClientAppointments,
   bookAppointment,
@@ -25,9 +26,6 @@ import {
 export const dynamic = "force-dynamic";
 
 // ── Config ─────────────────────────────────────────────────────────────────
-// FIX 1: DOCTOR_ID fetched from Firestore at runtime (see useDoctorId hook)
-// Fallback to env var if set, otherwise queried live.
-const DOCTOR_NAME = "Dr. Jozelle Miller";
 
 const SESSION_TYPES = [
   { id: "individual",   label: "Individual Therapy",  duration: 60, price: 400, description: "One-on-one therapy session" },
@@ -44,24 +42,6 @@ const TIME_SLOTS = [
 ];
 
 // ── Hooks ──────────────────────────────────────────────────────────────────
-
-// FIX 1: Fetch Dr. Miller's real UID from Firestore instead of hardcoding it
-function useDoctorId() {
-  const [doctorId, setDoctorId] = useState<string>("");
-  useEffect(() => {
-    (async () => {
-      try {
-        const snap = await getDocs(
-          query(collection(db, "users"), where("role", "==", "doctor"))
-        );
-        if (!snap.empty) setDoctorId(snap.docs[0].id);
-      } catch {
-        // silent — submission will fail gracefully with an error message
-      }
-    })();
-  }, []);
-  return doctorId;
-}
 
 // FIX 8: Fetch already-booked slots for a given date so we can grey them out
 function useBookedSlots(doctorId: string, date: string) {
@@ -195,7 +175,7 @@ function AppointmentCard({
             <p className="font-semibold text-sm" style={{ color: "#2A4A1A" }}>{appt.type}</p>
             <StatusBadge status={appt.status} />
           </div>
-          <p className="text-xs mb-2" style={{ color: "#8A9BA8" }}>{DOCTOR_NAME}</p>
+          <p className="text-xs mb-2" style={{ color: "#8A9BA8" }}>{appt.doctorName ?? "Your therapist"}</p>
           <div className="flex items-center gap-3 flex-wrap">
             <span className="flex items-center gap-1 text-xs" style={{ color: "#4A5568" }}>
               <Clock size={11} />{appt.time}
@@ -362,7 +342,12 @@ function ClientAppointmentsPageInner() {
   const { user }                  = useAuth();
   const { appointments, loading } = useClientAppointments();
   const searchParams              = useSearchParams();
-  const doctorId                  = useDoctorId(); // FIX 1
+  const router                    = useRouter();
+
+  // Multi-doctor: book with THIS client's assigned doctor (not the first one).
+  const { doctor, loading: doctorLoading } = useAssignedDoctor();
+  const doctorId   = doctor?.doctorId ?? "";
+  const doctorName = doctor?.doctorName ?? "your therapist";
 
   const [showBooking, setShowBooking]   = useState(false);
   const [step, setStep]                 = useState<1|2|3|4>(1);
@@ -392,6 +377,12 @@ function ClientAppointmentsPageInner() {
     return TIME_SLOTS;
   }, [schedule, selectedDate]);
 
+  // Per-doctor pricing: prefer the doctor's saved price for this service,
+  // fall back to the static default if they haven't set one.
+  const priceFor = (t: { label: string; price: number }) =>
+    schedule?.sessionPricing?.[t.label] ?? t.price;
+  const selectedPrice = selectedTypeObj ? priceFor(selectedTypeObj) : 0;
+
   // Layer 2: Google Calendar free/busy. Fails safe — on any error the list is
   // empty and booking proceeds on platform availability alone.
   const [busySlots, setBusySlots] = useState<string[]>([]);
@@ -408,6 +399,7 @@ function ClientAppointmentsPageInner() {
             slots:    daySlots,
             duration: selectedTypeObj?.duration ?? 60,
             timezone: schedule?.timezone,
+            doctorId,
           }),
         });
         const data = await res.json();
@@ -436,7 +428,7 @@ function ClientAppointmentsPageInner() {
       setToast({
         type: "success",
         msg: free
-          ? "Free consultation booked! Dr. Miller will confirm shortly."
+          ? `Free consultation booked! ${doctorName} will confirm shortly.`
           : "Payment successful! Your session is confirmed.",
       });
     } else if (err === "payment_failed") {
@@ -449,6 +441,12 @@ function ClientAppointmentsPageInner() {
   function resetBooking() {
     setStep(1); setSelectedType(""); setSelectedDate(""); setSelectedTime("");
     setNotes(""); setError(null); setRedirecting(false); setShowBooking(false);
+  }
+
+  // Multi-doctor gate: a client must be matched to a doctor before booking.
+  function startBooking() {
+    if (!doctor) { router.push("/onboarding/match"); return; }
+    setShowBooking(true); setStep(1);
   }
 
   // FIX 6: Cancel an appointment
@@ -479,7 +477,7 @@ function ClientAppointmentsPageInner() {
     async function handleSubmit() {
     if (!user || !selectedType || !selectedDate || !selectedTime) return;
     if (!doctorId) {
-      setError("Unable to reach Dr. Miller's profile. Please refresh and try again.");
+      setError(`Unable to reach ${doctorName}'s profile. Please refresh and try again.`);
       return;
     }
     setSubmitting(true); setError(null);
@@ -490,10 +488,12 @@ function ClientAppointmentsPageInner() {
         clientName:  user.displayName ?? "Client",
         clientEmail: user.email ?? "",
         doctorId,
+        doctorName:  doctor?.doctorName ?? "",
         type:        selectedTypeObj?.label ?? selectedType,
         date:        selectedDate,
         time:        selectedTime,
         duration:    selectedTypeObj?.duration ?? 60,
+        amount:      selectedPrice,
         ...(notes ? { notes } : {}),
       });
 
@@ -505,10 +505,10 @@ function ClientAppointmentsPageInner() {
       }).catch(() => {});
 
       // Free consultation — skip payment
-      if (selectedTypeObj?.price === 0) {
+      if (selectedPrice === 0) {
         setSubmitting(false);
         resetBooking();
-        setToast({ type: "success", msg: "Free consultation booked! Dr. Miller will confirm shortly." });
+        setToast({ type: "success", msg: `Free consultation booked! ${doctorName} will confirm shortly.` });
         return;
       }
 
@@ -618,16 +618,33 @@ setRedirecting(false);
             Appointments
           </h2>
           <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>
-            Manage your sessions with {DOCTOR_NAME}
+            Manage your sessions with {doctorName}
           </p>
         </div>
         <button
-          onClick={() => { setShowBooking(true); setStep(1); }}
+          onClick={startBooking}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-0.5"
           style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
           <Plus size={16} /> Book Session
         </button>
       </div>
+
+      {/* Not-yet-matched notice — booking requires an assigned doctor */}
+      {!doctorLoading && !doctor && (
+        <div className="rounded-2xl p-4 flex items-start gap-3"
+          style={{ background: "rgba(247,148,29,0.06)", border: "1px solid rgba(247,148,29,0.2)" }}>
+          <AlertTriangle size={18} style={{ color: "#C4700A", flexShrink: 0, marginTop: 1 }} />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>You haven&apos;t been matched with a therapist yet</p>
+            <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>Get matched first, then you can book sessions with your therapist.</p>
+          </div>
+          <button onClick={() => router.push("/onboarding/match")}
+            className="px-3 py-2 rounded-xl text-xs font-semibold text-white flex-shrink-0"
+            style={{ background: "linear-gradient(135deg, #F7941D, #C4700A)" }}>
+            Get matched
+          </button>
+        </div>
+      )}
 
       {/* SUGGESTION: Filter tabs */}
       <FilterTabs active={filter} onChange={setFilter} counts={counts} />
@@ -653,7 +670,7 @@ setRedirecting(false);
               : "Nothing here yet."}
           </p>
           {(filter === "all" || filter === "upcoming") && (
-            <button onClick={() => { setShowBooking(true); setStep(1); }}
+            <button onClick={startBooking}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white"
               style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
               <Plus size={14} /> Book Session
@@ -733,7 +750,7 @@ setRedirecting(false);
                   <p className="text-sm mb-1" style={{ color: "#4A5568" }}>
                     You will be securely redirected to WiPay to complete payment of{" "}
                     {/* FIX 4: USD throughout */}
-                    <strong>USD ${selectedTypeObj?.price}</strong>.
+                    <strong>USD ${selectedPrice}</strong>.
                   </p>
                   <p className="text-xs flex items-center justify-center gap-1 mt-4"
                     style={{ color: "#8A9BA8" }}>
@@ -766,9 +783,9 @@ setRedirecting(false);
                         {/* FIX 4: USD throughout */}
                         <div className="text-right flex-shrink-0 ml-4">
                           <p className="text-sm font-bold" style={{ color: "#2A4A1A" }}>
-                            {type.price === 0 ? "Free" : `USD $${type.price}`}
+                            {priceFor(type) === 0 ? "Free" : `USD $${priceFor(type)}`}
                           </p>
-                          {type.price === 0 && (
+                          {priceFor(type) === 0 && (
                             <p className="text-xs" style={{ color: "#8DC63F" }}>No payment needed</p>
                           )}
                         </div>
@@ -801,7 +818,7 @@ setRedirecting(false);
                       {daySlots.length === 0 ? (
                         <div className="rounded-xl p-4 text-center text-xs"
                           style={{ background: "rgba(247,148,29,0.06)", color: "#C4700A", border: "1px solid rgba(247,148,29,0.15)" }}>
-                          Dr. Miller isn&apos;t available on this day. Please choose another date.
+                          {doctorName} isn&apos;t available on this day. Please choose another date.
                         </div>
                       ) : (
                         <div className="grid grid-cols-4 gap-2">
@@ -857,7 +874,7 @@ setRedirecting(false);
                     </p>
                     {[
                       { label: "Session",  value: selectedTypeObj?.label ?? "" },
-                      { label: "Therapist",value: DOCTOR_NAME },
+                      { label: "Therapist",value: doctorName },
                       { label: "Date",     value: fmtDate(selectedDate) },
                       { label: "Time",     value: selectedTime },
                       { label: "Duration", value: `${selectedTypeObj?.duration} minutes` },
@@ -878,7 +895,7 @@ setRedirecting(false);
                   </div>
 
                   <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3}
-                    placeholder="Anything Dr. Miller should know before your session (optional)…"
+                    placeholder={`Anything ${doctorName} should know before your session (optional)…`}
                     className="w-full px-4 py-3 rounded-xl text-sm border resize-none focus:outline-none"
                     style={{ borderColor: "rgba(42,74,26,0.15)", background: "white" }} />
 

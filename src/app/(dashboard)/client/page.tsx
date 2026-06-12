@@ -449,14 +449,14 @@ export default function ClientDashboard() {
             href="/client/messages"
             icon={MessageSquare}
             label={unreadMessages > 0 ? `Messages (${unreadMessages} unread)` : "Send a Message"}
-            desc="Reach out to Dr. Miller"
+            desc="Reach out to your therapist"
             accent="#8DC63F"
           />
           <QuickAction
             href="/client/my-doctor"
             icon={Brain}
             label="My Therapist"
-            desc="View Dr. Miller's profile"
+            desc="View your therapist's profile"
             accent="#F7941D"
           />
         </div>

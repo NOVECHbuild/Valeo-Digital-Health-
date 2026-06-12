@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, onSnapshot } from "firebase/firestore";
 import Link from "next/link";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { useDoctorAppointments, updateAppointmentStatus, type Appointment } from "@/hooks/useAppointments";
 import {
@@ -522,28 +522,48 @@ function DayRow({ dayKey, label, sched, dur, buf, onChange }: {
 //  GOOGLE CALENDAR CONNECT PANEL
 // ══════════════════════════════════════════════════════════════
 
-function GoogleCalendarPanel({ calendarId, onChange }: { calendarId: string; onChange: (id: string) => void }) {
-  const [input, setInput] = useState(calendarId);
+function GoogleCalendarPanel({ calendarId, doctorId }: { calendarId: string; doctorId: string }) {
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState<{type:"success"|"error"; text:string}|null>(null);
 
   const connected = !!calendarId;
 
-  async function testConnection() {
+  // Reflect the OAuth redirect result (/doctor/schedule?calendar=connected|error)
+  useEffect(() => {
+    const c = new URLSearchParams(window.location.search).get("calendar");
+    if (c === "connected") {
+      setSyncMsg({ type: "success", text: "Google Calendar connected. Your booking availability now respects your calendar and sessions get a Meet link automatically." });
+    } else if (c === "error") {
+      setSyncMsg({ type: "error", text: "Couldn't connect Google Calendar. Please try again." });
+    }
+  }, []);
+
+  // Start the OAuth flow — sends the doctor to Google with their verified token.
+  async function connectGoogle() {
     setSyncing(true);
     setSyncMsg(null);
     try {
-      const res  = await fetch("/api/calendar/test");
+      const u = auth.currentUser;
+      if (!u) { setSyncMsg({ type: "error", text: "Please sign in again." }); setSyncing(false); return; }
+      const token = await u.getIdToken();
+      window.location.href = `/api/auth/google/start?token=${encodeURIComponent(token)}`;
+    } catch {
+      setSyncMsg({ type: "error", text: "Could not start the connection. Please try again." });
+      setSyncing(false);
+    }
+  }
+
+  // Verify the current connection.
+  async function checkConnection() {
+    setSyncing(true);
+    setSyncMsg(null);
+    try {
+      const res  = await fetch(`/api/calendar/test?doctorId=${encodeURIComponent(doctorId)}`);
       const data = await res.json();
       if (data.ok) {
-        setSyncMsg({
-          type: "success",
-          text: `Connected to Google Calendar${data.calendar ? ` (${data.calendar})` : ""}. Appointments sync on approval and your booking availability now respects your calendar.`,
-        });
-        // Persist the calendar id (default to "primary" so the connection is marked active)
-        onChange(input.trim() || "primary");
+        setSyncMsg({ type: "success", text: `Connected${data.calendar ? ` (${data.calendar})` : ""}. Your bookings respect your calendar and sessions get a Meet link.` });
       } else {
-        setSyncMsg({ type: "error", text: data.error || "Could not connect to Google Calendar." });
+        setSyncMsg({ type: "error", text: data.error || "Not connected yet." });
       }
     } catch {
       setSyncMsg({ type: "error", text: "Could not reach the calendar service. Please try again." });
@@ -593,30 +613,29 @@ function GoogleCalendarPanel({ calendarId, onChange }: { calendarId: string; onC
         ))}
       </div>
 
-      {/* Calendar ID input */}
+      {/* Connect / status */}
       <div className="space-y-3">
-        <div>
-          <label className="text-xs font-semibold uppercase tracking-wider mb-1.5 block" style={{ color:"#8A9BA8" }}>
-            Your Google Calendar ID
-          </label>
-          <input
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            placeholder="yourname@gmail.com or calendar ID"
-            className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none"
-            style={{ borderColor:"rgba(42,74,26,0.15)", background:"#FAFAFA", color:"#22272B" }}
-          />
-          <p className="text-xs mt-1" style={{ color:"#C4C4C4" }}>
-            Find this in Google Calendar → Settings → your calendar → Calendar ID
-          </p>
-        </div>
+        {connected && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs"
+            style={{ background:"rgba(141,198,63,0.08)", color:"#6BA028" }}>
+            <CheckCircle size={13}/> Connected calendar: <strong>{calendarId}</strong>
+          </div>
+        )}
 
-        <button onClick={testConnection} disabled={!input.trim()||syncing}
+        <button onClick={connectGoogle} disabled={syncing}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
           style={{ background:"linear-gradient(135deg, #4285F4, #2B6CB0)" }}>
           {syncing ? <Loader2 size={14} className="animate-spin"/> : connected ? <RefreshCw size={14}/> : <Link2 size={14}/>}
-          {syncing ? "Connecting..." : connected ? "Update Connection" : "Connect Calendar"}
+          {syncing ? "Opening Google…" : connected ? "Reconnect Google Calendar" : "Connect Google Calendar"}
         </button>
+
+        {connected && (
+          <button onClick={checkConnection} disabled={syncing}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50"
+            style={{ background:"rgba(66,133,244,0.08)", color:"#2B6CB0" }}>
+            <RefreshCw size={14}/> Check connection
+          </button>
+        )}
 
         {syncMsg && (
           <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl text-xs"
@@ -727,6 +746,15 @@ export default function DoctorSchedulePage() {
       const becomingApproved = appt.status !== "approved";
       await updateAppointmentStatus(id, appt.status==="approved"?"completed":"approved");
       if (becomingApproved) {
+        // Create the Google Meet link on the doctor's own calendar (best-effort).
+        // Awaited so the confirmation email below can include the link.
+        try {
+          await fetch("/api/meet/create", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify({ appointmentId: id }),
+          });
+        } catch { /* fail-safe — link can be added later */ }
         // Email the client that their session is confirmed (fire-and-forget)
         fetch("/api/email/appointment", {
           method:  "POST",
@@ -1043,7 +1071,7 @@ export default function DoctorSchedulePage() {
               {availSubTab==="calendar-sync" && (
                 <GoogleCalendarPanel
                   calendarId={avail.googleCalendarId??""}
-                  onChange={id => setAvail(a=>({ ...a, googleCalendarId:id }))}
+                  doctorId={user?.uid ?? ""}
                 />
               )}
             </>

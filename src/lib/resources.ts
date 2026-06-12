@@ -26,7 +26,7 @@ export const RESOURCE_CATEGORIES: {
   blurb:   string;
   action:  string;
 }[] = [
-  { key: "books",  label: "Books",  blurb: "Dr. Miller's published works",        action: "Get the book"   },
+  { key: "books",  label: "Books",  blurb: "Published works",                      action: "Get the book"   },
   { key: "watch",  label: "Watch",  blurb: "Videos & inspirational clips",         action: "Watch"          },
   { key: "read",   label: "Read",   blurb: "Articles, columns & blog posts",       action: "Read"           },
   { key: "guides", label: "Guides", blurb: "Downloadable guides & worksheets",     action: "Open"           },

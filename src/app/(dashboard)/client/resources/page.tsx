@@ -94,7 +94,7 @@ export default function ClientResourcesPage() {
           <div>
             <h2 className="text-2xl text-white" style={{ fontFamily: "var(--font-dm-serif)" }}>Resources</h2>
             <p className="text-sm" style={{ color: "rgba(255,255,255,0.65)" }}>
-              Books, videos, articles and guides shared by Dr. Miller.
+              Books, videos, articles and guides shared by your care team.
             </p>
           </div>
         </div>
@@ -128,7 +128,7 @@ export default function ClientResourcesPage() {
             <BookOpen size={24} style={{ color: "#8DC63F" }} />
           </div>
           <p className="text-sm font-medium mb-1" style={{ color: "#2A4A1A" }}>No resources yet</p>
-          <p className="text-xs" style={{ color: "#8A9BA8" }}>Dr. Miller's recommended books, videos and articles will appear here.</p>
+          <p className="text-xs" style={{ color: "#8A9BA8" }}>Recommended books, videos and articles will appear here.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

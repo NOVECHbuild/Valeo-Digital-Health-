@@ -1,35 +1,27 @@
 // src/app/api/calendar/test/route.ts
-// Verifies that the Google Calendar OAuth connection is working.
-// Used by the doctor's "Connect Google Calendar" panel.
-import { NextResponse } from "next/server";
+// Verifies a doctor's Google Calendar connection (their own token if connected,
+// otherwise the shared account). Used by the doctor's "Connect" panel.
+import { NextRequest, NextResponse } from "next/server";
 import { google } from "googleapis";
+import { getDoctorAuth, doctorHasOwnCalendar } from "@/lib/googleAuth";
 
-function getAuth() {
-  const oauth2Client = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI ?? "https://www.valeoexperience.com/api/auth/callback/google"
-  );
-  oauth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
-  return oauth2Client;
-}
-
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const doctorId = req.nextUrl.searchParams.get("doctorId") ?? undefined;
   try {
-    if (!process.env.GOOGLE_REFRESH_TOKEN) {
+    const hasOwn = await doctorHasOwnCalendar(doctorId);
+    if (!hasOwn && !process.env.GOOGLE_REFRESH_TOKEN) {
       return NextResponse.json(
-        { ok: false, error: "Google Calendar is not connected on the server (missing refresh token)." },
+        { ok: false, connected: false, error: "Google Calendar is not connected yet." },
         { status: 200 }
       );
     }
-    const calendar = google.calendar({ version: "v3", auth: getAuth() });
-    // A lightweight call that proves the token + scopes work.
+    const calendar = google.calendar({ version: "v3", auth: await getDoctorAuth(doctorId) });
     const res = await calendar.calendarList.list({ maxResults: 1 });
-    const primary = res.data.items?.[0]?.summary ?? "primary";
-    return NextResponse.json({ ok: true, calendar: primary });
+    const primary = res.data.items?.[0]?.summary ?? res.data.items?.[0]?.id ?? "primary";
+    return NextResponse.json({ ok: true, connected: true, calendar: primary, own: hasOwn });
   } catch (err: any) {
     return NextResponse.json(
-      { ok: false, error: err?.message ?? "Could not reach Google Calendar." },
+      { ok: false, connected: false, error: err?.message ?? "Could not reach Google Calendar." },
       { status: 200 }
     );
   }

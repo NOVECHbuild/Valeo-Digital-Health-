@@ -123,7 +123,7 @@ export default function ClientMessagesPage() {
   useEffect(() => {
     if (!activeId && conversations.length > 0) {
       setActiveId(conversations[0].id);
-      setDoctorName(conversations[0].doctorName ?? "Dr. Miller");
+      setDoctorName(conversations[0].doctorName ?? "your therapist");
     }
   }, [conversations, activeId]);
 
@@ -146,10 +146,10 @@ export default function ClientMessagesPage() {
         user.uid,
         user.displayName ?? "Client",
         doctorDoc.id,
-        doctorData.displayName ?? "Dr. Miller",
+        doctorData.displayName ?? "your therapist",
       );
       setActiveId(convId);
-      setDoctorName(doctorData.displayName ?? "Dr. Miller");
+      setDoctorName(doctorData.displayName ?? "your therapist");
       setMobileView("chat");
     } catch (err) {
       console.error("[Messages] startConversation:", err);
@@ -252,7 +252,7 @@ export default function ClientMessagesPage() {
             >
               Messages
             </h2>
-            {/* FIX 7: Dynamic label instead of hardcoded "Dr. Miller" */}
+            {/* FIX 7: Dynamic label instead of hardcoded "your therapist" */}
             <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>
               Secure conversations with your therapist
             </p>
@@ -306,7 +306,7 @@ export default function ClientMessagesPage() {
                 return (
                   <button
                     key={conv.id}
-                    onClick={() => openConv(conv.id, conv.doctorName ?? "Dr. Miller")}
+                    onClick={() => openConv(conv.id, conv.doctorName ?? "your therapist")}
                     className="w-full text-left px-5 py-4 border-b transition-colors hover:bg-black/[0.02]"
                     style={{
                       borderColor: "rgba(42,74,26,0.05)",

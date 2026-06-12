@@ -529,7 +529,7 @@ function AssessmentCard({
               ? "Tap to view your responses"
               : overdue
               ? "Please complete this as soon as possible"
-              : `Assigned by ${assessment.doctorName ?? "Dr. Miller"} · Tap to begin`}
+              : `Assigned by ${assessment.doctorName ?? "your therapist"} · Tap to begin`}
           </p>
         </div>
       </div>

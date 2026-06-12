@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/clean-nul.js",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clean:nul": "node scripts/clean-nul.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

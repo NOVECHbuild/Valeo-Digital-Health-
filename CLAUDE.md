@@ -102,18 +102,23 @@ All third-party integrations are **fail-safe**: if `RESEND_API_KEY` or the Googl
 - `firestore.rules` + `firebase.json` + `.firebaserc` now in repo (was console-only). Deploy with `firebase deploy --only firestore:rules`.
 - Hardened the conversation `messages` subcollection rule (participants-only, was any signed-in user)
 - Added `resources` collection rule (read = signed-in, write = doctor/admin)
-- Repaired 3 files corrupted with trailing NUL bytes (`page.tsx`, `client/settings`, `client/profile`)
+- Multi-doctor (client side): `useAssignedDoctor` hook; booking books with the client's **assigned** doctor (not the first found); appointments store `doctorName`; all client-facing "Dr. Miller" copy is dynamic/generalized. Unmatched clients are gated to `/onboarding/match`. Emails resolve the doctor from `appt.doctorId`.
+- Per-doctor **pricing**: booking shows + WiPay charges each doctor's own `schedules/{doctorId}.sessionPricing` (server-authoritative in `/api/payments/initiate`; fallback to static map). Amount stored on the appointment. (Only the amount *source* changed in the frozen WiPay route.)
+- Per-doctor **Google Calendar**: `src/lib/googleAuth.ts` `getDoctorAuth(doctorId)` uses each doctor's own refresh token (`googleTokens/{doctorId}`, server-only rule) with env fallback. OAuth flow: `/api/auth/google/start` + `/api/auth/callback/google`. `meet/create`, `calendar/freebusy`, `calendar/test` are all per-doctor. Doctor schedule "Connect Google Calendar" runs the real OAuth. Approving a session now calls `/api/meet/create` → Meet link on the doctor's own calendar. OAuth app is in **Testing** mode (see Outstanding: verify before go-live).
+- Fixed unread-message badges — now read `conversations.unreadClient/unreadDoctor` via `useUnreadCount` (was querying a non-existent top-level `messages` collection)
+- **NUL-byte build guard**: `scripts/clean-nul.js` runs as `prebuild` (and `npm run clean:nul`). Strips trailing NUL padding that the local machine keeps appending on save; refuses to touch files with mid-content NULs. Root cause is local (OneDrive/AV) — recurs each session until the folder is moved out of sync / excluded from AV.
 
 ### 🔴 Blocked / Outstanding
 | Item | Notes |
 |------|-------|
 | WiPay end-to-end test | Blocked — awaiting resolution with WiPay support. Do not touch WiPay code until resolved. |
-| Unread-message badges | Dashboards/sidebars count a top-level `messages` collection the chat code never writes to (chat lives in `conversations/{id}/messages`); counts stay 0. Needs a code reconciliation (P3). |
+| Messages: new-conversation doctor | `client/messages` "start a new conversation" still picks the first doctor (`snap.docs[0]`) instead of the client's assigned doctor. Existing conversations are correctly keyed; only affects brand-new chats. Point it at `useAssignedDoctor`. (P3) |
 | Real photos (Dr. Miller) | Hero, about, service tab images still placeholders |
 | Social links in footer | Facebook, Instagram, YouTube still `#` |
 | Homepage CTAs | All route to beta-gated `/register` — no path for real prospects. Awaiting Calendly URL. |
 | Google Analytics | Not integrated |
 | Resource file uploads | Resources are link-only (Layer 1). Firebase Storage uploads for downloadable worksheets = future. |
+| Google OAuth verification (go-live) | OAuth app is in **Testing** mode (100-user cap, test users only). Before public launch: complete the Google Cloud audience + app/branding settings and submit for verification (Calendar is a sensitive scope). |
 
 > Note: the Google Meet "localhost redirect" item is **resolved** — `/api/meet/create` reads `GOOGLE_REDIRECT_URI` from env with a live-domain default.
 

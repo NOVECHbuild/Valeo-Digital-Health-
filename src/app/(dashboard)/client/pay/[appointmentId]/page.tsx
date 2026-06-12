@@ -55,7 +55,7 @@ export default function ClientPayPage() {
           sessionTime: d.time        ?? '',
           amount:      d.amount      ?? 150,
           doctorId:    d.doctorId    ?? '',
-          doctorName:  d.doctorName  ?? 'Dr. Miller',
+          doctorName:  d.doctorName  ?? 'your therapist',
         });
       } catch (err) {
         console.error('[Pay] load appointment:', err);

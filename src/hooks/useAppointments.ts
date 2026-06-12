@@ -10,8 +10,8 @@ export type AppointmentStatus = "pending" | "approved" | "rejected" | "completed
 
 export interface Appointment {
   id: string; clientId: string; clientName: string; clientEmail: string;
-  doctorId: string; type: string; date: string; time: string;
-  duration: number; status: AppointmentStatus; notes?: string;
+  doctorId: string; doctorName?: string; type: string; date: string; time: string;
+  duration: number; amount?: number; status: AppointmentStatus; notes?: string;
   createdAt: any; updatedAt: any; meetLink?:   string;
 }
 
@@ -49,7 +49,7 @@ export function useDoctorAppointments() {
 
 export async function bookAppointment(data: {
   clientId: string; clientName: string; clientEmail: string; doctorId: string;
-  type: string; date: string; time: string; duration: number; notes?: string;
+  doctorName?: string; type: string; date: string; time: string; duration: number; amount?: number; notes?: string;
 }) {
   const { notes, ...rest } = data;
 const ref = await addDoc(collection(db, "appointments"), {

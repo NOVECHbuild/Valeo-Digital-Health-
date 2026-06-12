@@ -46,7 +46,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Payment gateway not configured" }, { status: 503 });
     }
 
-    const amount = SESSION_PRICES[sessionType as string] ?? 400;
+    // Resolve the charge from THIS doctor's own pricing (server-authoritative —
+    // never trust a client-supplied amount). Falls back to the static map.
+    // NOTE: only the amount *source* changed here; the WiPay form + hash below
+    // are untouched.
+    let amount = SESSION_PRICES[sessionType as string] ?? 400;
+    try {
+      const apptSnap = await adminDb.collection("appointments").doc(appointmentId).get();
+      const doctorId = apptSnap.data()?.doctorId as string | undefined;
+      if (doctorId) {
+        const schedSnap = await adminDb.collection("schedules").doc(doctorId).get();
+        const pricing   = schedSnap.data()?.sessionPricing as Record<string, number> | undefined;
+        const p         = pricing?.[sessionType as string];
+        if (typeof p === "number") amount = p;
+      }
+    } catch (e) {
+      console.error("[Initiate] doctor pricing lookup failed, using default:", e);
+    }
 
     // ── Free consultation — approve directly, no payment needed ──────────────
     if (amount === 0) {

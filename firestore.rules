@@ -190,6 +190,12 @@ service cloud.firestore {
       allow read:  if isAuth();
       allow write: if isDoctorOrAdmin();
     }
+    // ── Google OAuth tokens (SERVER ONLY) ──────────────────────────────────────
+    // Per-doctor Google Calendar refresh tokens. Written/read exclusively by
+    // the server (Admin SDK). No client may ever read or write these.
+    match /googleTokens/{doctorId} {
+      allow read, write: if false;
+    }
     // ── Deny everything else ──────────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;

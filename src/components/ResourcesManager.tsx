@@ -137,7 +137,7 @@ export default function ResourcesManager({ accent, accentDark }: Props) {
             <BookOpen size={24} style={{ color: accent }} />
           </div>
           <p className="text-sm font-medium mb-1" style={{ color: "#2A4A1A" }}>No resources yet</p>
-          <p className="text-xs mb-4" style={{ color: "#8A9BA8" }}>Add Dr. Miller's books, YouTube clips, articles, and guides.</p>
+          <p className="text-xs mb-4" style={{ color: "#8A9BA8" }}>Add books, YouTube clips, articles, and guides.</p>
           <button onClick={openNew}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
             style={{ background: `linear-gradient(135deg, ${accent}, ${accentDark})` }}>
