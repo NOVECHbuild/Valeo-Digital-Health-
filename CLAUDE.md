@@ -119,6 +119,10 @@ All third-party integrations are **fail-safe**: if `RESEND_API_KEY` or the Googl
 | Google Analytics | Not integrated |
 | Resource file uploads | Resources are link-only (Layer 1). Firebase Storage uploads for downloadable worksheets = future. |
 | Google OAuth verification (go-live) | OAuth app is in **Testing** mode (100-user cap, test users only). Before public launch: complete the Google Cloud audience + app/branding settings and submit for verification (Calendar is a sensitive scope). |
+| Duration-aware slot blocking | Booking slot grid uses the doctor's single `slotDuration`; per-service durations drive the calendar event + busy check but not slot spacing. A 90-min session doesn't yet block the following slot. Future enhancement. |
+
+### Doctor-defined services (shipped)
+Each doctor manages their own services in **Schedule → Services** (`schedules/{doctorId}.services: Service[]` = `{id,name,duration,price,description?,active}`). `src/lib/availability.ts` has `Service`, `DEFAULT_SERVICES`, `bookableServices()` (active only, legacy fallback seeded from `sessionPricing`), `servicesForEditing()`. Booking renders the doctor's active services; `/api/payments/initiate` charges by service name; the Notes session-type dropdown lists the doctor's services. Legacy `sessionPricing` retained for back-compat; a doctor's list is auto-seeded on first load.
 
 > Note: the Google Meet "localhost redirect" item is **resolved** — `/api/meet/create` reads `GOOGLE_REDIRECT_URI` from env with a live-domain default.
 

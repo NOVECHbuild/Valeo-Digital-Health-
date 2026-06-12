@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import {
   availableSlotsForDate,
+  bookableServices,
   type AvailabilitySchedule,
 } from "@/lib/availability";
 import {
@@ -363,25 +364,21 @@ function ClientAppointmentsPageInner() {
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
   const [cancelling, setCancelling]     = useState(false);
 
-  const selectedTypeObj = SESSION_TYPES.find(t => t.id === selectedType);
-
   // FIX 8: Booked slots for selected date
   const bookedSlots = useBookedSlots(doctorId, selectedDate);
 
-  // Layer 1: real availability from Dr. Miller's saved schedule.
-  // Falls back to the default list if she hasn't configured a schedule yet.
+  // The doctor's saved schedule + the services they offer (active only).
+  // Falls back to the platform defaults if they haven't configured anything.
   const schedule = useDoctorSchedule(doctorId);
+  const services = useMemo(() => bookableServices(schedule), [schedule]);
+  const selectedService = services.find(s => s.id === selectedType);
+  const selectedPrice   = selectedService?.price ?? 0;
+
   const daySlots = useMemo(() => {
     if (!selectedDate) return [] as string[];
     if (schedule) return availableSlotsForDate(schedule, selectedDate);
     return TIME_SLOTS;
   }, [schedule, selectedDate]);
-
-  // Per-doctor pricing: prefer the doctor's saved price for this service,
-  // fall back to the static default if they haven't set one.
-  const priceFor = (t: { label: string; price: number }) =>
-    schedule?.sessionPricing?.[t.label] ?? t.price;
-  const selectedPrice = selectedTypeObj ? priceFor(selectedTypeObj) : 0;
 
   // Layer 2: Google Calendar free/busy. Fails safe — on any error the list is
   // empty and booking proceeds on platform availability alone.
@@ -397,7 +394,7 @@ function ClientAppointmentsPageInner() {
           body:    JSON.stringify({
             date:     selectedDate,
             slots:    daySlots,
-            duration: selectedTypeObj?.duration ?? 60,
+            duration: selectedService?.duration ?? 60,
             timezone: schedule?.timezone,
             doctorId,
           }),
@@ -409,7 +406,7 @@ function ClientAppointmentsPageInner() {
       }
     })();
     return () => { cancelled = true; };
-  }, [selectedDate, daySlots, selectedTypeObj?.duration, schedule?.timezone]);
+  }, [selectedDate, daySlots, selectedService?.duration, schedule?.timezone]);
 
   // FIX 2: Toast auto-dismiss — effect depends on toast object, dismisses on its own timer
   useEffect(() => {
@@ -489,10 +486,10 @@ function ClientAppointmentsPageInner() {
         clientEmail: user.email ?? "",
         doctorId,
         doctorName:  doctor?.doctorName ?? "",
-        type:        selectedTypeObj?.label ?? selectedType,
+        type:        selectedService?.name ?? selectedType,
         date:        selectedDate,
         time:        selectedTime,
-        duration:    selectedTypeObj?.duration ?? 60,
+        duration:    selectedService?.duration ?? 60,
         amount:      selectedPrice,
         ...(notes ? { notes } : {}),
       });
@@ -525,7 +522,7 @@ function ClientAppointmentsPageInner() {
           clientId:    user.uid,
           clientName:  user.displayName ?? "Client",
           clientEmail: user.email ?? "",
-          sessionType: selectedTypeObj?.label,
+          sessionType: selectedService?.name,
         }),
       });
 const data = await res.json();
@@ -768,24 +765,23 @@ setRedirecting(false);
               {/* Step 1 — Session type */}
               {step === 1 && (
                 <div className="space-y-3">
-                  {SESSION_TYPES.map(type => (
-                    <button key={type.id} onClick={() => setSelectedType(type.id)}
+                  {services.map(service => (
+                    <button key={service.id} onClick={() => setSelectedType(service.id)}
                       className="w-full text-left p-4 rounded-xl border-2 transition-all"
                       style={{
-                        borderColor: selectedType === type.id ? "#2A4A1A" : "rgba(42,74,26,0.1)",
-                        background:  selectedType === type.id ? "rgba(42,74,26,0.04)" : "white",
+                        borderColor: selectedType === service.id ? "#2A4A1A" : "rgba(42,74,26,0.1)",
+                        background:  selectedType === service.id ? "rgba(42,74,26,0.04)" : "white",
                       }}>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>{type.label}</p>
-                          <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>{type.description} · {type.duration} min</p>
+                          <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>{service.name}</p>
+                          <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>{service.description ? `${service.description} · ` : ""}{service.duration} min</p>
                         </div>
-                        {/* FIX 4: USD throughout */}
                         <div className="text-right flex-shrink-0 ml-4">
                           <p className="text-sm font-bold" style={{ color: "#2A4A1A" }}>
-                            {priceFor(type) === 0 ? "Free" : `USD $${priceFor(type)}`}
+                            {service.price === 0 ? "Free" : `USD $${service.price}`}
                           </p>
-                          {priceFor(type) === 0 && (
+                          {service.price === 0 && (
                             <p className="text-xs" style={{ color: "#8DC63F" }}>No payment needed</p>
                           )}
                         </div>
@@ -873,11 +869,11 @@ setRedirecting(false);
                       Booking Summary
                     </p>
                     {[
-                      { label: "Session",  value: selectedTypeObj?.label ?? "" },
+                      { label: "Session",  value: selectedService?.name ?? "" },
                       { label: "Therapist",value: doctorName },
                       { label: "Date",     value: fmtDate(selectedDate) },
                       { label: "Time",     value: selectedTime },
-                      { label: "Duration", value: `${selectedTypeObj?.duration} minutes` },
+                      { label: "Duration", value: `${selectedService?.duration} minutes` },
                     ].map(({ label, value }) => (
                       <div key={label} className="flex items-center justify-between py-2 border-b last:border-0"
                         style={{ borderColor: "rgba(42,74,26,0.06)" }}>
@@ -889,7 +885,7 @@ setRedirecting(false);
                     <div className="flex items-center justify-between pt-2">
                       <span className="text-sm font-bold" style={{ color: "#2A4A1A" }}>Total</span>
                       <span className="text-lg font-bold" style={{ color: "#2A4A1A" }}>
-                        {selectedTypeObj?.price === 0 ? "Free" : `USD $${selectedTypeObj?.price}`}
+                        {selectedService?.price === 0 ? "Free" : `USD $${selectedService?.price}`}
                       </span>
                     </div>
                   </div>
@@ -900,19 +896,19 @@ setRedirecting(false);
                     style={{ borderColor: "rgba(42,74,26,0.15)", background: "white" }} />
 
                   {/* FIX 3 + 4: Payment notice only shown for paid sessions */}
-                  {selectedTypeObj && selectedTypeObj.price > 0 && (
+                  {selectedService && selectedService.price > 0 && (
                     <div className="flex items-start gap-3 p-4 rounded-xl"
                       style={{ background: "rgba(141,198,63,0.06)", border: "1px solid rgba(141,198,63,0.2)" }}>
                       <Lock size={14} className="flex-shrink-0 mt-0.5" style={{ color: "#8DC63F" }} />
                       <p className="text-xs" style={{ color: "#4A5568" }}>
                         You will be redirected to <strong>WiPay</strong> to securely complete your payment of{" "}
-                        <strong>USD ${selectedTypeObj.price}</strong>. Your session will be confirmed upon payment.
+                        <strong>USD ${selectedService.price}</strong>. Your session will be confirmed upon payment.
                       </p>
                     </div>
                   )}
 
                   {/* Free session info box */}
-                  {selectedTypeObj?.price === 0 && (
+                  {selectedService?.price === 0 && (
                     <div className="flex items-start gap-3 p-4 rounded-xl"
                       style={{ background: "rgba(141,198,63,0.06)", border: "1px solid rgba(141,198,63,0.2)" }}>
                       <CheckCircle size={14} className="flex-shrink-0 mt-0.5" style={{ color: "#8DC63F" }} />
@@ -940,9 +936,9 @@ setRedirecting(false);
                       style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
                       {submitting
                         ? <><Loader2 size={15} className="animate-spin" /> Processing…</>
-                        : selectedTypeObj?.price === 0
+                        : selectedService?.price === 0
                           ? <><CheckCircle size={15} /> Confirm Booking</>
-                          : <><CreditCard size={15} /> Pay USD ${selectedTypeObj?.price}</>}
+                          : <><CreditCard size={15} /> Pay USD ${selectedService?.price}</>}
                     </button>
                   </div>
                 </div>

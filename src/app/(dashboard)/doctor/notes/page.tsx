@@ -2,9 +2,10 @@
 
 import { useState, useEffect, Suspense } from "react";
 import {
-  collection, query, where, getDocs, addDoc, updateDoc,
+  collection, query, where, getDocs, getDoc, addDoc, updateDoc,
   deleteDoc, doc, orderBy, serverTimestamp,
 } from "firebase/firestore";
+import { bookableServices } from "@/lib/availability";
 import { useSearchParams } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -79,8 +80,8 @@ function TagChip({ tag }: { tag: string }) {
   );
 }
 
-function NoteEditor({ note, clients, appointments, doctorId, onSave, onClose }: {
-  note: Partial<Note>|null; clients: Client[]; appointments: Appointment[]; doctorId: string;
+function NoteEditor({ note, clients, appointments, sessionTypes, doctorId, onSave, onClose }: {
+  note: Partial<Note>|null; clients: Client[]; appointments: Appointment[]; sessionTypes: string[]; doctorId: string;
   onSave: (n: Omit<Note,"id"|"createdAt"|"updatedAt">) => Promise<void>;
   onClose: () => void;
 }) {
@@ -236,7 +237,7 @@ function NoteEditor({ note, clients, appointments, doctorId, onSave, onClose }: 
                 className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none"
                 style={{ borderColor:"rgba(42,74,26,0.15)", background:"white", color:sessionType?"#22272B":"#8A9BA8" }}>
                 <option value="">Select type</option>
-                {SESSION_TYPES.map(t=><option key={t} value={t}>{t}</option>)}
+                {sessionTypes.map(t=><option key={t} value={t}>{t}</option>)}
               </select>
             </div>
           </div>
@@ -491,6 +492,7 @@ function NotesPageInner() {
   const [deleting,     setDeleting]     = useState<string|null>(null);
   const [toast,        setToast]        = useState<{type:"success"|"error";msg:string}|null>(null);
   const [prefilled,    setPrefilled]    = useState(false);
+  const [sessionTypes, setSessionTypes] = useState<string[]>(SESSION_TYPES);
 
   function showToast(type:"success"|"error", msg:string) {
     setToast({type,msg}); setTimeout(()=>setToast(null),4000);
@@ -505,6 +507,14 @@ function NotesPageInner() {
       const apptSnap = await getDocs(query(collection(db,"appointments"),where("doctorId","==",user.uid)));
       setAppointments(apptSnap.docs.map(d=>({id:d.id,...d.data()}) as Appointment));
       const clientIds = [...new Set(apptSnap.docs.map(d=>(d.data() as any).clientId as string))];
+
+      // Session-type options from the doctor's own services (fallback to defaults)
+      try {
+        const schedSnap = await getDoc(doc(db,"schedules",user.uid));
+        const sched = schedSnap.exists() ? (schedSnap.data() as any) : null;
+        const names = bookableServices(sched).map(s=>s.name);
+        if (names.length) setSessionTypes(names);
+      } catch { /* keep default list */ }
 
       if(clientIds.length > 0) {
         const clientDocs = await Promise.all(clientIds.map(uid=>getDocs(query(collection(db,"users"),where("uid","==",uid)))));
@@ -668,7 +678,7 @@ function NotesPageInner() {
       )}
 
       {editNote !== false && (
-        <NoteEditor note={editNote} clients={clients} appointments={appointments} doctorId={user?.uid??""} onSave={handleSave} onClose={()=>setEditNote(false)}/>
+        <NoteEditor note={editNote} clients={clients} appointments={appointments} sessionTypes={sessionTypes} doctorId={user?.uid??""} onSave={handleSave} onClose={()=>setEditNote(false)}/>
       )}
     </div>
   );

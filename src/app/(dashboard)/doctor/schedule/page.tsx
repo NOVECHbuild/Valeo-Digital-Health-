@@ -6,6 +6,7 @@ import Link from "next/link";
 import { db, auth } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { useDoctorAppointments, updateAppointmentStatus, type Appointment } from "@/hooks/useAppointments";
+import { type Service, servicesForEditing } from "@/lib/availability";
 import {
   Calendar, Clock, CheckCircle, XCircle, Loader2, Users,
   FileText, Filter, Save, AlertCircle, Plus, X, Info,
@@ -27,6 +28,7 @@ type AvailabilitySchedule = {
   timezone:       string;
   blockedDates:   string[];
   sessionPricing: Record<string, number>;
+  services?:      Service[];
   googleCalendarId?: string;
 };
 
@@ -691,10 +693,13 @@ export default function DoctorSchedulePage() {
     (async () => {
       const snap = await getDoc(doc(db,"schedules",user.uid));
       if (snap.exists()) {
-        setAvail(snap.data() as AvailabilitySchedule);
+        const data = snap.data() as AvailabilitySchedule;
+        // Seed a services list on first load (migration from legacy sessionPricing)
+        if (!data.services || data.services.length === 0) data.services = servicesForEditing(data);
+        setAvail(data);
       } else {
-        // New doctor — auto-detect their timezone
-        setAvail(prev => ({ ...prev, timezone: detectTimezone() }));
+        // New doctor — auto-detect their timezone + seed default services
+        setAvail(prev => ({ ...prev, timezone: detectTimezone(), services: servicesForEditing(null) }));
       }
       setAvailLoading(false);
     })();
@@ -728,6 +733,11 @@ export default function DoctorSchedulePage() {
       showToast("success","Availability saved.");
     } catch { showToast("error","Failed to save. Try again."); }
     finally   { setSaving(false); }
+  }
+
+  // Update one service in the doctor's services list
+  function updateService(i: number, patch: Partial<Service>) {
+    setAvail(a => ({ ...a, services: (a.services ?? []).map((s, idx) => idx === i ? { ...s, ...patch } : s) }));
   }
 
   const counts = {
@@ -925,7 +935,7 @@ export default function DoctorSchedulePage() {
               <div className="flex gap-1 p-1 rounded-xl w-fit flex-wrap" style={{ background:"rgba(42,74,26,0.06)" }}>
                 {([
                   { key:"hours",         label:"Working Hours"    },
-                  { key:"pricing",       label:"Session Pricing"  },
+                  { key:"pricing",       label:"Services"  },
                   { key:"settings",      label:"Settings"         },
                   { key:"calendar-sync", label:"📅 Google Cal"    },
                 ] as const).map(({ key, label }) => (
@@ -984,31 +994,84 @@ export default function DoctorSchedulePage() {
                 </div>
               )}
 
-              {/* Session pricing */}
+              {/* Services & pricing */}
               {availSubTab==="pricing" && (
-                <div className="rounded-2xl p-5" style={{ background:"white", boxShadow:"0 1px 4px rgba(42,74,26,0.07)" }}>
-                  <p className="text-sm font-semibold mb-1" style={{ color:"#2A4A1A" }}>Session Pricing (USD)</p>
-                  <p className="text-xs mb-6" style={{ color:"#8A9BA8" }}>Set prices per session type. Set to 0 for free sessions.</p>
-                  <div className="space-y-4">
-                    {SESSION_TYPES.map(type => (
-                      <div key={type} className="flex items-center justify-between gap-4">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium" style={{ color:"#2A4A1A" }}>{type}</p>
-                          {avail.sessionPricing[type]===0&&<p className="text-xs" style={{ color:"#8DC63F" }}>Free</p>}
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div>
+                      <p className="text-sm font-semibold" style={{ color:"#2A4A1A" }}>Your Services</p>
+                      <p className="text-xs" style={{ color:"#8A9BA8" }}>
+                        Define what you offer. Inactive services are hidden from booking. Price 0 = free (no payment).
+                      </p>
+                    </div>
+                    <button
+                      onClick={()=>setAvail(a=>({ ...a, services:[...(a.services??[]),
+                        { id:`svc-${Date.now()}`, name:"New Service", duration:60, price:100, description:"", active:true }] }))}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-white flex-shrink-0"
+                      style={{ background:"linear-gradient(135deg,#2A4A1A,#3D6B24)" }}>
+                      <Plus size={14}/> Add Service
+                    </button>
+                  </div>
+
+                  {(avail.services ?? []).length === 0 ? (
+                    <p className="text-xs text-center py-8" style={{ color:"#C4C4C4" }}>No services yet — add one to get started.</p>
+                  ) : (avail.services ?? []).map((svc, i) => (
+                    <div key={svc.id} className="rounded-2xl p-4 space-y-3"
+                      style={{ background:"white", boxShadow:"0 1px 4px rgba(42,74,26,0.07)", opacity: svc.active===false ? 0.65 : 1 }}>
+                      <div className="flex items-center gap-3">
+                        <input value={svc.name} onChange={e=>updateService(i,{ name:e.target.value })}
+                          placeholder="Service name"
+                          className="flex-1 px-3 py-2 rounded-xl text-sm border font-medium focus:outline-none"
+                          style={{ borderColor:"rgba(42,74,26,0.15)", background:"#FAFAFA", color:"#2A4A1A" }}/>
+                        <button onClick={()=>updateService(i,{ active: svc.active===false })}
+                          title={svc.active===false ? "Inactive" : "Active"}
+                          className="relative flex-shrink-0 w-11 h-6 rounded-full transition-all"
+                          style={{ background: svc.active!==false ? "#8DC63F" : "rgba(42,74,26,0.15)" }}>
+                          <span className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all"
+                            style={{ left: svc.active!==false ? "24px" : "4px" }}/>
+                        </button>
+                        <button onClick={()=>setAvail(a=>({ ...a, services:(a.services??[]).filter((_,idx)=>idx!==i) }))}
+                          className="p-2 rounded-lg hover:bg-red-50 flex-shrink-0" style={{ color:"#8A9BA8" }}>
+                          <Trash2 size={14}/>
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs font-semibold uppercase tracking-wider mb-1 block" style={{ color:"#8A9BA8" }}>Duration (min)</label>
+                          <input type="number" min={5} step={5} value={svc.duration}
+                            onChange={e=>updateService(i,{ duration:Number(e.target.value) })}
+                            className="w-full px-3 py-2 rounded-xl text-sm border focus:outline-none"
+                            style={{ borderColor:"rgba(42,74,26,0.15)", background:"#FAFAFA", color:"#2A4A1A" }}/>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold" style={{ color:"#8A9BA8" }}>USD</span>
-                          <input type="number" min={0} step={50} value={avail.sessionPricing[type]??0}
-                            onChange={e=>setAvail(a=>({ ...a, sessionPricing:{ ...a.sessionPricing, [type]:Number(e.target.value) } }))}
-                            className="w-28 px-3 py-2 rounded-xl text-sm border text-right focus:outline-none font-semibold"
+                        <div>
+                          <label className="text-xs font-semibold uppercase tracking-wider mb-1 block" style={{ color:"#8A9BA8" }}>Price (USD)</label>
+                          <input type="number" min={0} step={25} value={svc.price}
+                            onChange={e=>updateService(i,{ price:Number(e.target.value) })}
+                            className="w-full px-3 py-2 rounded-xl text-sm border focus:outline-none font-semibold"
                             style={{ borderColor:"rgba(42,74,26,0.15)", background:"#FAFAFA", color:"#2A4A1A" }}/>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                  <div className="mt-5 p-3 rounded-xl flex items-start gap-2" style={{ background:"rgba(42,74,26,0.03)", border:"1px solid rgba(42,74,26,0.07)" }}>
+                      <div>
+                        <label className="text-xs font-semibold uppercase tracking-wider mb-1 block" style={{ color:"#8A9BA8" }}>
+                          Description <span style={{ color:"#C4C4C4" }}>(optional)</span>
+                        </label>
+                        <input value={svc.description ?? ""} onChange={e=>updateService(i,{ description:e.target.value })}
+                          placeholder="Short description shown to clients"
+                          className="w-full px-3 py-2 rounded-xl text-sm border focus:outline-none"
+                          style={{ borderColor:"rgba(42,74,26,0.15)", background:"#FAFAFA", color:"#2A4A1A" }}/>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {svc.price===0 && <span className="text-xs" style={{ color:"#8DC63F" }}>Free — books without payment</span>}
+                        {svc.active===false && <span className="text-xs" style={{ color:"#C4700A" }}>Inactive — hidden from booking</span>}
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className="mt-1 p-3 rounded-xl flex items-start gap-2" style={{ background:"rgba(42,74,26,0.03)", border:"1px solid rgba(42,74,26,0.07)" }}>
                     <Lock size={12} className="flex-shrink-0 mt-0.5" style={{ color:"#8A9BA8" }}/>
-                    <p className="text-xs" style={{ color:"#8A9BA8" }}>Prices are shown to clients before booking and used by WiPay to charge the correct amount.</p>
+                    <p className="text-xs" style={{ color:"#8A9BA8" }}>
+                      Click <strong>Save Availability</strong> to apply. Prices are shown to clients before booking and used by WiPay to charge the correct amount.
+                    </p>
                   </div>
                 </div>
               )}

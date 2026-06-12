@@ -56,9 +56,15 @@ export async function POST(req: NextRequest) {
       const doctorId = apptSnap.data()?.doctorId as string | undefined;
       if (doctorId) {
         const schedSnap = await adminDb.collection("schedules").doc(doctorId).get();
-        const pricing   = schedSnap.data()?.sessionPricing as Record<string, number> | undefined;
-        const p         = pricing?.[sessionType as string];
-        if (typeof p === "number") amount = p;
+        const sched     = schedSnap.data();
+        // Prefer the doctor's services list (matched by name), then legacy sessionPricing.
+        const svc = (sched?.services as any[] | undefined)?.find(s => s?.name === sessionType);
+        if (svc && typeof svc.price === "number") {
+          amount = svc.price;
+        } else {
+          const p = (sched?.sessionPricing as Record<string, number> | undefined)?.[sessionType as string];
+          if (typeof p === "number") amount = p;
+        }
       }
     } catch (e) {
       console.error("[Initiate] doctor pricing lookup failed, using default:", e);

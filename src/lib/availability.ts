@@ -9,6 +9,16 @@ export type DayKey =
 
 export interface DaySchedule { enabled: boolean; slots: { start: string; end: string }[]; }
 
+// A service a doctor offers. Doctors manage these in Schedule → Services.
+export interface Service {
+  id:          string;
+  name:        string;
+  duration:    number;   // minutes
+  price:       number;   // in platform currency (USD shown to clients)
+  description?: string;
+  active:      boolean;
+}
+
 export interface AvailabilitySchedule {
   availability:    Record<DayKey, DaySchedule>;
   slotDuration:    number;
@@ -16,8 +26,49 @@ export interface AvailabilitySchedule {
   maxAdvanceDays:  number;
   timezone:        string;
   blockedDates:    string[];
-  sessionPricing:  Record<string, number>;
+  sessionPricing:  Record<string, number>;   // legacy — kept for back-compat
+  services?:       Service[];
   googleCalendarId?: string;
+}
+
+// The original platform service menu — used to seed a doctor's first list and as
+// the fallback when a doctor hasn't defined any services yet.
+export const DEFAULT_SERVICES: Service[] = [
+  { id: "individual",   name: "Individual Therapy", duration: 60, price: 150, description: "One-on-one therapy session",         active: true },
+  { id: "couples",      name: "Couples Therapy",    duration: 90, price: 200, description: "Therapy for couples",                active: true },
+  { id: "coaching",     name: "Life Coaching",      duration: 60, price: 120, description: "Goal-focused coaching session",      active: true },
+  { id: "workplace",    name: "Workplace Wellness", duration: 60, price: 180, description: "Workplace mental health support",    active: true },
+  { id: "consultation", name: "Free Consultation",  duration: 15, price: 0,   description: "Initial 15-minute consultation",     active: true },
+];
+
+// Seed the default list, applying any prices the doctor already saved (legacy
+// sessionPricing). Used when a doctor has no services array yet.
+function seededDefaults(schedule?: AvailabilitySchedule | null): Service[] {
+  return DEFAULT_SERVICES.map(s => ({
+    ...s,
+    price: schedule?.sessionPricing?.[s.name] ?? s.price,
+  }));
+}
+
+// Services a CLIENT can book: the doctor's own active services, else the defaults.
+export function bookableServices(schedule?: AvailabilitySchedule | null): Service[] {
+  if (schedule?.services && schedule.services.length > 0) {
+    return schedule.services.filter(s => s.active !== false);
+  }
+  return seededDefaults(schedule);
+}
+
+// Full list (incl. inactive) for the doctor's manager — seeded if empty.
+export function servicesForEditing(schedule?: AvailabilitySchedule | null): Service[] {
+  if (schedule?.services && schedule.services.length > 0) return schedule.services;
+  return seededDefaults(schedule);
+}
+
+// Resolve a service's price by name (server-authoritative pricing lookup).
+export function priceForService(schedule: AvailabilitySchedule | null | undefined, name: string): number | undefined {
+  const svc = schedule?.services?.find(s => s.name === name);
+  if (svc && typeof svc.price === "number") return svc.price;
+  return schedule?.sessionPricing?.[name];
 }
 
 // JS Date.getDay() returns 0=Sunday … 6=Saturday — index this array with it.
