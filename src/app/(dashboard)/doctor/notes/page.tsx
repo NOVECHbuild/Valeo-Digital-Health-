@@ -6,6 +6,7 @@ import {
   deleteDoc, doc, orderBy, serverTimestamp,
 } from "firebase/firestore";
 import { bookableServices } from "@/lib/availability";
+import { authedFetch } from "@/lib/authedFetch";
 import { useSearchParams } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -139,9 +140,9 @@ function NoteEditor({ note, clients, appointments, sessionTypes, doctorId, onSav
         const fd = new FormData();
         fd.append("audio", aiFile);
         fd.append("preview", "true");
-        res = await fetch("/api/ai/session-summary", { method: "POST", body: fd });
+        res = await authedFetch("/api/ai/session-summary", { method: "POST", body: fd });
       } else {
-        res = await fetch("/api/ai/session-summary", {
+        res = await authedFetch("/api/ai/session-summary", {
           method:  "POST",
           headers: { "Content-Type": "application/json" },
           body:    JSON.stringify({ transcript: aiTranscript, preview: true }),

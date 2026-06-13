@@ -6,6 +6,7 @@ import {
   deleteDoc, doc, orderBy, serverTimestamp, onSnapshot,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { authedFetch } from "@/lib/authedFetch";
 import { useAuth } from "@/context/AuthContext";
 import {
   ClipboardList, Plus, Search, X, Loader2, Send,
@@ -588,7 +589,7 @@ export default function DoctorAssessmentsPage() {
       ...(dueDate ? { dueDate } : {}),
     });
     // Notify the client by email (fire-and-forget — never block assignment)
-    fetch("/api/email/assessment", {
+    authedFetch("/api/email/assessment", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify({ clientId, title, dueDate: dueDate || "", doctorId: user.uid }),

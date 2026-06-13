@@ -3,7 +3,9 @@
 // in a way that blocks the user action — the client fires these and ignores errors.
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
-import { sendEmail, renderEmail, prefAllows, formatDoctorName } from "@/lib/email";
+import { sendEmail, renderEmail, prefAllows, formatDoctorName, esc } from "@/lib/email";
+import { requireAuth } from "@/lib/requireAuth";
+import { rateLimit } from "@/lib/rateLimit";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.valeoexperience.com";
 
@@ -25,6 +27,16 @@ export async function POST(req: NextRequest) {
     const apptSnap = await adminDb.collection("appointments").doc(appointmentId).get();
     if (!apptSnap.exists) return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
     const appt = apptSnap.data()!;
+
+    // Only a participant on the appointment (or admin) may trigger its emails.
+    const gate = await requireAuth(req);
+    if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
+    if (gate.role !== "admin" && gate.uid !== appt.clientId && gate.uid !== appt.doctorId) {
+      return NextResponse.json({ error: "Not authorized for this appointment." }, { status: 403 });
+    }
+    if (!rateLimit(`email:${gate.uid}`, 30, 60_000)) {
+      return NextResponse.json({ ok: false, error: "Too many requests." }, { status: 429 });
+    }
 
     const clientSnap = await adminDb.collection("users").doc(appt.clientId).get();
     const client     = clientSnap.data() ?? {};
@@ -63,7 +75,7 @@ export async function POST(req: NextRequest) {
             heading: "Request received",
             greeting: `Hi ${clientFirst},`,
             paragraphs: [
-              `Thank you for booking with Valeo Experience. We've received your session request and ${doctorName} will review and confirm it shortly.`,
+              `Thank you for booking with Valeo Experience. We've received your session request and ${esc(doctorName)} will review and confirm it shortly.`,
               "You'll get another email as soon as it's confirmed.",
             ],
             details,
@@ -78,7 +90,7 @@ export async function POST(req: NextRequest) {
           subject: `New session request — ${appt.clientName}`,
           html: renderEmail({
             heading: "New appointment request",
-            paragraphs: [`${appt.clientName} has requested a session. Please review it in your schedule.`],
+            paragraphs: [`${esc(appt.clientName)} has requested a session. Please review it in your schedule.`],
             details,
             cta: { label: "Open schedule", url: `${APP_URL}/doctor/schedule` },
           }),
@@ -96,7 +108,7 @@ export async function POST(req: NextRequest) {
             heading: "Session confirmed",
             greeting: `Hi ${clientFirst},`,
             paragraphs: [
-              `Good news — ${doctorName} has confirmed your session.`,
+              `Good news — ${esc(doctorName)} has confirmed your session.`,
               hasMeet
                 ? "Use the button below to join the video call at your appointment time."
                 : "Your video link will be available in your appointments before the session.",
@@ -117,7 +129,7 @@ export async function POST(req: NextRequest) {
           subject: `Session cancelled — ${appt.clientName}`,
           html: renderEmail({
             heading: "A session was cancelled",
-            paragraphs: [`${appt.clientName} has cancelled their session.`],
+            paragraphs: [`${esc(appt.clientName)} has cancelled their session.`],
             details,
             cta: { label: "Open schedule", url: `${APP_URL}/doctor/schedule` },
           }),

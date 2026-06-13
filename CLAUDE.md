@@ -58,6 +58,7 @@ RESEND_API_KEY            # Resend transactional email
 EMAIL_FROM                # e.g. "Valeo Experience <noreply@valeoexperience.com>"
 CRON_SECRET               # authorises the Vercel Cron reminder job
 NEXT_PUBLIC_GA_ID         # Google Analytics 4 id (e.g. G-WL3LSG0D7Q); GA no-ops if unset
+TOKEN_ENCRYPTION_KEY      # 64-hex (32-byte) key; encrypts OAuth refresh tokens at rest (plaintext if unset)
 ```
 
 Sandbox-to-live WiPay switch: change `WIPAY_ENVIRONMENT`, `WIPAY_ACCOUNT_NUMBER`, `WIPAY_API_KEY` only. No code changes needed.
@@ -116,13 +117,20 @@ All third-party integrations are **fail-safe**: if `RESEND_API_KEY` or the Googl
 | WiPay end-to-end test | Blocked — awaiting resolution with WiPay support. Do not touch WiPay code until resolved. |
 | Public self-registration | Deferred by decision: stay **invite-only** until WiPay is resolved, then open public self-registration (real register form → client account → onboarding → match → book). Homepage CTAs stay on Calendly until then. |
 | Google OAuth verification (go-live) | OAuth app is in **Testing** mode (100-user cap, test users only). Before public launch: complete the Google Cloud audience + app/branding settings and submit for verification (Calendar is a sensitive scope). |
-| API auth — remaining routes | `email/*`, `ai/session-summary`, `meet/create`, `calendar/*`, `payments/initiate` still accept anonymous POSTs (abuse/cost/spam). Add `requireAuth` + ownership checks. P1. See `AUDIT.md`. |
-| Security hardening (P2) | Encrypt OAuth refresh tokens at rest; escape interpolated values in email templates; add API rate limiting; validate WiPay callback signature. See `AUDIT.md`. |
+| WiPay callback signature (P2) | Validate the WiPay callback MD5 signature before trusting it. Deferred — lives in frozen WiPay code; address when the WiPay ticket reopens. |
 
-> **Security fixed this session** (see `AUDIT.md`): the 4 privileged admin routes
-> (`set-role`, `create-user`, `create-doctor`, `reset-password`) now require a verified
-> admin ID token (`src/lib/requireAuth.ts`); callers send `Authorization: Bearer`. The
-> `users` rule no longer lets clients **list** other users' PII (doctor/admin only).
+> **P2 hardening done this session:** OAuth refresh tokens encrypted at rest
+> (`src/lib/crypto.ts`, AES-256-GCM via `TOKEN_ENCRYPTION_KEY`; backward-compatible with
+> legacy plaintext); email templates HTML-escape interpolated values (`esc()`); best-effort
+> in-memory rate limiting on `ai/session-summary` + email routes (`src/lib/rateLimit.ts` —
+> per-instance, defense-in-depth; use Upstash/Vercel WAF for hard global limits).
+
+> **Security fixed this session** (see `AUDIT.md`): **all privileged/data API routes now
+> authenticate the caller** via `src/lib/requireAuth.ts` + client `src/lib/authedFetch.ts`.
+> Admin routes (`set-role`, `create-user`, `create-doctor`, `reset-password`) require admin;
+> `email/*`, `ai/session-summary`, `meet/create`, `calendar/*`, `payments/initiate` require a
+> signed-in caller with an ownership/role check (participant on the appointment, assigning
+> doctor, etc.). The `users` rule no longer lets clients **list** other users' PII.
 > **Rotate the Resend API key** that was shared in chat during setup.
 
 ### Doctor-defined services (shipped)

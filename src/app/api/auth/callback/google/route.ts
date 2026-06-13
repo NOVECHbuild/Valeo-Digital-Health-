@@ -7,6 +7,7 @@ import { google } from "googleapis";
 import { adminDb } from "@/lib/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { makeOAuthClient } from "@/lib/googleAuth";
+import { encryptSecret } from "@/lib/crypto";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.valeoexperience.com";
 
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
       connectedAt: FieldValue.serverTimestamp(),
       updatedAt:   FieldValue.serverTimestamp(),
     };
-    if (tokens.refresh_token) tokenDoc.refreshToken = tokens.refresh_token;
+    if (tokens.refresh_token) tokenDoc.refreshToken = encryptSecret(tokens.refresh_token);
     await adminDb.collection("googleTokens").doc(doctorId).set(tokenDoc, { merge: true });
 
     // Reflect connection on the doctor's schedule so the UI shows "Connected".

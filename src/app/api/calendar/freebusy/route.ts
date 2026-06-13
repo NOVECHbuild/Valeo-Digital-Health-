@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { google } from "googleapis";
 import { getDoctorAuth } from "@/lib/googleAuth";
+import { requireAuth } from "@/lib/requireAuth";
 
 // Parse an ISO instant into { date:"YYYY-MM-DD", min } in a specific timezone.
 function tzParts(iso: string, tz: string): { date: string; min: number } {
@@ -29,6 +30,10 @@ function labelToMinutes(label: string): number {
 
 export async function POST(req: NextRequest) {
   try {
+    // Require a signed-in caller; fail safe (no conflicts) rather than erroring.
+    const gate = await requireAuth(req);
+    if (!gate.ok) return NextResponse.json({ connected: false, busy: [] });
+
     const { date, slots, duration, timezone, calendarId, doctorId } = await req.json();
     const tz  = timezone || "America/Barbados";
     const dur = Number(duration) || 60;

@@ -7,6 +7,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 import { google } from "googleapis";
 import { adminDb } from "@/lib/firebase-admin";
+import { decryptSecret } from "@/lib/crypto";
 
 export const GOOGLE_REDIRECT_URI =
   process.env.GOOGLE_REDIRECT_URI ?? "https://www.valeoexperience.com/api/auth/callback/google";
@@ -34,7 +35,7 @@ export async function getDoctorAuth(doctorId?: string) {
     try {
       const snap = await adminDb.collection("googleTokens").doc(doctorId).get();
       const t = snap.data()?.refreshToken as string | undefined;
-      if (t) refreshToken = t;
+      if (t) refreshToken = decryptSecret(t);
     } catch {
       // fall back to env token on any lookup error
     }

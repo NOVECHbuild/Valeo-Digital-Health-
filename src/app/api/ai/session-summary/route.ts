@@ -2,6 +2,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { adminDb } from "@/lib/firebase-admin";
+import { requireAuth } from "@/lib/requireAuth";
+import { rateLimit } from "@/lib/rateLimit";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -66,6 +68,16 @@ Do not summarise — transcribe verbatim.`;
 
 export async function POST(req: NextRequest) {
   try {
+    // Clinical tool — doctors/admins only.
+    const gate = await requireAuth(req);
+    if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
+    if (gate.role !== "doctor" && gate.role !== "admin") {
+      return NextResponse.json({ error: "Doctor access required." }, { status: 403 });
+    }
+    if (!rateLimit(`ai:${gate.uid}`, 15, 60_000)) {
+      return NextResponse.json({ error: "Too many requests — please wait a moment." }, { status: 429 });
+    }
+
     const contentType = req.headers.get("content-type") ?? "";
     let transcript    = "";
     let appointmentId = "";

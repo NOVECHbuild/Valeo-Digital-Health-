@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useSearchParams, useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { useAssignedDoctor } from "@/hooks/useAssignedDoctor";
+import { authedFetch } from "@/lib/authedFetch";
 import {
   useClientAppointments,
   bookAppointment,
@@ -397,7 +398,7 @@ function ClientAppointmentsPageInner() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("/api/calendar/freebusy", {
+        const res = await authedFetch("/api/calendar/freebusy", {
           method:  "POST",
           headers: { "Content-Type": "application/json" },
           body:    JSON.stringify({
@@ -466,7 +467,7 @@ function ClientAppointmentsPageInner() {
         cancelledBy: "client",
       });
       // Notify the doctor (fire-and-forget)
-      fetch("/api/email/appointment", {
+      authedFetch("/api/email/appointment", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ appointmentId: cancelTarget.id, event: "cancelled", cancelledBy: "client" }),
@@ -504,7 +505,7 @@ function ClientAppointmentsPageInner() {
       });
 
       // Notify by email (fire-and-forget — never block booking on email)
-      fetch("/api/email/appointment", {
+      authedFetch("/api/email/appointment", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ appointmentId, event: "requested" }),
@@ -523,7 +524,7 @@ function ClientAppointmentsPageInner() {
       setSubmitting(false);
       setRedirecting(true);
 
-      const res  = await fetch("/api/payments/initiate", {
+      const res  = await authedFetch("/api/payments/initiate", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({

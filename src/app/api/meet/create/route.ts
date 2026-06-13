@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { google } from "googleapis";
 import { adminDb } from "@/lib/firebase-admin";
 import { getDoctorAuth } from "@/lib/googleAuth";
+import { requireAuth } from "@/lib/requireAuth";
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,6 +18,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
     }
     const appt = apptSnap.data()!;
+
+    // Only the appointment's doctor (or admin) may create its Meet link.
+    const gate = await requireAuth(req);
+    if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
+    if (gate.role !== "admin" && gate.uid !== appt.doctorId) {
+      return NextResponse.json({ error: "Not authorized for this appointment." }, { status: 403 });
+    }
 
     // Load client + doctor details
     const clientSnap = await adminDb.collection("users").doc(appt.clientId).get();

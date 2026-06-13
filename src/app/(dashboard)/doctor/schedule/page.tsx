@@ -7,6 +7,7 @@ import { db, auth } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { useDoctorAppointments, updateAppointmentStatus, type Appointment } from "@/hooks/useAppointments";
 import { type Service, servicesForEditing } from "@/lib/availability";
+import { authedFetch } from "@/lib/authedFetch";
 import {
   Calendar, Clock, CheckCircle, XCircle, Loader2, Users,
   FileText, Filter, Save, AlertCircle, Plus, X, Info,
@@ -560,7 +561,7 @@ function GoogleCalendarPanel({ calendarId, doctorId }: { calendarId: string; doc
     setSyncing(true);
     setSyncMsg(null);
     try {
-      const res  = await fetch(`/api/calendar/test?doctorId=${encodeURIComponent(doctorId)}`);
+      const res  = await authedFetch(`/api/calendar/test?doctorId=${encodeURIComponent(doctorId)}`);
       const data = await res.json();
       if (data.ok) {
         setSyncMsg({ type: "success", text: `Connected${data.calendar ? ` (${data.calendar})` : ""}. Your bookings respect your calendar and sessions get a Meet link.` });
@@ -759,14 +760,14 @@ export default function DoctorSchedulePage() {
         // Create the Google Meet link on the doctor's own calendar (best-effort).
         // Awaited so the confirmation email below can include the link.
         try {
-          await fetch("/api/meet/create", {
+          await authedFetch("/api/meet/create", {
             method:  "POST",
             headers: { "Content-Type": "application/json" },
             body:    JSON.stringify({ appointmentId: id }),
           });
         } catch { /* fail-safe — link can be added later */ }
         // Email the client that their session is confirmed (fire-and-forget)
-        fetch("/api/email/appointment", {
+        authedFetch("/api/email/appointment", {
           method:  "POST",
           headers: { "Content-Type": "application/json" },
           body:    JSON.stringify({ appointmentId: id, event: "approved" }),
@@ -780,7 +781,7 @@ export default function DoctorSchedulePage() {
     try {
       await updateAppointmentStatus(id,"rejected");
       // Notify the client their request wasn't confirmed (fire-and-forget)
-      fetch("/api/email/appointment", {
+      authedFetch("/api/email/appointment", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ appointmentId: id, event: "cancelled", cancelledBy: "doctor" }),

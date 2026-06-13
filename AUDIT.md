@@ -29,7 +29,11 @@ Cross-checked every internal link & `router.push` target against the real route 
 
 ## Part 2 — Security
 
-### ⛔ P0 — Unauthenticated privileged API routes (CRITICAL)
+> **✅ RESOLVED (this session):** P0 + both P1 items below are fixed — all privileged/data
+> API routes now verify the caller (`requireAuth`/`requireAdmin` + `authedFetch`), and the
+> `users` list rule is restricted to doctor/admin. Kept here for the record. P2 hardening remains.
+
+### ⛔→✅ P0 — Unauthenticated privileged API routes (FIXED)
 Only **2 of 17** API routes verify the caller. These privileged routes accept
 **anonymous POSTs from anyone on the internet**:
 

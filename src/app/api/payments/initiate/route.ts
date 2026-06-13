@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
+import { requireAuth } from "@/lib/requireAuth";
 
 const WIPAY_ACCOUNT_NUMBER = process.env.WIPAY_ACCOUNT_NUMBER ?? "";
 const WIPAY_API_KEY        = process.env.WIPAY_API_KEY        ?? "";
@@ -44,6 +45,16 @@ export async function POST(req: NextRequest) {
     if (!WIPAY_ACCOUNT_NUMBER || !WIPAY_API_KEY) {
       console.error("[Initiate] WiPay env vars not set");
       return NextResponse.json({ error: "Payment gateway not configured" }, { status: 503 });
+    }
+
+    // Auth: the caller must be the client on this appointment (or admin).
+    const gate = await requireAuth(req);
+    if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
+    const ownerSnap = await adminDb.collection("appointments").doc(appointmentId).get();
+    const ownerAppt = ownerSnap.data();
+    if (!ownerAppt) return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
+    if (gate.role !== "admin" && gate.uid !== ownerAppt.clientId) {
+      return NextResponse.json({ error: "Not authorized for this appointment." }, { status: 403 });
     }
 
     // Resolve the charge from THIS doctor's own pricing (server-authoritative —

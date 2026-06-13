@@ -53,20 +53,26 @@ export interface EmailContent {
   footerNote?: string;
 }
 
+// HTML-escape a plain-text value before interpolating into email markup.
+export function esc(s?: string): string {
+  return (s ?? "").replace(/[&<>"']/g, ch =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch] as string));
+}
+
 export function renderEmail(c: EmailContent): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.valeoexperience.com";
   const details = c.details?.length
     ? `<table role="presentation" width="100%" style="margin:16px 0;border-collapse:collapse;">${c.details.map(d => `
         <tr>
-          <td style="padding:8px 0;color:#8A9BA8;font-size:13px;width:40%;">${d.label}</td>
-          <td style="padding:8px 0;color:${FOREST};font-size:14px;font-weight:600;">${d.value}</td>
+          <td style="padding:8px 0;color:#8A9BA8;font-size:13px;width:40%;">${esc(d.label)}</td>
+          <td style="padding:8px 0;color:${FOREST};font-size:14px;font-weight:600;">${esc(d.value)}</td>
         </tr>`).join("")}
       </table>`
     : "";
   const cta = c.cta
-    ? `<a href="${c.cta.url}" style="display:inline-block;margin:8px 0 4px;padding:12px 28px;background:linear-gradient(135deg,${FOREST},#3D6B24);color:#ffffff;text-decoration:none;border-radius:12px;font-size:14px;font-weight:600;">${c.cta.label}</a>`
+    ? `<a href="${c.cta.url}" style="display:inline-block;margin:8px 0 4px;padding:12px 28px;background:linear-gradient(135deg,${FOREST},#3D6B24);color:#ffffff;text-decoration:none;border-radius:12px;font-size:14px;font-weight:600;">${esc(c.cta.label)}</a>`
     : "";
-  const greeting = c.greeting ? `<p style="margin:0 0 12px;color:${FOREST};font-size:15px;font-weight:600;">${c.greeting}</p>` : "";
+  const greeting = c.greeting ? `<p style="margin:0 0 12px;color:${FOREST};font-size:15px;font-weight:600;">${esc(c.greeting)}</p>` : "";
   const note = c.footerNote ? `<p style="margin:16px 0 0;color:#8A9BA8;font-size:12px;line-height:1.6;">${c.footerNote}</p>` : "";
 
   return `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#F2F8EA;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
@@ -79,7 +85,7 @@ export function renderEmail(c: EmailContent): string {
           <p style="margin:2px 0 0;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:${GREEN};font-weight:600;">Caribbean Mental Health</p>
         </td></tr>
         <tr><td style="padding:12px 32px 28px;">
-          <h1 style="margin:8px 0 16px;font-size:20px;color:${FOREST};">${c.heading}</h1>
+          <h1 style="margin:8px 0 16px;font-size:20px;color:${FOREST};">${esc(c.heading)}</h1>
           ${greeting}
           ${c.paragraphs.map(p => `<p style="margin:0 0 12px;color:#4A5568;font-size:14px;line-height:1.7;">${p}</p>`).join("")}
           ${details}

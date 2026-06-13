@@ -3,7 +3,7 @@
 // "tomorrow". Guarded by CRON_SECRET when set. Fail-safe per recipient.
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
-import { sendEmail, renderEmail, prefAllows, formatDoctorName } from "@/lib/email";
+import { sendEmail, renderEmail, prefAllows, formatDoctorName, esc } from "@/lib/email";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.valeoexperience.com";
 
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
           heading: "Your session is tomorrow",
           greeting: `Hi ${first},`,
           paragraphs: [
-            `This is a friendly reminder about your upcoming session with ${doctorName}.`,
+            `This is a friendly reminder about your upcoming session with ${esc(doctorName)}.`,
             appt.meetLink ? "You can join the video call using the button below at your session time." : "Your video link will be available in your appointments.",
           ],
           details: [

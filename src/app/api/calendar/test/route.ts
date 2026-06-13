@@ -4,10 +4,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { google } from "googleapis";
 import { getDoctorAuth, doctorHasOwnCalendar } from "@/lib/googleAuth";
+import { requireAuth } from "@/lib/requireAuth";
 
 export async function GET(req: NextRequest) {
   const doctorId = req.nextUrl.searchParams.get("doctorId") ?? undefined;
   try {
+    const gate = await requireAuth(req);
+    if (!gate.ok) return NextResponse.json({ ok: false, connected: false, error: gate.error }, { status: gate.status });
+    if (gate.role !== "admin" && gate.uid !== doctorId) {
+      return NextResponse.json({ ok: false, connected: false, error: "Not authorized." }, { status: 403 });
+    }
     const hasOwn = await doctorHasOwnCalendar(doctorId);
     if (!hasOwn && !process.env.GOOGLE_REFRESH_TOKEN) {
       return NextResponse.json(
