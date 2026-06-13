@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, DM_Serif_Display } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const dmSans = DM_Sans({
   subsets:  ["latin"],
@@ -50,6 +51,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${dmSans.variable} ${dmSerif.variable} font-sans antialiased`}>
+        <GoogleAnalytics />
         <AuthProvider>
           {children}
         </AuthProvider>

@@ -56,6 +56,7 @@ GEMINI_API_KEY
 RESEND_API_KEY            # Resend transactional email
 EMAIL_FROM                # e.g. "Valeo Experience <noreply@valeoexperience.com>"
 CRON_SECRET               # authorises the Vercel Cron reminder job
+NEXT_PUBLIC_GA_ID         # Google Analytics 4 id (e.g. G-WL3LSG0D7Q); GA no-ops if unset
 ```
 
 Sandbox-to-live WiPay switch: change `WIPAY_ENVIRONMENT`, `WIPAY_ACCOUNT_NUMBER`, `WIPAY_API_KEY` only. No code changes needed.
@@ -112,11 +113,8 @@ All third-party integrations are **fail-safe**: if `RESEND_API_KEY` or the Googl
 | Item | Notes |
 |------|-------|
 | WiPay end-to-end test | Blocked — awaiting resolution with WiPay support. Do not touch WiPay code until resolved. |
-| Messages: new-conversation doctor | `client/messages` "start a new conversation" still picks the first doctor (`snap.docs[0]`) instead of the client's assigned doctor. Existing conversations are correctly keyed; only affects brand-new chats. Point it at `useAssignedDoctor`. (P3) |
 | Real photos (Dr. Miller) | Hero, about, service tab images still placeholders |
-| Social links in footer | Facebook, Instagram, YouTube still `#` |
-| Homepage CTAs | All route to beta-gated `/register` — no path for real prospects. Awaiting Calendly URL. |
-| Google Analytics | Not integrated |
+| Homepage CTAs | All route to Calendly / beta-gated `/register` — no native path for real prospects yet. |
 | Resource file uploads | Resources are link-only (Layer 1). Firebase Storage uploads for downloadable worksheets = future. |
 | Google OAuth verification (go-live) | OAuth app is in **Testing** mode (100-user cap, test users only). Before public launch: complete the Google Cloud audience + app/branding settings and submit for verification (Calendar is a sensitive scope). |
 | Duration-aware slot blocking | Booking slot grid uses the doctor's single `slotDuration`; per-service durations drive the calendar event + busy check but not slot spacing. A 90-min session doesn't yet block the following slot. Future enhancement. |

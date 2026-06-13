@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useAssignedDoctor } from "@/hooks/useAssignedDoctor";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -86,6 +87,7 @@ export default function ClientMessagesPage() {
   const { user } = useAuth();
 
   const { conversations, loading: convLoading } = useConversations(user?.uid ?? "", "client");
+  const { doctor } = useAssignedDoctor();   // the client's assigned therapist
 
   const [activeId,     setActiveId]    = useState<string | null>(null);
   const [text,         setText]        = useState("");
@@ -133,23 +135,19 @@ export default function ClientMessagesPage() {
     setStartingNew(true);
     setStartError(null);
     try {
-      const snap = await getDocs(
-        query(collection(db, "users"), where("role", "==", "doctor"))
-      );
-      if (snap.empty) {
-        setStartError("No therapist found. Please contact support.");
+      // Start the conversation with the client's ASSIGNED doctor (not the first one).
+      if (!doctor) {
+        setStartError("You haven't been matched with a therapist yet.");
         return;
       }
-      const doctorDoc  = snap.docs[0];
-      const doctorData = doctorDoc.data() as any;
       const convId = await getOrCreateConversation(
         user.uid,
         user.displayName ?? "Client",
-        doctorDoc.id,
-        doctorData.displayName ?? "your therapist",
+        doctor.doctorId,
+        doctor.doctorName,
       );
       setActiveId(convId);
-      setDoctorName(doctorData.displayName ?? "your therapist");
+      setDoctorName(doctor.doctorName);
       setMobileView("chat");
     } catch (err) {
       console.error("[Messages] startConversation:", err);
