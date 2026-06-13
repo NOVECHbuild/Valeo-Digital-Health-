@@ -300,7 +300,7 @@ export default function OnboardingPage() {
                   className="mt-0.5 rounded" />
                 <span className="text-xs" style={{ color: "#4A5568" }}>
                   I agree to the{" "}
-                  <a href="/privacy" className="underline" style={{ color: "#2A4A1A" }}>Privacy Policy</a>
+                  <a href="/legal/privacy" className="underline" style={{ color: "#2A4A1A" }}>Privacy Policy</a>
                   {" "}and understand that my information will be kept confidential in line with professional ethical standards.
                 </span>
               </label>

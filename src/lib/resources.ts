@@ -13,6 +13,7 @@ export interface Resource {
   url:         string;
   source?:     string;   // e.g. "Amazon", "YouTube", "Nation News"
   coverImage?: string;   // optional image URL (used mainly for books)
+  storagePath?: string;  // set when the file was uploaded to Firebase Storage
   featured?:   boolean;  // show first / highlighted
   createdBy?:  string;
   createdAt?:  any;

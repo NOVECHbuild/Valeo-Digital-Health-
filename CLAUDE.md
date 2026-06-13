@@ -18,6 +18,7 @@
 - **Payments:** WiPay (Caribbean gateway, Barbados merchant account — bb.wipayfinancial.com)
 - **Video:** Google Meet API (via Google Calendar API + OAuth2)
 - **Calendar:** Google Calendar free/busy for booking availability (`/api/calendar/*`)
+- **Storage:** Firebase Storage for resource file uploads (`storage.rules`; deploy `firebase deploy --only storage`). Public download URLs; writes are authed + size/type-limited.
 - **AI:** Gemini (Google Generative AI) — session summaries, SOAP notes
 - **Email:** Resend (transactional, via REST — no SDK). Domain `valeoexperience.com` verified.
 - **Styling:** Tailwind CSS + inline styles (DM Sans / DM Serif Display fonts)
@@ -113,11 +114,16 @@ All third-party integrations are **fail-safe**: if `RESEND_API_KEY` or the Googl
 | Item | Notes |
 |------|-------|
 | WiPay end-to-end test | Blocked — awaiting resolution with WiPay support. Do not touch WiPay code until resolved. |
-| Real photos (Dr. Miller) | Hero, about, service tab images still placeholders |
-| Homepage CTAs | All route to Calendly / beta-gated `/register` — no native path for real prospects yet. |
-| Resource file uploads | Resources are link-only (Layer 1). Firebase Storage uploads for downloadable worksheets = future. |
+| Public self-registration | Deferred by decision: stay **invite-only** until WiPay is resolved, then open public self-registration (real register form → client account → onboarding → match → book). Homepage CTAs stay on Calendly until then. |
 | Google OAuth verification (go-live) | OAuth app is in **Testing** mode (100-user cap, test users only). Before public launch: complete the Google Cloud audience + app/branding settings and submit for verification (Calendar is a sensitive scope). |
-| Duration-aware slot blocking | Booking slot grid uses the doctor's single `slotDuration`; per-service durations drive the calendar event + busy check but not slot spacing. A 90-min session doesn't yet block the following slot. Future enhancement. |
+| API auth — remaining routes | `email/*`, `ai/session-summary`, `meet/create`, `calendar/*`, `payments/initiate` still accept anonymous POSTs (abuse/cost/spam). Add `requireAuth` + ownership checks. P1. See `AUDIT.md`. |
+| Security hardening (P2) | Encrypt OAuth refresh tokens at rest; escape interpolated values in email templates; add API rate limiting; validate WiPay callback signature. See `AUDIT.md`. |
+
+> **Security fixed this session** (see `AUDIT.md`): the 4 privileged admin routes
+> (`set-role`, `create-user`, `create-doctor`, `reset-password`) now require a verified
+> admin ID token (`src/lib/requireAuth.ts`); callers send `Authorization: Bearer`. The
+> `users` rule no longer lets clients **list** other users' PII (doctor/admin only).
+> **Rotate the Resend API key** that was shared in chat during setup.
 
 ### Doctor-defined services (shipped)
 Each doctor manages their own services in **Schedule → Services** (`schedules/{doctorId}.services: Service[]` = `{id,name,duration,price,description?,active}`). `src/lib/availability.ts` has `Service`, `DEFAULT_SERVICES`, `bookableServices()` (active only, legacy fallback seeded from `sessionPricing`), `servicesForEditing()`. Booking renders the doctor's active services; `/api/payments/initiate` charges by service name; the Notes session-type dropdown lists the doctor's services. Legacy `sessionPricing` retained for back-compat; a doctor's list is auto-seeded on first load.

@@ -5,26 +5,27 @@ import {
   collection, query, orderBy, onSnapshot,
   addDoc, updateDoc, deleteDoc, doc, serverTimestamp,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import {
   RESOURCE_CATEGORIES, CATEGORY_LABEL, type Resource, type ResourceCategory,
 } from "@/lib/resources";
 import {
   BookOpen, Plus, Edit3, Trash2, X, Loader2, Save,
-  CheckCircle, AlertCircle, Star, ExternalLink, Link2,
+  CheckCircle, AlertCircle, Star, ExternalLink, Link2, Upload,
 } from "lucide-react";
 
 interface Props { accent: string; accentDark: string; }
 
 type FormState = {
   title: string; description: string; category: ResourceCategory;
-  url: string; source: string; coverImage: string; featured: boolean;
+  url: string; source: string; coverImage: string; storagePath: string; featured: boolean;
 };
 
 const EMPTY_FORM: FormState = {
   title: "", description: "", category: "books",
-  url: "", source: "", coverImage: "", featured: false,
+  url: "", source: "", coverImage: "", storagePath: "", featured: false,
 };
 
 export default function ResourcesManager({ accent, accentDark }: Props) {
@@ -36,6 +37,7 @@ export default function ResourcesManager({ accent, accentDark }: Props) {
   const [saving,    setSaving]    = useState(false);
   const [error,     setError]     = useState<string | null>(null);
   const [deleting,  setDeleting]  = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [toast,     setToast]     = useState<{ type: "success" | "error"; msg: string } | null>(null);
 
   function showToast(type: "success" | "error", msg: string) {
@@ -55,9 +57,28 @@ export default function ResourcesManager({ accent, accentDark }: Props) {
   function openEdit(r: Resource) {
     setForm({
       title: r.title, description: r.description, category: r.category,
-      url: r.url, source: r.source ?? "", coverImage: r.coverImage ?? "", featured: !!r.featured,
+      url: r.url, source: r.source ?? "", coverImage: r.coverImage ?? "",
+      storagePath: r.storagePath ?? "", featured: !!r.featured,
     });
     setError(null); setEditing(r);
+  }
+
+  // Upload a file to Firebase Storage and use its public download URL.
+  async function handleFileUpload(file: File | undefined) {
+    if (!file) return;
+    setError(null);
+    setUploading(true);
+    try {
+      const path = `resources/${Date.now()}-${file.name.replace(/[^\w.\-]+/g, "_")}`;
+      const r = ref(storage, path);
+      await uploadBytes(r, file);
+      const downloadUrl = await getDownloadURL(r);
+      setForm(f => ({ ...f, url: downloadUrl, storagePath: path, source: f.source || "Download" }));
+    } catch {
+      setError("File upload failed. Use a PDF or image under 15 MB.");
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function handleSave() {
@@ -73,6 +94,7 @@ export default function ResourcesManager({ accent, accentDark }: Props) {
         url:         form.url.trim(),
         source:      form.source.trim(),
         coverImage:  form.coverImage.trim(),
+        storagePath: form.storagePath || "",
         featured:    form.featured,
         updatedAt:   serverTimestamp(),
       };
@@ -97,7 +119,9 @@ export default function ResourcesManager({ accent, accentDark }: Props) {
     if (!confirm("Remove this resource? Clients will no longer see it.")) return;
     setDeleting(id);
     try {
+      const r = resources.find(x => x.id === id);
       await deleteDoc(doc(db, "resources", id));
+      if (r?.storagePath) { try { await deleteObject(ref(storage, r.storagePath)); } catch { /* file may already be gone */ } }
       showToast("success", "Resource removed.");
     } catch {
       showToast("error", "Failed to remove.");
@@ -217,9 +241,17 @@ export default function ResourcesManager({ accent, accentDark }: Props) {
 
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#8A9BA8" }}>Link / URL *</label>
-                <input type="url" value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))}
+                <input type="url" value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value, storagePath: "" }))}
                   placeholder="https://…"
                   className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none" style={{ borderColor: "rgba(42,74,26,0.15)", background: "white" }} />
+                {/* Or upload a file (PDF / image) → public download link */}
+                <label className="mt-2 flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border-2 border-dashed cursor-pointer"
+                  style={{ borderColor: "rgba(42,74,26,0.18)", color: accent }}>
+                  {uploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+                  {uploading ? "Uploading…" : form.storagePath ? "File uploaded ✓ — choose another to replace" : "…or upload a file (PDF / image, ≤15 MB)"}
+                  <input type="file" accept="application/pdf,image/*" className="hidden"
+                    onChange={e => handleFileUpload(e.target.files?.[0])} disabled={uploading} />
+                </label>
               </div>
 
               <div>

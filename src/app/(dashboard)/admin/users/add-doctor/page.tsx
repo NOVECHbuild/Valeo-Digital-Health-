@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { auth } from "@/lib/firebase";
 import {
   ArrowLeft, User, Mail, Lock, Briefcase, BookOpen,
   Globe, Heart, Clock, Users, CheckCircle, Loader2,
@@ -168,9 +169,10 @@ export default function AddDoctorPage() {
 
     setLoading(true);
     try {
+      const token = await auth.currentUser?.getIdToken();
       const res = await fetch("/api/admin/create-doctor", {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` },
         body:    JSON.stringify({
           displayName:      form.displayName.trim(),
           email:            form.email.trim(),

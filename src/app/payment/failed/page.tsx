@@ -40,7 +40,7 @@ export default function PaymentFailedPage() {
           <MessageCircle size={15} /> Contact Support
         </a>
 
-        <Link href="/client/dashboard" className="text-xs" style={{ color: '#C4C4C4' }}>
+        <Link href="/client" className="text-xs" style={{ color: '#C4C4C4' }}>
           Back to dashboard
         </Link>
       </div>

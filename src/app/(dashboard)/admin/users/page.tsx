@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { collection, getDocs, orderBy, query, doc, updateDoc, serverTimestamp, addDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import {
   Users, Search, Plus, X, Loader2, Shield,
@@ -359,9 +359,10 @@ export default function AdminUsersPage() {
   async function handleResetPassword(uid: string, email: string) {
     setActing(uid);
     try {
+      const token = await auth.currentUser?.getIdToken();
       const res = await fetch("/api/admin/reset-password", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` },
         body: JSON.stringify({ email }),
       });
       if (!res.ok) throw new Error();
@@ -476,7 +477,7 @@ export default function AdminUsersPage() {
             Announce
           </button>
           {/* Manual Payment */}
-          <button onClick={() => router.push("/admin/payments/manual")}
+          <button onClick={() => router.push("/admin/financials")}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:-translate-y-0.5"
             style={{ background: "white", color: "#4A5568", border: "1px solid rgba(30,56,16,0.12)", boxShadow: "0 1px 3px rgba(30,56,16,0.07)" }}>
             <CreditCard size={15} style={{ color: "#F7941D" }} />

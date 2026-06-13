@@ -17,6 +17,8 @@ import {
 import {
   availableSlotsForDate,
   bookableServices,
+  labelToMinutes,
+  overlapsAny,
   type AvailabilitySchedule,
 } from "@/lib/availability";
 import {
@@ -44,11 +46,12 @@ const TIME_SLOTS = [
 
 // ── Hooks ──────────────────────────────────────────────────────────────────
 
-// FIX 8: Fetch already-booked slots for a given date so we can grey them out
-function useBookedSlots(doctorId: string, date: string) {
-  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+// Fetch already-booked appointments for a date as minute-intervals [start,end)
+// so we can block any candidate slot that overlaps (duration-aware).
+function useBookedIntervals(doctorId: string, date: string) {
+  const [intervals, setIntervals] = useState<{ start: number; end: number }[]>([]);
   useEffect(() => {
-    if (!doctorId || !date) { setBookedSlots([]); return; }
+    if (!doctorId || !date) { setIntervals([]); return; }
     (async () => {
       const snap = await getDocs(
         query(
@@ -58,10 +61,15 @@ function useBookedSlots(doctorId: string, date: string) {
           where("status",   "in", ["pending","approved"]),
         )
       );
-      setBookedSlots(snap.docs.map(d => (d.data() as any).time));
+      setIntervals(snap.docs.map(d => {
+        const a = d.data() as any;
+        const start = labelToMinutes(a.time || "");
+        const dur   = Number(a.duration) || 60;
+        return { start, end: start + dur };
+      }));
     })();
   }, [doctorId, date]);
-  return bookedSlots;
+  return intervals;
 }
 
 // Load the doctor's saved availability schedule (schedules/{doctorId})
@@ -364,21 +372,22 @@ function ClientAppointmentsPageInner() {
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
   const [cancelling, setCancelling]     = useState(false);
 
-  // FIX 8: Booked slots for selected date
-  const bookedSlots = useBookedSlots(doctorId, selectedDate);
+  // Already-booked intervals for the selected date (for duration-aware blocking)
+  const bookedIntervals = useBookedIntervals(doctorId, selectedDate);
 
   // The doctor's saved schedule + the services they offer (active only).
   // Falls back to the platform defaults if they haven't configured anything.
   const schedule = useDoctorSchedule(doctorId);
   const services = useMemo(() => bookableServices(schedule), [schedule]);
-  const selectedService = services.find(s => s.id === selectedType);
-  const selectedPrice   = selectedService?.price ?? 0;
+  const selectedService  = services.find(s => s.id === selectedType);
+  const selectedPrice    = selectedService?.price ?? 0;
+  const selectedDuration = selectedService?.duration ?? 60;
 
   const daySlots = useMemo(() => {
     if (!selectedDate) return [] as string[];
-    if (schedule) return availableSlotsForDate(schedule, selectedDate);
+    if (schedule) return availableSlotsForDate(schedule, selectedDate, selectedDuration);
     return TIME_SLOTS;
-  }, [schedule, selectedDate]);
+  }, [schedule, selectedDate, selectedDuration]);
 
   // Layer 2: Google Calendar free/busy. Fails safe — on any error the list is
   // empty and booking proceeds on platform availability alone.
@@ -820,7 +829,7 @@ setRedirecting(false);
                         <div className="grid grid-cols-4 gap-2">
                           {daySlots.map(time => {
                             // Grey out slots already booked on the platform OR busy on Google Calendar
-                            const isBooked = bookedSlots.includes(time) || busySlots.includes(time);
+                            const isBooked = overlapsAny(labelToMinutes(time), selectedDuration, bookedIntervals) || busySlots.includes(time);
                             const isSel    = selectedTime === time;
                             return (
                               <button key={time} onClick={() => !isBooked && setSelectedTime(time)}

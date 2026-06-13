@@ -26,7 +26,8 @@ service cloud.firestore {
     // ── Users ─────────────────────────────────────────────────────────────────
     match /users/{userId} {
       allow get:    if isUser(userId) || isDoctorOrAdmin();
-      allow list:   if isAuth();
+      // Only doctors/admins may LIST/query users; clients can't enumerate others' PII.
+      allow list:   if isDoctorOrAdmin();
       allow create: if isUser(userId);
       allow update: if (isUser(userId)
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']))

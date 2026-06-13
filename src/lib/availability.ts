@@ -106,7 +106,14 @@ export function genStartSlots(start: string, end: string, dur: number, buf: numb
 
 // All bookable start labels for a given ISO date (e.g. "2026-06-20"),
 // honouring the day's enabled hours and blocked dates. Returns [] if unavailable.
-export function availableSlotsForDate(avail: AvailabilitySchedule, dateStr: string): string[] {
+// `serviceDuration` (minutes) ensures a slot is only offered if the chosen
+// service actually fits before the working window closes; slots are still
+// spaced by the doctor's slotDuration + buffer.
+export function availableSlotsForDate(
+  avail: AvailabilitySchedule,
+  dateStr: string,
+  serviceDuration?: number,
+): string[] {
   if (!avail || !dateStr) return [];
   if (Array.isArray(avail.blockedDates) && avail.blockedDates.includes(dateStr)) return [];
 
@@ -116,9 +123,23 @@ export function availableSlotsForDate(avail: AvailabilitySchedule, dateStr: stri
   const day     = avail.availability?.[dayKey];
   if (!day || !day.enabled) return [];
 
-  const dur = avail.slotDuration ?? 60;
-  const buf = avail.bufferTime ?? 0;
-  const labels = day.slots.flatMap(s => genStartSlots(s.start, s.end, dur, buf));
-  // De-dupe while preserving order
+  const slotDur = avail.slotDuration ?? 60;
+  const buf     = avail.bufferTime ?? 0;
+  const fitDur  = serviceDuration ?? slotDur;   // the service must fit before window end
+  const step    = slotDur + buf;
+
+  const labels: string[] = [];
+  for (const s of day.slots) {
+    const [sh, sm] = s.start.split(":").map(Number);
+    const [eh, em] = s.end.split(":").map(Number);
+    const s0 = sh * 60 + sm, e0 = eh * 60 + em;
+    for (let t = s0; t + fitDur <= e0; t += step) labels.push(minutesToLabel(t));
+  }
   return Array.from(new Set(labels));
+}
+
+// True if [startMin, startMin+dur) overlaps any of the given minute-intervals.
+export function overlapsAny(startMin: number, dur: number, intervals: { start: number; end: number }[]): boolean {
+  const end = startMin + dur;
+  return intervals.some(iv => startMin < iv.end && end > iv.start);
 }

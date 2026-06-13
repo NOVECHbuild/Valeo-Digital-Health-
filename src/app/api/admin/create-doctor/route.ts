@@ -1,9 +1,13 @@
 // src/app/api/admin/create-doctor/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
+import { requireAdmin } from "@/lib/requireAuth";
 
 export async function POST(req: NextRequest) {
   try {
+    const gate = await requireAdmin(req);
+    if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
     const {
       // Account
       displayName, email, password,

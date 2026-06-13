@@ -1,9 +1,13 @@
 // src/app/api/admin/create-user/route.ts
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
+import { requireAdmin } from "@/lib/requireAuth";
 
 export async function POST(req: Request) {
   try {
+    const gate = await requireAdmin(req);
+    if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
     const body = await req.json();
     const { displayName, email, password, role, phone } = body;
 

@@ -101,7 +101,7 @@ function SuccessContent() {
           <Calendar size={15} /> View My Appointments <ArrowRight size={13} />
         </Link>
 
-        <Link href="/client/dashboard"
+        <Link href="/client"
           className="text-xs" style={{ color: '#C4C4C4' }}>
           Back to dashboard
         </Link>

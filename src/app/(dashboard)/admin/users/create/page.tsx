@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, UserPlus, Eye, EyeOff, Copy, Check, Mail, User, Lock, Phone } from 'lucide-react';
 import Link from 'next/link';
+import { auth } from '@/lib/firebase';
 
 export default function AdminCreateClientPage() {
   const router = useRouter();
@@ -43,9 +44,10 @@ export default function AdminCreateClientPage() {
     setLoading(true);
     setError('');
     try {
+      const token = await auth.currentUser?.getIdToken();
       const res = await fetch('/api/admin/create-user', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token ?? ''}` },
         body: JSON.stringify(form),
       });
       const data = await res.json();

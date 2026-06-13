@@ -1,0 +1,24 @@
+rules_version = '2';
+
+// Firebase Storage security rules.
+// Only the resources/ folder is used so far (downloadable worksheets/guides).
+// Files are publicly readable (unguessable download URLs) and writable by any
+// signed-in user, constrained to PDFs/images under 15 MB. The resource only
+// appears in the app if a doctor/admin also writes the role-gated Firestore
+// `resources` doc, so an orphaned upload is harmless.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    match /resources/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.resource.size < 15 * 1024 * 1024
+        && request.resource.contentType.matches('application/pdf|image/.*');
+    }
+
+    // Everything else is locked down.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

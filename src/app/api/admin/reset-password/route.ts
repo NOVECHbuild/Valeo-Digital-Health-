@@ -1,9 +1,13 @@
 // src/app/api/admin/reset-password/route.ts
 import { NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebase-admin";
+import { requireAdmin } from "@/lib/requireAuth";
 
 export async function POST(req: Request) {
   try {
+    const gate = await requireAdmin(req);
+    if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
+
     const { email } = await req.json();
     if (!email) return NextResponse.json({ error: "Email is required." }, { status: 400 });
 
