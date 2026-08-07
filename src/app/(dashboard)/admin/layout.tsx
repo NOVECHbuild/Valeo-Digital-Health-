@@ -15,7 +15,6 @@ import {
   LogOut,
   Menu,
   X,
-  Bell,
   Shield,
   ChevronRight,
   UserCheck,
@@ -24,6 +23,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import NotificationBell from "@/components/NotificationBell";
 
 const navItems = [
   { href: "/admin",             label: "Overview",    icon: LayoutDashboard },
@@ -198,16 +198,7 @@ export default function AdminLayout({
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              className="relative p-2 rounded-lg hover:bg-black/5 transition-colors"
-              style={{ color: "#4A5568" }}
-            >
-              <Bell size={18} />
-              <span
-                className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
-                style={{ background: "#F7941D" }}
-              />
-            </button>
+            <NotificationBell role="admin" />
             <div
               className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold"
               style={{ background: "rgba(247,148,29,0.1)", color: "#F7941D" }}

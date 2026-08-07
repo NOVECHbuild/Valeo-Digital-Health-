@@ -24,6 +24,7 @@ interface Announcement {
   type:      AnnouncementType;
   createdBy: string;
   createdAt: any;
+  active?:   boolean; // default true when missing (legacy docs)
 }
 
 const TYPE_STYLE: Record<AnnouncementType, { icon: any; color: string; bg: string; border: string }> = {
@@ -60,7 +61,11 @@ export default function AnnouncementBanner({ audience }: { audience: "client" | 
           query(collection(db, "announcements"), orderBy("createdAt", "desc"), limit(20))
         );
         const all = snap.docs.map(d => ({ id: d.id, ...d.data() }) as Announcement);
-        setItems(all.filter(a => visibleFor.includes(a.audience)).slice(0, 5));
+        setItems(
+          all
+            .filter(a => a.active !== false && visibleFor.includes(a.audience))
+            .slice(0, 5)
+        );
       } catch {
         // silent — banner just stays empty
       }

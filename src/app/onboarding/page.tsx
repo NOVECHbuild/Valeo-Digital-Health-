@@ -122,13 +122,13 @@ export default function OnboardingPage() {
                 Welcome to Valeo, {user?.displayName?.split(" ")[0]}
               </h2>
               <p className="text-sm mb-6 leading-relaxed" style={{ color: "#4A5568" }}>
-                We want to make sure Dr. Miller can support you in the best way possible.
+                We want to make sure your therapist can support you in the best way possible.
                 This quick setup takes just 2 minutes.
               </p>
               <div className="space-y-3 mb-8 text-left">
                 {[
                   { icon: Shield,   text: "Your answers are private and confidential" },
-                  { icon: Heart,    text: "Personalises your experience with Dr. Miller" },
+                  { icon: Heart,    text: "Personalises your experience with your therapist" },
                   { icon: Calendar, text: "Helps match you to the right session type" },
                 ].map(({ icon: Icon, text }) => (
                   <div key={text} className="flex items-center gap-3 p-3 rounded-xl"

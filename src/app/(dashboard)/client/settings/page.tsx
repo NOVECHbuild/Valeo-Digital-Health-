@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { auth } from '@/lib/firebase';
 import {
-  updateProfile,
   updatePassword,
   EmailAuthProvider,
   reauthenticateWithCredential,
@@ -12,9 +12,9 @@ import {
 import { doc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import {
-  User, Mail, Phone, Lock, Eye, EyeOff,
+  User, Lock, Eye, EyeOff,
   Check, AlertCircle, Shield, Loader2,
-  Bell, CheckCircle, AlertTriangle,
+  Bell, CheckCircle, AlertTriangle, ArrowRight,
 } from 'lucide-react';
 
 // ══════════════════════════════════════════════════════════════
@@ -316,7 +316,7 @@ export default function AccountSettingsPage() {
           Account Settings
         </h1>
         <p style={{ fontSize: '14px', color: '#8A9BA8' }}>
-          Manage your profile, security, and notification preferences.
+          Password and email notification preferences. Personal details live in Profile.
         </p>
       </div>
 
@@ -331,158 +331,35 @@ export default function AccountSettingsPage() {
         </div>
       )}
 
-      {/* ── PROFILE CARD ───────────────────────────────────────── */}
-      <div className="rounded-2xl overflow-hidden"
+      {/* ── PROFILE POINTER ────────────────────────────────────── */}
+      <Link href="/client/profile"
+        className="rounded-2xl overflow-hidden block transition-all hover:-translate-y-0.5"
         style={{ background: 'white', boxShadow: '0 1px 4px rgba(42,74,26,0.07)' }}>
         <div style={{ height: '3px', background: `linear-gradient(90deg, ${accent}, ${accentLight})` }} />
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <User size={18} style={{ color: accent }} />
-              <h2 className="text-base font-semibold" style={{ color: '#2A4A1A' }}>Profile Information</h2>
-            </div>
-            {profileDirty && (
-              <span
-                className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
-                style={{ background: 'rgba(247,148,29,0.12)', color: '#C4700A' }}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
-                Unsaved changes
-              </span>
-            )}
+        <div className="p-5 flex items-center gap-4">
+          <div
+            className="w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-bold flex-shrink-0"
+            style={{
+              background: `linear-gradient(135deg, ${accent}, ${accentLight})`,
+              color: 'white',
+            }}
+          >
+            {getInitials(displayName || user?.email || '?')}
           </div>
-
-          {/* Avatar + role banner */}
-          <div className="flex items-center gap-4 mb-6 pb-6"
-            style={{ borderBottom: '1px solid rgba(42,74,26,0.06)' }}>
-            <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center text-lg font-bold flex-shrink-0"
-              style={{
-                background: `linear-gradient(135deg, ${accent}, ${accentLight})`,
-                color: 'white',
-              }}
-            >
-              {getInitials(displayName || user?.email || '?')}
-            </div>
-            <div>
-              <p className="font-semibold text-sm" style={{ color: '#2A4A1A' }}>
-                {displayedName}
-              </p>
-              <p className="text-xs mb-2" style={{ color: '#8A9BA8' }}>{user?.email}</p>
-              <span
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
-                style={{ background: hexToRgba(roleBadgeCol, 0.12), color: roleBadgeCol }}
-              >
-                <Shield size={10} />
-                {roleLabel}
-              </span>
-            </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm" style={{ color: '#2A4A1A' }}>
+              {displayedName}
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: '#8A9BA8' }}>
+              Edit name, phone, goals, and emergency contact in Profile
+            </p>
           </div>
-
-          {loadingProfile ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 size={22} className="animate-spin" style={{ color: accent }} />
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Full Name */}
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
-                  style={{ color: '#8A9BA8' }}>Full Name</label>
-                <div className="relative">
-                  <User size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2"
-                    style={{ color: '#8A9BA8' }} />
-                  <input
-                    type="text"
-                    value={displayName}
-                    onChange={e => setDisplayName(e.target.value)}
-                    placeholder="Your full name"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none"
-                    style={{ background: '#F8F9FA', border: '1px solid rgba(42,74,26,0.1)', color: '#2A4A1A' }}
-                  />
-                </div>
-                {role === 'doctor' && (
-                  <p className="text-xs mt-1" style={{ color: '#8A9BA8' }}>
-                    Enter your name without "Dr." — it will be added automatically.
-                  </p>
-                )}
-              </div>
-
-              {/* Email (read-only) */}
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
-                  style={{ color: '#8A9BA8' }}>Email Address</label>
-                <div className="relative">
-                  <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2"
-                    style={{ color: '#8A9BA8' }} />
-                  <input
-                    type="email"
-                    value={user?.email || ''}
-                    disabled
-                    className="w-full pl-10 pr-4 py-3 rounded-xl text-sm"
-                    style={{
-                      background: 'rgba(42,74,26,0.03)',
-                      border: '1px solid rgba(42,74,26,0.06)',
-                      color: '#8A9BA8',
-                      cursor: 'not-allowed',
-                    }}
-                  />
-                </div>
-                <p className="text-xs mt-1" style={{ color: '#8A9BA8' }}>
-                  Email cannot be changed. Contact admin if needed.
-                </p>
-              </div>
-
-              {/* Phone */}
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
-                  style={{ color: '#8A9BA8' }}>
-                  Phone Number <span style={{ color: '#C4C4C4' }}>(optional)</span>
-                </label>
-                <div className="relative">
-                  <Phone size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2"
-                    style={{ color: '#8A9BA8' }} />
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={e => setPhone(e.target.value)}
-                    placeholder="+1 (xxx) xxx-xxxx"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none"
-                    style={{ background: '#F8F9FA', border: '1px solid rgba(42,74,26,0.1)', color: '#2A4A1A' }}
-                  />
-                </div>
-              </div>
-
-              {profileError && (
-                <div
-                  className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm"
-                  style={{ background: 'rgba(247,148,29,0.08)', color: '#F7941D', border: '1px solid rgba(247,148,29,0.15)' }}
-                >
-                  <AlertCircle size={15} />{profileError}
-                </div>
-              )}
-
-              <button
-                onClick={handleSaveProfile}
-                disabled={profileStatus === 'saving' || !profileDirty}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
-                style={{
-                  background: profileStatus === 'success'
-                    ? 'rgba(141,198,63,0.1)'
-                    : `linear-gradient(135deg, ${accent}, ${accentLight})`,
-                  color:     profileStatus === 'success' ? '#8DC63F' : 'white',
-                  boxShadow: profileStatus === 'success' ? 'none' : `0 4px 14px ${hexToRgba(accent, 0.3)}`,
-                  cursor:    (profileStatus === 'saving' || !profileDirty) ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {profileStatus === 'saving'  ? <><Loader2 size={14} className="animate-spin" />Saving…</>
-               : profileStatus === 'success' ? <><Check size={14} />Saved!</>
-               : 'Save Profile'}
-              </button>
-            </div>
-          )}
+          <span className="flex items-center gap-1 text-xs font-semibold flex-shrink-0"
+            style={{ color: '#2A4A1A' }}>
+            Profile <ArrowRight size={12} />
+          </span>
         </div>
-      </div>
+      </Link>
 
       {/* ── PASSWORD CARD ─────────────────────────────────────── */}
       <div className="rounded-2xl overflow-hidden"

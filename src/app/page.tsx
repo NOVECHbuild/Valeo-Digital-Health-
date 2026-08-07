@@ -132,8 +132,6 @@ export default function HomePage() {
         .hero-right { position: relative; z-index: 2; animation: fadeUp 1s 0.15s cubic-bezier(.22,1,.36,1) both; }
         .hero-card-main { background: rgba(255,255,255,0.07); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 40px; position: relative; }
         .hero-card-photo { width: 100%; aspect-ratio: 4/5; border-radius: 14px; overflow: hidden; background: linear-gradient(160deg, rgba(141,198,63,0.3) 0%, rgba(42,74,26,0.8) 100%); position: relative; }
-        .hero-card-photo-placeholder { text-align: center; color: rgba(255,255,255,0.5); font-size: 14px; padding: 40px; }
-        .hero-card-photo-placeholder .icon { font-size: 56px; margin-bottom: 12px; display: block; }
         .stat-float { position: absolute; background: white; border-radius: 14px; padding: 16px 22px; box-shadow: 0 16px 48px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 14px; }
         .stat-float-1 { bottom: 0px; left: -60px; }
         .stat-float-2 { top: 40px; right: -40px; }
@@ -288,11 +286,11 @@ export default function HomePage() {
         }
       `}</style>
 
-      {/* Google Fonts */}
+      {/* Cormorant only for decorative quotes — DM Sans/Serif come from layout next/font */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-      <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300&display=swap" rel="stylesheet" />
 
       {/* NAV */}
       <nav ref={navRef} id="main-nav">

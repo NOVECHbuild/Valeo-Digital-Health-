@@ -18,13 +18,13 @@ import {
   LogOut,
   Menu,
   X,
-  Bell,
   Heart,
   Settings,
   ChevronRight,
   BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import NotificationBell from "@/components/NotificationBell";
 
 // ── Nav items ─────────────────────────────────────────────────────────────
 // FIX: Settings added; order intentional (Settings near bottom, above sign-out)
@@ -223,20 +223,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           </div>
 
           <div className="flex items-center gap-3">
-            {/* FIX: Bell only shows red dot when there are real unread messages */}
-            <button
-              className="relative p-2 rounded-lg hover:bg-black/5 transition-colors"
-              style={{ color: "#4A5568" }}
-              aria-label="Notifications"
-            >
-              <Bell size={18} />
-              {unreadMessages > 0 && (
-                <span
-                  className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
-                  style={{ background: "#F7941D" }}
-                />
-              )}
-            </button>
+            <NotificationBell role="client" unreadCount={unreadMessages} />
 
             {/* Book session CTA */}
             <Link

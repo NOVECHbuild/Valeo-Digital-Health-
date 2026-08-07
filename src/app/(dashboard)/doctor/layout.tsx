@@ -11,11 +11,12 @@ import { doc, getDoc } from "firebase/firestore";
 import { useUnreadCount } from "@/lib/useMessages";
 import {
   LayoutDashboard, Calendar, Users, ClipboardList,
-  FileText, BarChart2, LogOut, Menu, X, Bell,
+  FileText, BarChart2, LogOut, Menu, X,
   Stethoscope, MessageCircle, ChevronRight,
   Settings, BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import NotificationBell from "@/components/NotificationBell";
 
 // ── Nav items ────────────────────────────────────────────────────────────────
 // NOTE: Settings is listed here — if it doesn't appear, run:
@@ -38,7 +39,6 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
   const { user } = useAuth();
   const [sidebarOpen,    setSidebarOpen]    = useState(false);
   const [specialization, setSpecialization] = useState("Health Psychologist");
-  const [notifCount]                        = useState(0);
   // Real unread count from the conversations' unreadDoctor counters
   const unreadMessages = useUnreadCount(user?.uid ?? "", "doctor");
 
@@ -228,19 +228,7 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
           </div>
 
           <div className="flex items-center gap-3">
-            {/* FIX 1: Bell only shows dot when there are real notifications */}
-            <button
-              className="relative p-2 rounded-lg hover:bg-black/5 transition-colors"
-              style={{ color: "#4A5568" }}
-              aria-label="Notifications">
-              <Bell size={18} />
-              {(notifCount > 0 || unreadMessages > 0) && (
-                <span
-                  className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
-                  style={{ background: "#F7941D" }}
-                />
-              )}
-            </button>
+            <NotificationBell role="doctor" unreadCount={unreadMessages} />
 
             {/* Doctor badge in header */}
             <div

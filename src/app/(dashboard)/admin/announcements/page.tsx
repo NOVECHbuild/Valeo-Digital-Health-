@@ -3,13 +3,13 @@
 import { useState, useEffect } from "react";
 import {
   collection, addDoc, getDocs, orderBy, query,
-  serverTimestamp, doc, deleteDoc,
+  serverTimestamp, doc, deleteDoc, updateDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Send, Trash2, Loader2, AlertCircle, CheckCircle,
-  Megaphone, Users, User, Stethoscope, Globe, X,
+  Megaphone, User, Stethoscope, Globe, Power,
 } from "lucide-react";
 
 type Audience = "all" | "clients" | "doctors";
@@ -23,6 +23,7 @@ interface Announcement {
   type:      AnnouncementType;
   createdBy: string;
   createdAt: any;
+  active?:   boolean;
 }
 
 const AUDIENCE_OPTIONS: { value: Audience; label: string; icon: any; color: string }[] = [
@@ -89,12 +90,14 @@ export default function AnnouncementsPage() {
         ...form,
         title:     form.title.trim(),
         message:   form.message.trim(),
+        active:    true,
         createdBy: user?.displayName ?? "Admin",
         createdAt: serverTimestamp(),
       });
       const newAnn: Announcement = {
         id: docRef.id,
         ...form,
+        active: true,
         createdBy: user?.displayName ?? "Admin",
         createdAt: new Date(),
       };
@@ -118,6 +121,19 @@ export default function AnnouncementsPage() {
       showToast("error", "Failed to delete announcement.");
     } finally {
       setDeleting(null);
+    }
+  }
+
+  async function handleToggleActive(ann: Announcement) {
+    const next = ann.active === false;
+    try {
+      await updateDoc(doc(db, "announcements", ann.id), { active: next });
+      setAnnouncements(prev =>
+        prev.map(a => (a.id === ann.id ? { ...a, active: next } : a))
+      );
+      showToast("success", next ? "Announcement activated." : "Announcement deactivated.");
+    } catch {
+      showToast("error", "Could not update announcement.");
     }
   }
 
@@ -258,13 +274,25 @@ export default function AnnouncementsPage() {
             {announcements.map(ann => {
               const audience = AUDIENCE_OPTIONS.find(a => a.value === ann.audience)!;
               const AudienceIcon = audience.icon;
+              const isActive = ann.active !== false;
               return (
                 <div key={ann.id} className="rounded-2xl p-5"
-                  style={{ background: "white", boxShadow: "0 1px 4px rgba(30,56,16,0.07)" }}>
+                  style={{
+                    background: "white",
+                    boxShadow: "0 1px 4px rgba(30,56,16,0.07)",
+                    opacity: isActive ? 1 : 0.65,
+                  }}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <TypeBadge type={ann.type} />
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase"
+                          style={{
+                            background: isActive ? "rgba(107,160,40,0.12)" : "rgba(138,155,168,0.15)",
+                            color: isActive ? "#6BA028" : "#8A9BA8",
+                          }}>
+                          {isActive ? "Active" : "Off"}
+                        </span>
                         <span className="flex items-center gap-1 text-xs font-medium"
                           style={{ color: audience.color }}>
                           <AudienceIcon size={11} /> {audience.label}
@@ -279,12 +307,19 @@ export default function AnnouncementsPage() {
                       <p className="text-sm leading-relaxed" style={{ color: "#4A5568" }}>{ann.message}</p>
                       <p className="text-xs mt-2" style={{ color: "#C4C4C4" }}>Sent by {ann.createdBy}</p>
                     </div>
-                    <button onClick={() => handleDelete(ann.id)} disabled={deleting === ann.id}
-                      className="p-2 rounded-lg hover:bg-red-50 transition-colors flex-shrink-0">
-                      {deleting === ann.id
-                        ? <Loader2 size={14} className="animate-spin" style={{ color: "#F7941D" }} />
-                        : <Trash2 size={14} style={{ color: "#F7941D" }} />}
-                    </button>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <button type="button" onClick={() => handleToggleActive(ann)}
+                        title={isActive ? "Deactivate" : "Activate"}
+                        className="p-2 rounded-lg hover:bg-black/5 transition-colors">
+                        <Power size={14} style={{ color: isActive ? "#6BA028" : "#8A9BA8" }} />
+                      </button>
+                      <button onClick={() => handleDelete(ann.id)} disabled={deleting === ann.id}
+                        className="p-2 rounded-lg hover:bg-red-50 transition-colors">
+                        {deleting === ann.id
+                          ? <Loader2 size={14} className="animate-spin" style={{ color: "#F7941D" }} />
+                          : <Trash2 size={14} style={{ color: "#F7941D" }} />}
+                      </button>
+                    </div>
                   </div>
                 </div>
               );

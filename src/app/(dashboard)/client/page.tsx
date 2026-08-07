@@ -16,6 +16,7 @@ import Link from "next/link";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 import { useUnreadCount } from "@/lib/useMessages";
 import { isConsentCurrent } from "@/lib/consent";
+import { useAssignedDoctor } from "@/hooks/useAssignedDoctor";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 interface ActivityItem {
@@ -147,6 +148,10 @@ export default function ClientDashboard() {
   const [needsConsent,    setNeedsConsent]    = useState(false);
 
   const firstName = user?.displayName?.split(" ")[0] ?? "there";
+  const { doctor } = useAssignedDoctor();
+  const quoteAttribution = doctor?.doctorName
+    ? `— ${doctor.doctorName}`
+    : "— Your therapist";
 
   // Real unread count from the conversations' unreadClient counters
   const unreadMessages = useUnreadCount(user?.uid ?? "", "client");
@@ -622,7 +627,7 @@ export default function ClientDashboard() {
         <p className="text-sm italic" style={{ color: "#4A5568" }}>
           &ldquo;Healing is not a destination. It is a journey we take together.&rdquo;
           <span className="not-italic font-medium ml-2" style={{ color: "#2A4A1A" }}>
-            — Dr. Jozelle M. Miller
+            {quoteAttribution}
           </span>
         </p>
       </div>

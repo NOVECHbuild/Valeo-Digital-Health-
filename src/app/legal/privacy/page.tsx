@@ -15,10 +15,10 @@ export default function PrivacyPolicyPage() {
           --orange: #F7941D; --leaf: #F2F8EA; --ivory: #FAFCF7;
           --charcoal: #22272B; --slate: #4A5568; --gray: #58595B;
         }
-        body { font-family: 'DM Sans', sans-serif; color: var(--charcoal); background: var(--ivory); }
-        h1, h2, h3 { font-family: 'DM Serif Display', serif; font-weight: 400; }
+        body { font-family: var(--font-dm-sans), 'DM Sans', sans-serif; color: var(--charcoal); background: var(--ivory); }
+        h1, h2, h3 { font-family: var(--font-dm-serif), 'DM Serif Display', serif; font-weight: 400; }
         .legal-nav { background: var(--forest); padding: 0 60px; height: 68px; display: flex; align-items: center; justify-content: space-between; }
-        .legal-nav .wordmark { font-family: 'DM Serif Display', serif; font-size: 20px; color: white; text-decoration: none; }
+        .legal-nav .wordmark { font-family: var(--font-dm-serif), 'DM Serif Display', serif; font-size: 20px; color: white; text-decoration: none; }
         .legal-nav .back { color: rgba(255,255,255,0.7); font-size: 13px; text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.2s; }
         .legal-nav .back:hover { color: var(--green); }
         .hero-strip { background: var(--forest); padding: 56px 60px 48px; border-bottom: 3px solid var(--green); }
@@ -28,8 +28,8 @@ export default function PrivacyPolicyPage() {
         .content-wrap { max-width: 820px; margin: 0 auto; padding: 64px 60px 80px; }
         .notice-box { background: var(--leaf); border-left: 4px solid var(--orange); border-radius: 0 8px 8px 0; padding: 16px 20px; margin-bottom: 48px; font-size: 14px; color: var(--slate); line-height: 1.6; }
         .section { margin-bottom: 48px; }
-        .section h2 { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--forest); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid rgba(42,74,26,0.12); }
-        .section h3 { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; color: var(--charcoal); margin: 20px 0 8px; }
+        .section h2 { font-family: var(--font-dm-serif), 'DM Serif Display', serif; font-size: 26px; color: var(--forest); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid rgba(42,74,26,0.12); }
+        .section h3 { font-family: var(--font-dm-sans), 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; color: var(--charcoal); margin: 20px 0 8px; }
         .section p { font-size: 15px; color: var(--slate); line-height: 1.8; margin-bottom: 14px; }
         .section ul { padding-left: 20px; margin-bottom: 14px; }
         .section ul li { font-size: 15px; color: var(--slate); line-height: 1.8; margin-bottom: 6px; }
@@ -45,12 +45,7 @@ export default function PrivacyPolicyPage() {
           .hero-strip h1 { font-size: 32px; }
         }
       `}</style>
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
-
-      <nav className="legal-nav">
+<nav className="legal-nav">
         <Link href="/" className="wordmark">The Valeo Experience</Link>
         <Link href="/" className="back">← Back to Home</Link>
       </nav>

@@ -499,11 +499,12 @@ function AssignModal({ allTemplates, systemTemplates, clients, doctorId,
 const TREND_IDS = ["system_phq9", "system_gad7"] as const;
 
 function ScoreTrendsPanel({
-  assessments, clients, onOpen,
+  assessments, clients, onOpen, onAssignClick,
 }: {
   assessments: AssignedAssessment[];
   clients: Client[];
   onOpen: (a: AssignedAssessment) => void;
+  onAssignClick: () => void;
 }) {
   const [clientId, setClientId] = useState("");
   const [instrument, setInstrument] = useState<(typeof TREND_IDS)[number]>("system_phq9");
@@ -565,9 +566,14 @@ function ScoreTrendsPanel({
           style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
           <TrendingUp size={24} className="mx-auto mb-3" style={{ color: "#8DC63F" }} />
           <p className="text-sm font-medium mb-1" style={{ color: "#2A4A1A" }}>No scored assessments yet</p>
-          <p className="text-xs" style={{ color: "#8A9BA8" }}>
+          <p className="text-xs mb-3" style={{ color: "#8A9BA8" }}>
             Assign PHQ-9 or GAD-7 and wait for a client to complete one — trends appear here.
           </p>
+          <button type="button" onClick={onAssignClick}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white"
+            style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
+            <Send size={12} /> Assign assessment
+          </button>
         </div>
       ) : (
         <>
@@ -976,9 +982,16 @@ export default function DoctorAssessmentsPage() {
               <p className="text-sm font-medium" style={{ color: "#2A4A1A" }}>
                 {search ? "No results found" : responseFilter !== "all" ? `No ${responseFilter} assessments` : "No assessments assigned yet"}
               </p>
-              <p className="text-xs mt-1" style={{ color: "#8A9BA8" }}>
+              <p className="text-xs mt-1 mb-3" style={{ color: "#8A9BA8" }}>
                 {search ? "Try a different name." : responseFilter !== "all" ? "Switch to All to see everything." : "Assign a clinical tool or custom form to a client."}
               </p>
+              {!search && responseFilter === "all" && (
+                <button type="button" onClick={() => openAssignFor(undefined)} disabled={clients.length === 0}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white disabled:opacity-50"
+                  style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
+                  <Send size={12} /> Assign assessment
+                </button>
+              )}
             </div>
           ) : (
             <div className="space-y-2">
@@ -1061,6 +1074,7 @@ export default function DoctorAssessmentsPage() {
           assessments={assessments}
           clients={clients}
           onOpen={a => setViewing(a)}
+          onAssignClick={() => openAssignFor(undefined)}
         />
 
       ) : tab === "library" ? (

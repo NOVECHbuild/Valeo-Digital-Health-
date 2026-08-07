@@ -5,6 +5,7 @@ import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 import { db, auth } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import Link from "next/link";
 import {
   User, Mail, Phone, MapPin, Shield, Lock,
   CheckCircle, AlertCircle, Loader2, Edit3, Save, X,
@@ -553,115 +554,26 @@ export default function ClientProfilePage() {
         </div>
       </Section>
 
-      {/* ── Security ── */}
+      {/* ── Security — password lives in Settings ── */}
       <Section title="Security" icon={Shield} accent="#F7941D">
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-xs" style={{ color: "#8A9BA8" }}>Change your account password</p>
-          {!isEditing("password") ? (
-            <button onClick={() => { setEditSection("password"); setPwError(null); }}
-              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg"
-              style={{ color: "#2A4A1A", background: "rgba(42,74,26,0.06)" }}>
-              <Lock size={12} /> Change Password
-            </button>
-          ) : (
-            <button onClick={() => {
-              setEditSection(null); setPwError(null);
-              setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
-            }}
-              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg"
-              style={{ color: "#8A9BA8", background: "rgba(42,74,26,0.04)" }}>
-              <X size={12} /> Cancel
-            </button>
-          )}
+        <div className="flex items-center gap-3 p-3 rounded-xl"
+          style={{ background: "rgba(42,74,26,0.03)" }}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ background: "rgba(141,198,63,0.1)" }}>
+            <Lock size={14} style={{ color: "#8DC63F" }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium" style={{ color: "#2A4A1A" }}>Password &amp; notifications</p>
+            <p className="text-xs" style={{ color: "#8A9BA8" }}>
+              {lastSignIn ? `Last sign-in: ${lastSignIn}` : "Managed in Settings"}
+            </p>
+          </div>
+          <Link href="/client/settings"
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg flex-shrink-0"
+            style={{ color: "#2A4A1A", background: "rgba(42,74,26,0.06)" }}>
+            Open Settings
+          </Link>
         </div>
-
-        {isEditing("password") && (
-          <div className="space-y-4">
-            {pwError && (
-              <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm"
-                style={{ background: "rgba(247,148,29,0.08)", color: "#F7941D" }}>
-                <AlertCircle size={14} />{pwError}
-              </div>
-            )}
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
-                style={{ color: "#8A9BA8" }}>Current Password</label>
-              <input type="password" value={currentPassword}
-                onChange={e => setCurrentPassword(e.target.value)}
-                placeholder="Your current password"
-                className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none"
-                style={{ borderColor: "rgba(42,74,26,0.15)", background: "#FAFAFA" }} />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
-                style={{ color: "#8A9BA8" }}>New Password</label>
-              <input type="password" value={newPassword}
-                onChange={e => setNewPassword(e.target.value)}
-                placeholder="Min. 8 characters"
-                className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none"
-                style={{ borderColor: "rgba(42,74,26,0.15)", background: "#FAFAFA" }} />
-              {/* S3: Password strength meter */}
-              {newPassword && (
-                <div className="mt-2">
-                  <div className="flex gap-1 mb-1">
-                    {[1, 2, 3].map(i => (
-                      <div key={i} className="flex-1 h-1 rounded-full transition-all"
-                        style={{
-                          background: i <= strength.level ? strength.color : "rgba(42,74,26,0.08)",
-                        }} />
-                    ))}
-                  </div>
-                  <p className="text-xs" style={{ color: strength.color }}>{strength.label}</p>
-                </div>
-              )}
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
-                style={{ color: "#8A9BA8" }}>Confirm New Password</label>
-              <input type="password" value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-                placeholder="Repeat new password"
-                className="w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none"
-                style={{
-                  borderColor: confirmPassword && confirmPassword !== newPassword
-                    ? "#F7941D" : "rgba(42,74,26,0.15)",
-                  background: "#FAFAFA",
-                }} />
-              {confirmPassword && confirmPassword !== newPassword && (
-                <p className="text-xs mt-1" style={{ color: "#F7941D" }}>Passwords do not match</p>
-              )}
-            </div>
-            <button onClick={handlePasswordChange}
-              disabled={pwSaving || !currentPassword || !newPassword || !confirmPassword}
-              className="w-full py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-50 flex items-center justify-center gap-2"
-              style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
-              {pwSaving ? <><Loader2 size={14} className="animate-spin" /> Updating…</> : "Update Password"}
-            </button>
-          </div>
-        )}
-
-        {!isEditing("password") && (
-          <div className="flex items-center gap-3 p-3 rounded-xl"
-            style={{ background: "rgba(42,74,26,0.03)" }}>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: "rgba(141,198,63,0.1)" }}>
-              <Lock size={14} style={{ color: "#8DC63F" }} />
-            </div>
-            <div>
-              <p className="text-sm font-medium" style={{ color: "#2A4A1A" }}>Password</p>
-              {/* FIX 7: Real last sign-in time from Firebase Auth metadata */}
-              <p className="text-xs" style={{ color: "#8A9BA8" }}>
-                {lastSignIn ? `Last sign-in: ${lastSignIn}` : "Password protected"}
-              </p>
-            </div>
-            <div className="ml-auto">
-              <span className="text-xs px-2.5 py-1 rounded-full font-medium"
-                style={{ background: "rgba(141,198,63,0.1)", color: "#6BA028" }}>
-                Protected
-              </span>
-            </div>
-          </div>
-        )}
       </Section>
 
       {/* Email change note */}

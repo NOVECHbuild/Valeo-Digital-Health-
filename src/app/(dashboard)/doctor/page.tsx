@@ -320,7 +320,12 @@ export default function DoctorDashboard() {
                 <Calendar size={24} style={{ color:"#8DC63F" }}/>
               </div>
               <p className="text-sm font-medium mb-1" style={{ color:"#1E3810" }}>No appointments today</p>
-              <p className="text-xs" style={{ color:"#8A9BA8" }}>Your schedule is clear. Appointments will appear here.</p>
+              <p className="text-xs mb-3" style={{ color:"#8A9BA8" }}>Your schedule is clear. Appointments will appear here.</p>
+              <Link href="/doctor/schedule"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold"
+                style={{ background:"rgba(42,74,26,0.06)", color:"#1E3810" }}>
+                Open Schedule <ArrowRight size={11}/>
+              </Link>
             </div>
           ) : (
             todayAppts.map(a => (
@@ -384,7 +389,12 @@ export default function DoctorDashboard() {
               <Users size={20} style={{ color:"#1E3810" }}/>
             </div>
             <p className="text-sm font-medium mb-1" style={{ color:"#1E3810" }}>No clients yet</p>
-            <p className="text-xs" style={{ color:"#8A9BA8" }}>Clients will appear here once they book sessions.</p>
+            <p className="text-xs mb-3" style={{ color:"#8A9BA8" }}>Clients will appear here once they book sessions.</p>
+            <Link href="/doctor/clients"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold"
+              style={{ background:"rgba(42,74,26,0.06)", color:"#1E3810" }}>
+              View Clients <ArrowRight size={11}/>
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

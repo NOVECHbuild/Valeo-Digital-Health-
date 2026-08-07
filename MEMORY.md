@@ -4,7 +4,7 @@ _Update this when Benny shares a new fact, decision, blocker, or “do not chang
 
 ## Current goal
 - **Stripe parked** until website/product feels complete (Benny 2026-08-07).
-- Build sequence: **1 recurring appointments** → **2 portal/homepage polish** → **3 stale-data pass**.
+- Build sequence: **1 recurring** (done) → **2 portal/homepage polish** (in progress) → **3 stale-data pass**.
 - Meet/Calendar working. Stay invite-only + Calendly homepage until public launch.
 
 ## Later (noted, not now)

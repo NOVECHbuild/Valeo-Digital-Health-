@@ -174,14 +174,20 @@ export default function PlatformSettings() {
 
               {/* Toggles */}
               {([
-                { key: "maintenanceMode", icon: Wrench,   label: "Maintenance Mode",     sub: "Stored now — enforcement (middleware lock-out) is a flagged follow-up." },
-                { key: "betaRegistration", icon: UserPlus, label: "Beta Registration",   sub: "Stored now — the register page wiring is a flagged follow-up." },
+                { key: "maintenanceMode", icon: Wrench,   label: "Maintenance Mode",     sub: "Not enforced yet — saved for a future lock-out. Toggle has no effect on the live site today." },
+                { key: "betaRegistration", icon: UserPlus, label: "Beta Registration",   sub: "Not enforced yet — invite-only stays until public registration is wired to this flag." },
               ] as { key: keyof PlatformConfig; icon: any; label: string; sub: string }[]).map(({ key, icon: Icon, label, sub }) => (
                 <div key={key} className="flex items-center justify-between gap-4">
                   <div className="flex items-start gap-3">
                     <Icon size={16} style={{ color: "#F7941D", marginTop: "2px" }} />
                     <div>
-                      <p className="text-sm font-medium" style={{ color: "#2A4A1A" }}>{label}</p>
+                      <p className="text-sm font-medium" style={{ color: "#2A4A1A" }}>
+                        {label}{" "}
+                        <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded"
+                          style={{ background: "rgba(247,148,29,0.12)", color: "#C4700A" }}>
+                          Not enforced yet
+                        </span>
+                      </p>
                       <p className="text-xs" style={{ color: "#8A9BA8" }}>{sub}</p>
                     </div>
                   </div>

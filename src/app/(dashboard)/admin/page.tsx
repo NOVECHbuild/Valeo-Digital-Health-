@@ -186,23 +186,18 @@ export default function AdminDashboard() {
             </p>
             <h2 className="text-2xl text-white mb-2" style={{ fontFamily:"var(--font-dm-serif)" }}>Platform Overview</h2>
             <p className="text-sm" style={{ color:"rgba(255,255,255,0.55)" }}>
-              The Valeo Experience is <span className="text-white font-semibold">operational</span>. All systems normal.
+              Platform snapshot for Valeo Experience. Session approvals happen in each doctor&apos;s Schedule.
             </p>
           </div>
           <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl"
-              style={{ background:"rgba(141,198,63,0.12)", border:"1px solid rgba(141,198,63,0.2)" }}>
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{ background:C.teal }}/>
-              <span className="text-sm font-medium" style={{ color:C.teal }}>All Systems Online</span>
-            </div>
             {pendingAppts.length > 0 && (
-              <Link href="/admin/assignments" className="flex items-center gap-2 px-4 py-2 rounded-xl transition-opacity hover:opacity-80"
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl"
                 style={{ background:"rgba(247,148,29,0.15)", border:"1px solid rgba(247,148,29,0.3)" }}>
                 <AlertCircle size={13} style={{ color:C.coral }}/>
                 <span className="text-sm font-medium" style={{ color:C.coral }}>
-                  {pendingAppts.length} pending appointment{pendingAppts.length!==1?"s":""}
+                  {pendingAppts.length} pending with therapists
                 </span>
-              </Link>
+              </div>
             )}
           </div>
         </div>
@@ -267,21 +262,10 @@ export default function AdminDashboard() {
           <QuickAction href="/admin/announcements"      icon={Activity}    label="Announcements"     accent="#9B59B6" />
           <QuickAction href="/admin/settings"           icon={Settings}    label="Platform Settings" accent={C.dark}  />
           <div className="rounded-xl p-4" style={{ background:"rgba(30,56,16,0.03)", border:"1px solid rgba(30,56,16,0.08)" }}>
-            <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color:C.slate }}>System Health</p>
-            {[
-              { label:"Firebase Auth",  status:"Operational",    ok:true  },
-              { label:"Firestore DB",   status:"Operational",    ok:true  },
-              { label:"Storage",        status:"Operational",    ok:true  },
-              { label:"Stripe Gateway", status:"Test mode",      ok:true  },
-            ].map(({ label, status, ok }) => (
-              <div key={label} className="flex items-center justify-between py-1.5 border-b last:border-0" style={{ borderColor:"rgba(30,56,16,0.06)" }}>
-                <span className="text-xs" style={{ color:"#4A5568" }}>{label}</span>
-                <span className="text-xs font-medium flex items-center gap-1" style={{ color:ok?C.teal:C.coral }}>
-                  <div className="w-1.5 h-1.5 rounded-full" style={{ background:ok?C.teal:C.coral }}/>
-                  {status}
-                </span>
-              </div>
-            ))}
+            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color:C.slate }}>System Health</p>
+            <p className="text-xs leading-relaxed" style={{ color:"#4A5568" }}>
+              Not monitored from this dashboard. Check Vercel, Firebase Console, and Stripe Dashboard if something looks off.
+            </p>
           </div>
         </div>
       </div>
@@ -291,7 +275,7 @@ export default function AdminDashboard() {
         {[
           { label:"Clients",           count:clients.length,        icon:Users,       accent:C.teal,  desc:"Registered clients",  href:"/admin/users"        },
           { label:"Doctors",           count:doctors.length,        icon:Stethoscope, accent:C.ocean, desc:"Active practitioners", href:"/admin/users"        },
-          { label:"Pending",           count:pendingAppts.length,   icon:Clock,       accent:C.coral, desc:"Awaiting approval",    href:"/admin/analytics"    },
+          { label:"Pending (info)",    count:pendingAppts.length,   icon:Clock,       accent:C.coral, desc:"Awaiting therapist",  href:"/admin/analytics"    },
           { label:"Sessions Complete", count:completedAppts.length, icon:CheckCircle, accent:C.gold,  desc:"All time",            href:"/admin/analytics"    },
         ].map(({ label, count, icon: Icon, accent, desc, href }) => (
           <Link key={label} href={href}
