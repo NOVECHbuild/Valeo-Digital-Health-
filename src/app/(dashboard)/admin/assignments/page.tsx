@@ -104,11 +104,18 @@ export default function AdminAssignmentsPage() {
     const doctor = doctors.find(d => d.uid === targetDoctor);
     if (!doctor) { setSaving(false); return; }
 
+    const client = assignments.find(a => a.clientId === clientId);
+    const doctorLabel = [doctor.title, doctor.displayName].filter(Boolean).join(" ").trim()
+      || doctor.displayName
+      || "Therapist";
+
     try {
       await setDoc(doc(db, "assignments", clientId), {
         clientId,
+        clientName:      client?.clientName ?? "",
+        clientEmail:     client?.clientEmail ?? "",
         doctorId:        targetDoctor,
-        doctorName:      doctor.displayName,
+        doctorName:      doctor.displayName || doctorLabel,
         matchPercent:    0,
         assignedAt:      serverTimestamp(),
         assignedBy:      "admin",
@@ -117,17 +124,23 @@ export default function AdminAssignmentsPage() {
         switchReason:    null,
       }, { merge: true });
 
-      await updateDoc(doc(db, "users", clientId), { doctorId: targetDoctor });
+      await updateDoc(doc(db, "users", clientId), {
+        doctorId:  targetDoctor,
+        onboarded: true,
+      });
 
       setAssignments(prev => prev.map(a =>
         a.clientId === clientId
-          ? { ...a, doctorId: targetDoctor, doctorName: doctor.displayName,
+          ? { ...a, doctorId: targetDoctor, doctorName: doctor.displayName || doctorLabel,
               assignedBy: "admin", status: "active", switchRequested: false }
           : a
       ));
-      showToast(`Reassigned successfully to ${doctor.title} ${doctor.displayName}`);
+      showToast(`Assigned successfully to ${doctorLabel}`);
       setReassigning(null);
       setTargetDoctor("");
+    } catch (err) {
+      console.error("[assignments] assign failed:", err);
+      showToast("Assignment failed — check admin permissions and try again.");
     } finally {
       setSaving(false);
     }
@@ -187,7 +200,7 @@ export default function AdminAssignmentsPage() {
           { label: "Total Assigned",     value: assignments.filter(a => a.doctorId).length, accent: "#2A4A1A", Icon: UserCheck   },
           { label: "Unassigned",         value: unassignedCount,                            accent: "#F7941D", Icon: Users       },
           { label: "Switch Requests",    value: switchCount,                                accent: "#F7941D", Icon: RefreshCw   },
-          { label: "Active Therapists",  value: doctors.filter(d => d.acceptingClients).length, accent: "#8DC63F", Icon: CheckCircle },
+          { label: "Active Therapists",  value: doctors.filter(d => d.acceptingClients !== false).length, accent: "#8DC63F", Icon: CheckCircle },
         ].map(({ label, value, accent, Icon }) => (
           <div key={label} className="rounded-2xl p-4 flex items-center gap-3"
             style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
@@ -355,8 +368,8 @@ export default function AdminAssignmentsPage() {
                             <option value="">Select therapist...</option>
                             {doctors.map(d => (
                               <option key={d.uid} value={d.uid}>
-                                {d.title} {d.displayName} — {d.currentClients}/{d.maxClients} clients
-                                {!d.acceptingClients ? " (not accepting)" : ""}
+                                {[d.title, d.displayName].filter(Boolean).join(" ")} — {(d.currentClients ?? 0)}/{(d.maxClients ?? "∞")} clients
+                                {d.acceptingClients === false ? " (not accepting)" : ""}
                               </option>
                             ))}
                           </select>

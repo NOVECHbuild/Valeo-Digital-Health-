@@ -53,42 +53,76 @@ const CONCERN_SPEC_MAP: Record<string, string[]> = {
 };
 
 // ── Main scoring function ──────────────────────────────────────────────────
+/** Normalize a Firestore user doc into a safe DoctorProfile (missing arrays won't crash scoring/UI). */
+export function normalizeDoctor(uid: string, data: Record<string, any>): DoctorProfile {
+  return {
+    uid,
+    displayName:      data.displayName ?? "Therapist",
+    email:            data.email ?? "",
+    title:            data.title ?? "Dr.",
+    bio:              data.bio ?? "",
+    photoURL:         data.photoURL,
+    specializations:  Array.isArray(data.specializations) ? data.specializations : [],
+    sessionTypes:     Array.isArray(data.sessionTypes) ? data.sessionTypes : [],
+    languages:        Array.isArray(data.languages) && data.languages.length
+      ? data.languages
+      : ["English"],
+    approaches:       Array.isArray(data.approaches) ? data.approaches : [],
+    // undefined → treat as accepting (invite-only doctors often lack this field)
+    acceptingClients: data.acceptingClients !== false,
+    maxClients:       Number(data.maxClients) > 0 ? Number(data.maxClients) : 50,
+    currentClients:   Number(data.currentClients) || 0,
+    yearsExperience:  Number(data.yearsExperience) || 0,
+    gender:           data.gender ?? "prefer-not-to-say",
+    timezone:         data.timezone ?? "",
+    createdAt:        data.createdAt,
+    updatedAt:        data.updatedAt,
+  };
+}
+
 export function scoreDoctor(
   doctor:  DoctorProfile,
   intake:  IntakeResponses
 ): number {
   let score = 0;
 
-  // 1. Not accepting clients → disqualified
-  if (!doctor.acceptingClients) return -1;
+  // 1. Not accepting clients → disqualified (only explicit false)
+  if (doctor.acceptingClients === false) return -1;
+
+  const concerns   = Array.isArray(intake.presentingConcerns) ? intake.presentingConcerns : [];
+  const approaches = Array.isArray(intake.preferredApproach) ? intake.preferredApproach : [];
+  const specs      = doctor.specializations ?? [];
+  const sessionTypes = doctor.sessionTypes ?? [];
+  const languages  = doctor.languages ?? [];
+  const docApproaches = doctor.approaches ?? [];
 
   // 2. At capacity → heavily penalised
   if (doctor.currentClients >= doctor.maxClients) score -= 40;
 
   // 3. Specialization match (max 40 points)
-  const relatedSpecs = intake.presentingConcerns.flatMap(c => CONCERN_SPEC_MAP[c] ?? []);
+  const relatedSpecs = concerns.flatMap(c => CONCERN_SPEC_MAP[c] ?? []);
   const specMatches  = relatedSpecs.filter(s =>
-    doctor.specializations.some(ds => ds.toLowerCase().includes(s.toLowerCase()))
+    specs.some(ds => ds.toLowerCase().includes(s.toLowerCase()))
   ).length;
   score += Math.min(specMatches * 8, 40);
 
   // 4. Session type match (max 20 points)
-  if (doctor.sessionTypes.includes(intake.sessionType)) score += 20;
-  else if (intake.sessionType === "Not sure" || intake.sessionType === "") score += 10;
+  if (sessionTypes.includes(intake.sessionType)) score += 20;
+  else if (!intake.sessionType || intake.sessionType === "Not sure" || intake.sessionType === "Not sure yet") score += 10;
 
   // 5. Language match (max 15 points)
-  if (doctor.languages.includes(intake.preferredLanguage)) score += 15;
-  else if (intake.preferredLanguage === "Any" || intake.preferredLanguage === "") score += 15;
+  if (languages.includes(intake.preferredLanguage)) score += 15;
+  else if (!intake.preferredLanguage || intake.preferredLanguage === "Any") score += 15;
 
   // 6. Gender preference (max 10 points)
-  if (intake.preferredGender === "Any" || intake.preferredGender === "") score += 10;
+  if (!intake.preferredGender || intake.preferredGender === "Any") score += 10;
   else if (doctor.gender === intake.preferredGender) score += 10;
   else score -= 20; // hard preference not met
 
   // 7. Therapeutic approach match (max 10 points)
-  if (intake.preferredApproach.length > 0) {
-    const approachMatches = intake.preferredApproach.filter(a =>
-      doctor.approaches.some(da => da.toLowerCase().includes(a.toLowerCase()))
+  if (approaches.length > 0) {
+    const approachMatches = approaches.filter(a =>
+      docApproaches.some(da => da.toLowerCase().includes(a.toLowerCase()))
     ).length;
     score += Math.min(approachMatches * 5, 10);
   } else {
