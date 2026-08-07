@@ -22,6 +22,7 @@ import {
   overlapsAny,
   type AvailabilitySchedule,
 } from "@/lib/availability";
+import { isConsentCurrent } from "@/lib/consent";
 import {
   Calendar, Clock, Plus, X, CheckCircle, AlertCircle,
   XCircle, Loader2, ChevronLeft, ChevronRight, Video,
@@ -461,9 +462,21 @@ function ClientAppointmentsPageInner() {
     setNotes(""); setError(null); setRedirecting(false); setShowBooking(false);
   }
 
-  // Multi-doctor gate: a client must be matched to a doctor before booking.
-  function startBooking() {
+  // Multi-doctor gate + telehealth consent required before booking.
+  async function startBooking() {
     if (!doctor) { router.push("/onboarding/match"); return; }
+    if (!user) return;
+    try {
+      const cSnap = await getDoc(doc(db, "consents", user.uid));
+      const version = cSnap.exists() ? (cSnap.data() as any).version : null;
+      if (!isConsentCurrent(version)) {
+        router.push("/onboarding/consent?next=/client/appointments");
+        return;
+      }
+    } catch {
+      router.push("/onboarding/consent?next=/client/appointments");
+      return;
+    }
     setShowBooking(true); setStep(1);
   }
 

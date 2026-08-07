@@ -10,11 +10,12 @@ import {
 import {
   Calendar, ClipboardList, MessageSquare, TrendingUp,
   Clock, CheckCircle, ArrowRight, Heart, Loader2,
-  AlertTriangle, Brain, Video,
+  AlertTriangle, Brain, Video, Shield,
 } from "lucide-react";
 import Link from "next/link";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 import { useUnreadCount } from "@/lib/useMessages";
+import { isConsentCurrent } from "@/lib/consent";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 interface ActivityItem {
@@ -143,6 +144,7 @@ export default function ClientDashboard() {
   const [pendingAssess,   setPendingAssess]   = useState(0);
   const [activity,        setActivity]        = useState<ActivityItem[]>([]);
   const [nextSession,     setNextSession]     = useState<UpcomingSession | null>(null);
+  const [needsConsent,    setNeedsConsent]    = useState(false);
 
   const firstName = user?.displayName?.split(" ")[0] ?? "there";
 
@@ -154,6 +156,20 @@ export default function ClientDashboard() {
     const h = new Date().getHours();
     setGreeting(h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening");
   }, []);
+
+  // Consent gate (soft banner)
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      try {
+        const cSnap = await getDoc(doc(db, "consents", user.uid));
+        const version = cSnap.exists() ? (cSnap.data() as any).version : null;
+        setNeedsConsent(!isConsentCurrent(version));
+      } catch {
+        setNeedsConsent(true);
+      }
+    })();
+  }, [user]);
 
   // ── Live data queries ──────────────────────────────────────────────────
   useEffect(() => {
@@ -310,6 +326,28 @@ export default function ClientDashboard() {
 
       {/* ── Platform announcements ── */}
       <AnnouncementBanner audience="client" />
+
+      {needsConsent && (
+        <div className="rounded-2xl px-4 py-3.5 flex flex-wrap items-center justify-between gap-3"
+          style={{ background: "rgba(247,148,29,0.08)", border: "1px solid rgba(247,148,29,0.22)" }}>
+          <div className="flex items-start gap-2.5 min-w-0">
+            <Shield size={16} className="flex-shrink-0 mt-0.5" style={{ color: "#F7941D" }} />
+            <div>
+              <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>
+                Complete telehealth consent before booking
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: "#4A5568" }}>
+                A quick acknowledgment of platform policies — required once before your first session request.
+              </p>
+            </div>
+          </div>
+          <Link href="/onboarding/consent?next=/client"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white flex-shrink-0"
+            style={{ background: "linear-gradient(135deg,#2A4A1A,#3D6B24)" }}>
+            Review &amp; sign
+          </Link>
+        </div>
+      )}
 
       {/* ── Welcome banner ── */}
       <div

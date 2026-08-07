@@ -7,9 +7,10 @@ import { useAuth } from "@/context/AuthContext";
 import {
   Search, Users, Calendar, Clock, ChevronRight, Loader2,
   Mail, Phone, MapPin, Heart, X, CheckCircle, MessageCircle,
-  ExternalLink, FileText, TrendingUp, AlertCircle,
+  ExternalLink, FileText, TrendingUp, AlertCircle, Shield,
 } from "lucide-react";
 import Link from "next/link";
+import { CONSENT_VERSION, isConsentCurrent, CONSENT_ACKS, type ConsentRecord } from "@/lib/consent";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface Client {
@@ -24,6 +25,8 @@ interface Client {
   emergencyContact?: { name: string; phone: string };
   createdAt:       any;
   isActive?:       boolean;
+  consentSignedAt?: any;
+  consentVersion?: string;
 }
 
 interface Appointment {
@@ -76,10 +79,11 @@ function StatusBadge({ status }: { status: Appointment["status"] }) {
 }
 
 // ── Client drawer ──────────────────────────────────────────────────────────
-function ClientDrawer({ client, appointments, onClose }: {
-  client: Client; appointments: Appointment[]; onClose: () => void;
+function ClientDrawer({ client, appointments, consent, onClose }: {
+  client: Client; appointments: Appointment[]; consent: ConsentRecord | null; onClose: () => void;
 }) {
   const [apptFilter, setApptFilter] = useState<"all"|"upcoming"|"completed">("all");
+  const [showConsent, setShowConsent] = useState(false);
 
   const upcoming  = appointments.filter(a => ["pending","approved"].includes(a.status));
   const completed = appointments.filter(a => a.status === "completed");
@@ -89,6 +93,8 @@ function ClientDrawer({ client, appointments, onClose }: {
                    : appointments;
 
   const memberSince = toDate(client.createdAt);
+  const consentOk = isConsentCurrent(consent?.version ?? client.consentVersion);
+  const consentDate = toDate(consent?.signedAt ?? client.consentSignedAt);
 
   // Completion rate
   const completionRate = appointments.length > 0
@@ -166,6 +172,49 @@ function ClientDrawer({ client, appointments, onClose }: {
                 <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>{label}</p>
               </div>
             ))}
+          </div>
+
+          {/* Telehealth consent */}
+          <div className="rounded-2xl p-4"
+            style={{ background: "white", boxShadow: "0 1px 3px rgba(42,74,26,0.06)" }}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <Shield size={16} className="mt-0.5 flex-shrink-0"
+                  style={{ color: consentOk ? "#6BA028" : "#F7941D" }} />
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#8A9BA8" }}>
+                    Telehealth consent
+                  </p>
+                  <p className="text-sm font-medium mt-0.5"
+                    style={{ color: consentOk ? "#2A4A1A" : "#F7941D" }}>
+                    {consentOk
+                      ? `Signed${consentDate ? ` · ${consentDate.toLocaleDateString()}` : ""}`
+                      : "Not signed yet"}
+                  </p>
+                  {consentOk && consent && (
+                    <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>
+                      {consent.typedSignature} · v{consent.version || CONSENT_VERSION}
+                    </p>
+                  )}
+                </div>
+              </div>
+              {consentOk && consent && (
+                <button type="button" onClick={() => setShowConsent(s => !s)}
+                  className="text-xs font-semibold px-2.5 py-1.5 rounded-lg"
+                  style={{ background: "rgba(42,74,26,0.06)", color: "#2A4A1A" }}>
+                  {showConsent ? "Hide" : "View"}
+                </button>
+              )}
+            </div>
+            {showConsent && consent && (
+              <ul className="mt-3 space-y-1.5 pt-3 border-t" style={{ borderColor: "rgba(42,74,26,0.06)" }}>
+                {CONSENT_ACKS.map(a => (
+                  <li key={a.key} className="text-xs" style={{ color: "#4A5568" }}>
+                    {consent.accepted?.[a.key] ? "✓" : "○"} {a.label}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Contact */}
@@ -321,8 +370,8 @@ function ClientDrawer({ client, appointments, onClose }: {
 }
 
 // ── Client card ────────────────────────────────────────────────────────────
-function ClientCard({ client, appts, onClick }: {
-  client: Client; appts: Appointment[]; onClick: () => void;
+function ClientCard({ client, appts, consentOk, onClick }: {
+  client: Client; appts: Appointment[]; consentOk: boolean; onClick: () => void;
 }) {
   const lastAppt   = appts[0] ?? null;
   const upcoming   = appts.filter(a => ["pending","approved"].includes(a.status));
@@ -364,6 +413,14 @@ function ClientCard({ client, appts, onClick }: {
 
           {/* Meta row */}
           <div className="flex items-center gap-3 mt-3 flex-wrap">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
+              style={{
+                background: consentOk ? "rgba(107,160,40,0.1)" : "rgba(247,148,29,0.1)",
+                color: consentOk ? "#6BA028" : "#F7941D",
+              }}>
+              <Shield size={10} />
+              {consentOk ? "Consent signed" : "Consent missing"}
+            </span>
             <span className="flex items-center gap-1 text-xs" style={{ color: "#8A9BA8" }}>
               <CheckCircle size={11} style={{ color: "#6BA028" }}/>
               {completed.length} completed
@@ -418,6 +475,7 @@ export default function DoctorClientsPage() {
   const { user }  = useAuth();
   const [clients,  setClients]  = useState<Client[]>([]);
   const [allAppts, setAllAppts] = useState<Record<string, Appointment[]>>({});
+  const [consents, setConsents] = useState<Record<string, ConsentRecord | null>>({});
   const [loading,  setLoading]  = useState(true);
   const [search,   setSearch]   = useState("");
   const [filter,   setFilter]   = useState<FilterType>("all");
@@ -453,17 +511,26 @@ export default function DoctorClientsPage() {
       // BUG FIX: users collection uses uid as the doc ID, not a "uid" field.
       // where("uid","==",x) returns nothing. Use getDoc(doc(db,"users",uid)) instead.
       if (clientIds.size > 0) {
-        const clientDocs = await Promise.all(
-          [...clientIds].map(uid => getDoc(doc(db, "users", uid)))
-        );
+        const ids = [...clientIds];
+        const [clientDocs, consentDocs] = await Promise.all([
+          Promise.all(ids.map(uid => getDoc(doc(db, "users", uid)))),
+          Promise.all(ids.map(uid => getDoc(doc(db, "consents", uid)))),
+        ]);
         const loaded: Client[] = [];
+        const consentMap: Record<string, ConsentRecord | null> = {};
         clientDocs.forEach(snap => {
           if (snap.exists()) {
             loaded.push({ uid: snap.id, ...snap.data() } as Client);
           }
         });
+        consentDocs.forEach((snap, i) => {
+          consentMap[ids[i]] = snap.exists()
+            ? ({ ...snap.data() } as ConsentRecord)
+            : null;
+        });
         loaded.sort((a, b) => a.displayName?.localeCompare(b.displayName ?? "") ?? 0);
         setClients(loaded);
+        setConsents(consentMap);
       }
 
       setLoading(false);
@@ -595,14 +662,21 @@ export default function DoctorClientsPage() {
         </div>
       ) : (
         <div className="grid gap-3 lg:grid-cols-2">
-          {filtered.map(client => (
-            <ClientCard
-              key={client.uid}
-              client={client}
-              appts={allAppts[client.uid] ?? []}
-              onClick={() => setSelected(client)}
-            />
-          ))}
+          {filtered.map(client => {
+            const consent = consents[client.uid];
+            const consentOk = isConsentCurrent(
+              consent?.version ?? client.consentVersion
+            );
+            return (
+              <ClientCard
+                key={client.uid}
+                client={client}
+                appts={allAppts[client.uid] ?? []}
+                consentOk={consentOk}
+                onClick={() => setSelected(client)}
+              />
+            );
+          })}
         </div>
       )}
 
@@ -611,6 +685,7 @@ export default function DoctorClientsPage() {
         <ClientDrawer
           client={selected}
           appointments={allAppts[selected.uid] ?? []}
+          consent={consents[selected.uid] ?? null}
           onClose={() => setSelected(null)}
         />
       )}

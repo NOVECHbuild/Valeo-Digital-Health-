@@ -78,10 +78,10 @@ export default function OnboardingPage() {
         onboarded:  true,
         updatedAt:  serverTimestamp(),
       });
-      router.push("/client");
+      // Dedicated e-sign consent (versioned record) before the dashboard
+      router.push("/onboarding/consent?next=/client");
     } catch (err) {
       console.error("Onboarding save error:", err);
-    } finally {
       setSaving(false);
     }
   }
