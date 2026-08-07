@@ -220,7 +220,7 @@ function AppointmentCard({
             <a href={meetLink} target="_blank" rel="noopener noreferrer"
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-0.5"
               style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
-              <ExternalLink size={14} /> Join Google Meet
+              <Video size={14} /> Join Session
             </a>
           )}
           {canCancel && onCancel && (

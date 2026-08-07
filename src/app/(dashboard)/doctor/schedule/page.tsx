@@ -196,7 +196,7 @@ function AppointmentCard({ appt, onApprove, onReject, onCreateMeet, loading, has
         <a href={meetLink} target="_blank" rel="noopener noreferrer"
           className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium mb-4 transition-opacity hover:opacity-80"
           style={{ background:"rgba(66,133,244,0.08)", color:"#4285F4", border:"1px solid rgba(66,133,244,0.15)" }}>
-          <ExternalLink size={12}/> Join Google Meet
+          <ExternalLink size={12}/> Join Session
         </a>
       ) : appt.status === "approved" && onCreateMeet ? (
         <button onClick={() => onCreateMeet(appt.id)} disabled={!!isActing}
@@ -773,16 +773,18 @@ export default function DoctorSchedulePage() {
       const becomingApproved = appt.status !== "approved";
       await updateAppointmentStatus(id, appt.status==="approved"?"completed":"approved");
       if (becomingApproved) {
-        // Create the Google Meet link on the doctor's own calendar (best-effort).
-        // Awaited so the confirmation email below can include the link.
+        // Create Meet first so the confirmation email can include Join Session.
         try {
-          await authedFetch("/api/meet/create", {
+          const meetRes = await authedFetch("/api/meet/create", {
             method:  "POST",
             headers: { "Content-Type": "application/json" },
             body:    JSON.stringify({ appointmentId: id }),
           });
+          if (!meetRes.ok) {
+            const data = await meetRes.json().catch(() => ({}));
+            showToast("error", data.error || "Session approved, but Meet link failed. Use Create Meet link.");
+          }
         } catch { /* fail-safe — link can be added later */ }
-        // Email the client that their session is confirmed (fire-and-forget)
         authedFetch("/api/email/appointment", {
           method:  "POST",
           headers: { "Content-Type": "application/json" },

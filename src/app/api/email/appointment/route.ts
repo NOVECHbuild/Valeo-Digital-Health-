@@ -110,11 +110,11 @@ export async function POST(req: NextRequest) {
             paragraphs: [
               `Good news — ${esc(doctorName)} has confirmed your session.`,
               hasMeet
-                ? "Use the button below to join the video call at your appointment time."
+                ? "Your Meet link is ready — use the button below to join at your appointment time."
                 : "Your video link will be available in your appointments before the session.",
             ],
             details,
-            cta: hasMeet ? { label: "Join Google Meet", url: appt.meetLink } : { label: "View my appointments", url: apptLink },
+            cta: hasMeet ? { label: "Join Session", url: appt.meetLink } : { label: "View my appointments", url: apptLink },
           }),
         }));
       }

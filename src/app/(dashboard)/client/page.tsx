@@ -10,7 +10,7 @@ import {
 import {
   Calendar, ClipboardList, MessageSquare, TrendingUp,
   Clock, CheckCircle, ArrowRight, Heart, Loader2,
-  AlertTriangle, Brain,
+  AlertTriangle, Brain, Video,
 } from "lucide-react";
 import Link from "next/link";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
@@ -344,18 +344,18 @@ export default function ClientDashboard() {
               >
                 <Calendar size={12} />
                 {fmtNextSession()}
-                {nextSession.meetLink && (
-                  <a
-                    href={nextSession.meetLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-2 underline"
-                    style={{ color: "#8DC63F" }}
-                  >
-                    Join Meet
-                  </a>
-                )}
               </div>
+              {nextSession.meetLink && (
+                <a
+                  href={nextSession.meetLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
+                  style={{ background: "linear-gradient(135deg, #8DC63F, #6BA028)" }}
+                >
+                  <Video size={15} /> Join Session
+                </a>
+              )}
             </div>
           ) : (
             <p className="text-sm" style={{ color: "rgba(255,255,255,0.65)" }}>
@@ -552,11 +552,11 @@ export default function ClientDashboard() {
               href={nextSession.meetLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
               style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
             >
-              <Calendar size={14} />
-              Join Google Meet
+              <Video size={15} />
+              Join Session
             </a>
           ) : (
             <Link

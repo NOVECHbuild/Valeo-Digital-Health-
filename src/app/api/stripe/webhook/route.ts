@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { getStripe } from "@/lib/stripe";
-import { createMeetForAppointment } from "@/lib/meet";
+import { notifySessionConfirmed } from "@/lib/sessionEmails";
 import type Stripe from "stripe";
 
 export const runtime = "nodejs";
@@ -56,15 +56,11 @@ async function fulfillCheckout(session: Stripe.Checkout.Session) {
     updatedAt: FieldValue.serverTimestamp(),
   });
 
-  // Paid bookings skip the doctor's Approve click — still create the Meet link
-  // so the client has a "Join Google Meet" button. Fail-safe: booking stays approved.
+  // Paid bookings skip the doctor's Approve click — create Meet + confirm email.
   try {
-    const meet = await createMeetForAppointment(appointmentId);
-    if (!meet.ok) {
-      console.error("[Stripe webhook] Meet create failed:", meet.error);
-    }
+    await notifySessionConfirmed(appointmentId);
   } catch (err) {
-    console.error("[Stripe webhook] Meet create error:", err);
+    console.error("[Stripe webhook] confirm notify error:", err);
   }
 }
 

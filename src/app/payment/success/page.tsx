@@ -146,7 +146,7 @@ function SuccessContent() {
           <a href={meetLink} target="_blank" rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-semibold text-white mb-3 transition-all hover:-translate-y-0.5"
             style={{ background: 'linear-gradient(135deg, #8DC63F, #6BA028)' }}>
-            <Video size={15} /> Join Google Meet
+            <Video size={15} /> Join Session
           </a>
         )}
 

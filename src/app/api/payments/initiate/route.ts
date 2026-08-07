@@ -3,6 +3,7 @@ import { adminDb } from "@/lib/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { requireAuth } from "@/lib/requireAuth";
 import { dollarsToCents, getStripe } from "@/lib/stripe";
+import { notifySessionConfirmed } from "@/lib/sessionEmails";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.valeoexperience.com";
 
@@ -80,6 +81,12 @@ export async function POST(req: NextRequest) {
         status:    "approved",
         updatedAt: FieldValue.serverTimestamp(),
       });
+      // Free sessions confirm immediately — Meet link + confirmation email (fail-safe).
+      try {
+        await notifySessionConfirmed(appointmentId);
+      } catch (err) {
+        console.error("[Initiate] free confirm notify:", err);
+      }
       return NextResponse.json({
         free:     true,
         redirect: `${APP_URL}/client/appointments?success=true&free=true`,
