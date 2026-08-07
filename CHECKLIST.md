@@ -132,7 +132,7 @@ _Mechanical Stripe swap done. Optional lawyer review stays in Phase H._
 | G.3 | Mark complete → Add note prompt | Med | `[x]` |
 | G.4 | Recurring appointments (weekly series) | Med | `[x]` |
 | G.5 | SMS (Twilio) — ask first | Later | `[ ]` |
-| G.6 | Wire/hide platform toggles | Low | `[ ]` |
+| G.6 | Wire/hide platform toggles | Low | `[~]` labeled not enforced |
 | G.7 | Role middleware harden | Low | `[ ]` |
 | G.8 | Session cookie refresh | Low | `[ ]` |
 
