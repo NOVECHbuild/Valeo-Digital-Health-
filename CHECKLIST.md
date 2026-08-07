@@ -1,178 +1,206 @@
-# Valeo — Master Setup & Launch Checklist
+# Valeo — Master Action Plan & Checklist
 
-_Living checklist. Mark items `[x]` when done. Owner: **You** (Benny) · **Me** (Cursor) · **Both**._
+_Living checklist. Mark `[x]` when done. Owner: **You** (Benny) · **Me** (Cursor) · **Both**._
 
-**Decisions locked (2026-08-07)**
-- Payments → **Stripe → Mercury** (WiPay dormant until Stripe live; do not delete WiPay yet)
-- Stay **invite-only** until Stripe checkout works
-- Homepage public CTAs stay on **Calendly** until public registration opens
-- Last private→business migration step → **GoDaddy DNS ↔ Vercel domain ownership**
-
-**Status legend:** `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked / waiting
+**Status:** `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
 
 ---
 
-## Phase 0 — Workbench (this machine + access)
+## Best order (work top → bottom)
+
+| # | Phase | What | Status |
+|---|--------|------|--------|
+| **1** | **A** | Commit + deploy QA + legal batch → smoke | `[~]` coded — **need your “commit”** |
+| **2** | **C** | Portal smoke (invite → match → message → assessment) | `[ ]` after deploy |
+| **3** | **D** | Stripe test card + webhook + Resend Logs | `[ ]` |
+| **4** | **E** | Google Calendar connect → Meet on approve | `[ ]` |
+| **5** | **F** | Soft-launch ops (cron, backups, real invites) | `[ ]` |
+| **6** | **G** | Product upgrades (pick later) | `[ ]` |
+| **7** | **H** | Public self-register + off Calendly | `[ ]` later |
+
+**You are here:** Step **1** — say **commit** (and push) so Vercel builds. Vercel Cursor plugin is on for this project.
+
+---
+
+## Decisions locked
+
+- Payments → **Stripe → Mercury** (WiPay routes kept, unused)
+- Stay **invite-only** until Stripe E2E works
+- Homepage public CTAs stay on **Calendly** until Phase H
+- No fake clinical/compliance claims
+- Ask before new paid vendors
+
+---
+
+## Phase A — QA + legal ship
 
 | # | Owner | Item | Status |
 |---|--------|------|--------|
-| 0.1 | You | Confirm Cursor is open on `E:/NOVECH Projects/valeo-digital-health` only | `[x]` |
-| 0.2 | You | Log into **business** accounts (not personal): Vercel, Firebase, Google Cloud, GitHub, Resend, Stripe, Mercury, GoDaddy | `[~]` Cloud ✅; Resend domain + Stripe Cursor plugin next |
-| 0.2b | Both | Fill **Account map** below (emails / project IDs only — no secrets) | `[x]` 2026-08-07 |
-| 0.3 | Me | Install **Vercel CLI** + log in to business team | `[~]` CLI installed — login next |
-| 0.4 | Me | Install **Firebase CLI** + log in; confirm project `valeo-digital-health` | `[~]` CLI installed — login next |
-| 0.5 | Both | Confirm GitHub remote / Vercel project link to business team | `[x]` origin → `NOVECHbuild/Valeo-Digital-Health-` (+ safe.directory) |
-| 0.6 | You | Confirm admin user `users/{uid}.role == "admin"` in Firestore | `[ ]` login `ewilkins25@gmail.com` |
-
-### Account map (confirmed 2026-08-07 — NO secrets)
-
-| Service | Login / team | Project / resource | Personal or Business? | Notes |
-|---------|--------------|--------------------|------------------------|-------|
-| Vercel | `info@novech.io` / **NOVECHbuild** | `valeo-digital-health` | Business | Domains Valid; prod = www |
-| GitHub | **NOVECHbuild** | [NOVECHbuild/Valeo-Digital-Health-](https://github.com/NOVECHbuild/Valeo-Digital-Health-) | Business | Local `origin` switched |
-| Firebase | `info@novech.io` | `valeo-digital-health` | Business | Matches `.firebaserc` |
-| Google Cloud | `info@novech.io` | **`valeo-digital-health-504817`** | Business | Setup complete |
-| Resend | **New free account** (Valeo Experience Gmail) | `valeoexperience.com` | Valeo-only | Decision A — setup in progress |
-| Stripe | **NOVECH LLC** | Test mode | Business | Cursor plugin installed; keys + Mercury next |
-| Mercury | **NOVECH** | — | Business | Link as Stripe payout bank |
-| GoDaddy | `jozellemiller@gmail.com` | `valeoexperience.com` | Client-owned | DNS for Vercel done |
-| Valeo admin (app) | `ewilkins25@gmail.com` | Firestore role `admin` | — | Confirm role in Firebase |
-| Google Analytics | — | — | — | Not set up |
-| Calendly | — | Homepage public booking | — | Keep until self-serve |
+| A.1 | Me | Sidebar `h-dvh` (client / doctor / admin) | `[x]` |
+| A.2 | Me | Homepage mobile nav | `[x]` |
+| A.3 | Me | OG → `og-image.png` | `[x]` |
+| A.4 | Me | Admin Add Doctor + Stripe labels | `[x]` |
+| A.5 | Me | Login invite copy + `replace` | `[x]` |
+| A.6 | Me | Doctor notes `getDoc` + Session Notes card | `[x]` |
+| A.7 | Me | Email APIs HTTP 500 | `[x]` |
+| A.8 | Me | `error.tsx` + `not-found.tsx` | `[x]` |
+| A.9 | Me | **Legal:** Privacy / Terms / HIPAA WiPay → Stripe; dates Aug 2026 | `[x]` |
+| A.10 | Me | Disclaimer Last Updated bump | `[x]` |
+| A.11 | You | **Say “commit”** (then push / deploy) | `[ ]` |
+| A.12 | You | Smoke: sidebar after login (no refresh) | `[ ]` |
+| A.13 | You | Smoke: phone hamburger menu | `[ ]` |
+| A.14 | You | Smoke: `/legal/*` say Stripe, not WiPay | `[ ]` |
+| A.15 | You | Optional: OG / social debugger refresh | `[ ]` |
 
 ---
 
-## Phase 1 — Domain: GoDaddy ↔ Vercel (do this first)
+## Phase B — Legal (merged into A.9–A.10)
+
+_Mechanical Stripe swap done. Optional lawyer review stays in Phase H._
 
 | # | Owner | Item | Status |
 |---|--------|------|--------|
-| 1.1 | You | In **business** Vercel → project → Settings → Domains: add `valeoexperience.com` + `www.valeoexperience.com` | `[x]` |
-| 1.2 | You | If Vercel asks to **verify ownership**: copy the **TXT** record Host + Value | `[x]` |
-| 1.3 | You | In GoDaddy → Domains → `valeoexperience.com` → DNS: add that TXT (do not change nameservers unless intentional) | `[x]` |
-| 1.4 | You | Add/confirm apex **A** → `76.76.21.21` (or exact value Vercel shows) | `[x]` Valid Config = OK |
-| 1.5 | You | Add/confirm **www CNAME** → value Vercel shows | `[x]` Valid Config = OK |
-| 1.6 | You | Wait until Vercel shows domains **Valid**; site loads on HTTPS | `[x]` both Valid; www = Production |
-| 1.7 | You | If domain was on a **personal** Vercel team: remove/transfer so only business project owns it | `[x]` Benny: no longer on old account |
-| 1.8 | Both | Paste Vercel’s DNS instructions here (or screenshot notes) if anything fails — Me will verify | `[x]` |
-
-**Notes**
-- Phase 1 complete 2026-08-07. Apex → www (308). Optional: delete `_vercel` TXT in GoDaddy (no longer needed).
+| B.1 | You | Spot-check four legal pages after deploy | `[ ]` = A.14 |
+| B.2 | You | Optional lawyer review before public launch | `[ ]` Phase H |
 
 ---
 
-## Phase 2 — Env & services (local + Vercel)
+## Phase C — Portal smoke
 
-Fill every key on **local** `.env.local` **and** Vercel Production env (same names). Never commit secrets.
-
-| # | Owner | Variable / service | Local | Vercel | Notes |
-|---|--------|-------------------|-------|--------|-------|
-| 2.1 | You | Firebase client `NEXT_PUBLIC_FIREBASE_*` | `[x]` present | `[ ]` | Confirm business Firebase project |
-| 2.2 | You | Firebase Admin `FIREBASE_*` | `[x]` present | `[ ]` | |
-| 2.3 | You | `NEXT_PUBLIC_APP_URL` = `https://www.valeoexperience.com` | `[ ]` | `[x]` Benny | Mirror locally when convenient |
-| 2.4 | You | `NEXT_PUBLIC_BASE_URL` | `[x]` | `[ ]` | Align with APP_URL |
-| 2.5 | You | `RESEND_API_KEY` | `[ ]` | `[ ]` | Rotate if ever shared in chat |
-| 2.6 | You | `EMAIL_FROM` e.g. `Valeo Experience <noreply@valeoexperience.com>` | `[ ]` | `[ ]` | Domain must be verified in Resend |
-| 2.7 | You | `CRON_SECRET` (strong random) | `[ ]` | `[ ]` | Powers `/api/cron/reminders` |
-| 2.8 | You | `NEXT_PUBLIC_GA_ID` | `[ ]` | `[ ]` | Confirm GA Realtime later |
-| 2.9 | You | `TOKEN_ENCRYPTION_KEY` (64 hex chars) | `[ ]` | `[ ]` | Encrypts Google OAuth tokens |
-| 2.10 | You | `GOOGLE_CLIENT_ID` / `SECRET` / `REFRESH_TOKEN` / `DOCTOR_EMAIL` | `[x]` | `[ ]` | GCP project: `valeo-digital-health-504817` — re-issue OAuth under business if still on old project |
-| 2.11 | You | `GOOGLE_REDIRECT_URI` = live callback URL | `[ ]` | `[ ]` | Must match Google Console |
-| 2.12 | You | `GEMINI_API_KEY` | `[x]` | `[ ]` | Business Google AI / same project |
-| 2.13 | You | Stripe: `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` | `[ ]` | `[x]` keys + webhook secret in Vercel | Deployed 2026-08-07 |
-| 2.14 | You | WiPay vars | `[x]` | `[ ]` | Keep for now; unused after Stripe cutover |
-| 2.15 | You | Resend: domain `valeoexperience.com` verified (SPF/DKIM in GoDaddy if needed) | `[~]` | — | New free Valeo Resend account (Gmail) — awaiting Benny |
-| 2.16 | Both | Redeploy Vercel after env changes | `[ ]` | | |
+| # | Owner | Item | Status |
+|---|--------|------|--------|
+| C.1 | You | Confirm admin role for `ewilkins25@gmail.com` | `[ ]` |
+| C.2 | You | Admin create/invite test client | `[ ]` |
+| C.3 | You | Assignments → match ↔ Dr. Miller | `[ ]` |
+| C.4 | You | Client: login → appointments loads | `[ ]` |
+| C.5 | You | Doctor: schedule + Services/prices set | `[ ]` |
+| C.6 | You | Message both ways | `[ ]` |
+| C.7 | You | Assessment assign → submit → review | `[ ]` |
+| C.8 | You | Resource upload → client sees it | `[ ]` |
+| C.9 | You | Announcement → client/doctor banner | `[ ]` |
+| C.10 | You | Hit a bad URL → branded 404 | `[ ]` |
 
 ---
 
-## Phase 3 — Stripe + Mercury (accounts, then code)
+## Phase D — Payments + email E2E
 
-### 3A — Accounts (You)
+| # | Owner | Item | Status |
+|---|--------|------|--------|
+| D.1 | You | Stripe keys + webhook secret on Vercel | `[x]` |
+| D.2 | You | Resend API key on Vercel | `[x]` |
+| D.3 | You | `CRON_SECRET` on Vercel | `[ ]` |
+| D.4 | You | Book paid session → Stripe → `4242…` | `[ ]` |
+| D.5 | You | Webhook succeeded in Stripe Dashboard | `[ ]` |
+| D.6 | You | Appointment paid/approved as designed | `[ ]` |
+| D.7 | You | Resend Logs show emails | `[ ]` |
+| D.8 | You | Mercury = Stripe payout bank | `[ ]` |
+| D.9 | You | Stripe KYC complete | `[ ]` |
+| D.10 | You | Live $1 charge + refund (after D.4–D.9) | `[ ]` |
+
+---
+
+## Phase E — Google Calendar + Meet
+
+| # | Owner | Item | Status |
+|---|--------|------|--------|
+| E.1 | You | OAuth env on Vercel (business GCP) | `[ ]` |
+| E.2 | You | `GOOGLE_REDIRECT_URI` matches Console | `[ ]` |
+| E.3 | You | `TOKEN_ENCRYPTION_KEY` set | `[ ]` |
+| E.4 | You | Doctor → Connect Google Calendar | `[ ]` |
+| E.5 | You | Approve session → Meet link | `[ ]` |
+| E.6 | You | Busy slots grey out (or fail-safe) | `[ ]` |
+
+---
+
+## Phase F — Soft-launch ops
+
+| # | Owner | Item | Status |
+|---|--------|------|--------|
+| F.1 | You | Cron reminders OK | `[ ]` |
+| F.2 | You | Firestore backups on | `[ ]` |
+| F.3 | You | Optional GA | `[ ]` |
+| F.4 | You | Invite real clients (Calendly still public) | `[ ]` |
+
+---
+
+## Phase G — Product upgrades (later)
+
+| # | Item | Priority | Status |
+|---|------|----------|--------|
+| G.1 | PHQ-9 / GAD-7 scored trends | High | `[ ]` |
+| G.2 | E-sign consent PDF | High | `[ ]` |
+| G.3 | Mark complete → Add note prompt | Med | `[ ]` |
+| G.4 | Recurring appointments | Med | `[ ]` |
+| G.5 | SMS (Twilio) — ask first | Later | `[ ]` |
+| G.6 | Wire/hide platform toggles | Low | `[ ]` |
+| G.7 | Role middleware harden | Low | `[ ]` |
+| G.8 | Session cookie refresh | Low | `[ ]` |
+
+---
+
+## Phase H — Public launch (later)
+
+| # | Owner | Item | Status |
+|---|--------|------|--------|
+| H.1 | You | Stripe live + Mercury OK | `[ ]` |
+| H.2 | You | Lawyer review (optional but wise) | `[ ]` |
+| H.3 | You | Google OAuth verification | `[ ]` |
+| H.4 | Me | Public self-registration | `[ ]` |
+| H.5 | Me | Homepage off Calendly → in-app book | `[ ]` |
+
+---
+
+## Tooling (this machine)
+
+| # | Owner | Item | Status |
+|---|--------|------|--------|
+| T.1 | You | Stripe Cursor plugin | `[x]` |
+| T.2 | You | Resend Cursor plugin | `[x]` |
+| T.3 | You | **Vercel Cursor plugin** for this project | `[x]` 2026-08-07 |
+| T.4 | Me | Use Vercel plugin for deploy status / logs when helpful | `[x]` ready |
+
+---
+
+## Account map (no secrets)
+
+| Service | Notes |
+|---------|--------|
+| Vercel | `info@novech.io` / NOVECHbuild · plugin enabled |
+| GitHub | NOVECHbuild/Valeo-Digital-Health- |
+| Firebase | `valeo-digital-health` |
+| GCP | `valeo-digital-health-504817` |
+| Resend | thevaleoexperience · domain verified |
+| Stripe | NOVECH LLC · test mode |
+| Mercury | Link as payout |
+| Admin | `ewilkins25@gmail.com` |
+
+---
+
+## Do-not-break
 
 | # | Item | Status |
 |---|------|--------|
-| 3A.1 | Create/activate **Stripe** under business legal entity | `[x]` NOVECH LLC (Test mode visible) |
-| 3A.2 | Complete Stripe KYC / business verification | `[ ]` |
-| 3A.3 | Connect **Mercury** as Stripe payout bank | `[ ]` |
-| 3A.4 | Turn on **Test mode**; copy test publishable + secret keys | `[x]` in Vercel (Benny) |
-| 3A.5 | Stripe webhook endpoint (test) → `/api/stripe/webhook` | `[x]` + secret on Vercel + deployed |
-| 3A.6 | Install Stripe **Cursor plugin** (`/add-plugin stripe`) | `[x]` |
-
-### 3B — Build (Me) — start only when 3A.1–3A.4 done + You say go
-
-**Architecture locked:** Stripe **hosted Checkout** (one-time USD session payments) → webhook marks appointment paid. WiPay left dormant. Free consults + manual/cash unchanged.
-
-| # | Item | Status |
-|---|------|--------|
-| 3B.1 | Add Stripe SDK + env wiring (no WiPay deletion) | `[x]` `stripe` package + `src/lib/stripe.ts` |
-| 3B.2 | Create Checkout Session for booking by service price (USD) | `[x]` `/api/payments/initiate` |
-| 3B.3 | Success/cancel return pages wired to appointments | `[x]` |
-| 3B.4 | Webhook: mark payment + appointment paid (server-authoritative) | `[x]` `/api/stripe/webhook` |
-| 3B.5 | Booking UI uses Stripe instead of WiPay redirect | `[x]` |
-| 3B.6 | Admin financials / gateway status labels updated | `[x]` |
-| 3B.7 | Manual/cash path unchanged | `[x]` |
-| 3B.8 | Local + preview test with Stripe test card | `[~]` ready to test on live |
-| 3B.9 | Switch to live keys; live $1 test charge + refund | `[ ]` |
-| 3B.10 | Cutover: WiPay left dormant (routes kept, unused) | `[ ]` |
-| 3B.11 | Legal pages: replace WiPay wording with Stripe (after You approve copy) | `[ ]` |
+| Z.1 | Dual firebaseAdmin files | `[x]` |
+| Z.2 | Do not weaken auth helpers | `[x]` |
+| Z.3 | Never commit secrets | `[x]` |
+| Z.4 | Invite-only + Calendly until H | `[x]` |
 
 ---
 
-## Phase 4 — Product ops (invite-only soft launch)
+## Reference canvases
 
-| # | Owner | Item | Status |
-|---|--------|------|--------|
-| 4.1 | You | Dr. Miller: schedule hours set | `[ ]` |
-| 4.2 | You | Dr. Miller: Services + prices set | `[ ]` |
-| 4.3 | You | Dr. Miller: Google Calendar **Connected** | `[ ]` |
-| 4.4 | You | Test booking email (Resend logs show delivered) | `[ ]` |
-| 4.5 | You | Confirm Vercel Cron reminders run (`CRON_SECRET` OK) | `[ ]` |
-| 4.6 | You | Walk `TESTING.md` as client + doctor + admin | `[ ]` |
-| 4.7 | You | Firebase: enable scheduled Firestore backups | `[ ]` |
-| 4.8 | You | Soft launch: invite clients; free consults + Stripe (or manual until live) | `[ ]` |
-
----
-
-## Phase 5 — Global / public scale
-
-| # | Owner | Item | Status |
-|---|--------|------|--------|
-| 5.1 | You | Google OAuth app: leave Testing → submit **verification** | `[ ]` |
-| 5.2 | Me | Enable public self-registration (when You decide) | `[ ]` |
-| 5.3 | You | Homepage CTAs: Calendly → in-app book (when self-serve opens) | `[ ]` |
-| 5.4 | You | Legal review (privacy / terms / mental-health accuracy) | `[ ]` |
-| 5.5 | You | Onboard additional doctors (each: services, pricing, Google Cal) | `[ ]` |
-| 5.6 | Both | Optional: error monitoring / uptime alerts | `[ ]` |
-
----
-
-## Phase 6 — Do-not-break / hygiene
-
-| # | Owner | Item | Status |
-|---|--------|------|--------|
-| 6.1 | Me | Keep `firebaseAdmin.ts` + `firebase-admin.ts` alias | `[x]` |
-| 6.2 | Me | Do not weaken `requireAuth` / `authedFetch` | `[x]` |
-| 6.3 | You | Never commit `.env` / keys | `[x]` standing rule |
-| 6.4 | You | Exclude project folder from OneDrive/AV if NUL-byte corruption returns | `[ ]` |
-| 6.5 | Me | `npm run build` green before each production push | `[ ]` standing |
-
----
-
-## Critical path (order of work)
-
-```
-Phase 0 (access) → Phase 1 (GoDaddy/Vercel DNS) → Phase 2 (env + Resend DNS)
-    → Phase 3A (Stripe + Mercury) → Phase 3B (Stripe code) → Phase 4 (soft launch)
-    → Phase 5 (public / global)
-```
-
-**Current focus:** Finish Resend (A) in parallel → Stripe keys + Mercury (3A) → approve Stripe code (3B). Env gaps: APP_URL, CRON_SECRET, TOKEN_ENCRYPTION_KEY, Resend, Stripe keys on Vercel.
+| Canvas | Contents |
+|--------|----------|
+| `portal-audit` | Pages + perf + bugs + tackle order (updated) |
+| `action-plan` | Phase overview |
+| `feature-roadmap` | Feature wiring + peer ideas |
+| **This file** | Checkboxes to tick |
 
 ---
 
 ## Session log
 
-| Date | What happened |
-|------|----------------|
-| 2026-08-07 | Checklist created. Stripe chosen. Mercury US bank noted. GoDaddy↔Vercel DNS identified as last migration step. |
-| 2026-08-07 | Domains Valid on NOVECHbuild. Account map filled. Local git `origin` still `ebund3m` (needs switch to NOVECHbuild). Cloud/Resend/Stripe not created yet. |
+| Date | What |
+|------|------|
+| 2026-08-07 | Stripe 3B; Resend; full audit; QA batch coded |
+| 2026-08-07 | Legal WiPay→Stripe; checklist + portal-audit refreshed; Vercel plugin noted |

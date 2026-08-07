@@ -62,7 +62,7 @@ export default function AdminLayout({
   const pageTitle = navItems.find(i => isActive(i.href))?.label ?? "Admin Console";
 
   return (
-    <div className="min-h-screen flex overflow-hidden" style={{ background: "#F4F4F6" }}>
+    <div className="h-dvh flex overflow-hidden" style={{ background: "#F4F4F6" }}>
 
       {/* Mobile overlay */}
       {sidebarOpen && (

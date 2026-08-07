@@ -59,7 +59,7 @@ export default function HipaaNoticePage() {
       <div className="hero-strip">
         <span className="label">Legal · Health Data</span>
         <h1>HIPAA Notice &amp; Health Data Privacy</h1>
-        <p className="meta">The Valeo Experience Inc &nbsp;·&nbsp; Effective: June 1, 2026 &nbsp;·&nbsp; Last Updated: June 2026</p>
+        <p className="meta">The Valeo Experience Inc &nbsp;·&nbsp; Effective: June 1, 2026 &nbsp;·&nbsp; Last Updated: August 2026</p>
       </div>
 
       <div className="content-wrap">
@@ -86,7 +86,7 @@ export default function HipaaNoticePage() {
           <h3>Treatment</h3>
           <p>We use your PHI to provide, coordinate, or manage your mental health care. This includes sharing information with other providers involved in your care, with your consent, such as when coordinating with your primary care physician.</p>
           <h3>Payment</h3>
-          <p>We may use your PHI to process payments for services rendered, including billing and payment verification through our payment processor (WiPay).</p>
+          <p>We may use your PHI to process payments for services rendered, including billing and payment verification through our payment processor (Stripe).</p>
           <h3>Healthcare Operations</h3>
           <p>We may use your PHI for quality assurance, training, and platform improvements. This includes AI-assisted generation of SOAP notes and session summaries, accessible only to your assigned clinician.</p>
           <h3>Authorised Uses and Disclosures</h3>
@@ -205,7 +205,7 @@ export default function HipaaNoticePage() {
           <ul>
             <li><strong>Google LLC</strong> (Firebase, Google Meet, Gemini AI) — US-based, HIPAA-eligible Business Associate; governed by Google&apos;s Privacy Policy and Data Processing Addendum</li>
             <li><strong>Vercel Inc</strong> — platform hosting; does not access health data directly</li>
-            <li><strong>WiPay Financial</strong> — Caribbean payment gateway; accesses billing and transaction data only, not health information</li>
+            <li><strong>Stripe, Inc.</strong> — payment processor; accesses billing and transaction data only, not clinical health information</li>
           </ul>
         </div>
 

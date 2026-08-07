@@ -1,13 +1,22 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
 const CALENDLY = 'https://calendly.com/thevaleoexperience';
 
+const NAV_SECTIONS = [
+  { href: '#services', label: 'Services' },
+  { href: '#about', label: 'About' },
+  { href: '#process', label: 'How It Works' },
+  { href: '#testimonials', label: 'Stories' },
+  { href: '#contact', label: 'Contact' },
+] as const;
+
 export default function HomePage() {
   const navRef = useRef<HTMLElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     // Scroll-triggered reveal
@@ -34,6 +43,11 @@ export default function HomePage() {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
 
   const handleTabClick = (tab: string) => {
     document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'));
@@ -72,6 +86,25 @@ export default function HomePage() {
         .nav-links a { text-decoration: none; color: var(--slate); font-size: 14px; font-weight: 500; letter-spacing: 0.2px; transition: color 0.2s; }
         .nav-links a:hover { color: var(--forest); }
         .nav-actions { display: flex; gap: 12px; align-items: center; }
+        .nav-burger {
+          display: none; width: 40px; height: 40px; border: none; background: transparent;
+          border-radius: 10px; cursor: pointer; align-items: center; justify-content: center;
+          color: var(--forest);
+        }
+        .nav-burger:hover { background: rgba(42,74,26,0.06); }
+        .mobile-menu {
+          display: none; position: fixed; inset: 72px 0 0 0; z-index: 999;
+          background: rgba(255,253,249,0.98); backdrop-filter: blur(16px);
+          padding: 24px 20px 40px; flex-direction: column; gap: 8px;
+          border-top: 1px solid rgba(42,74,26,0.08);
+        }
+        .mobile-menu.open { display: flex; }
+        .mobile-menu a {
+          text-decoration: none; color: var(--charcoal); font-size: 16px; font-weight: 500;
+          padding: 14px 16px; border-radius: 12px; transition: background 0.2s;
+        }
+        .mobile-menu a:hover { background: rgba(42,74,26,0.06); color: var(--forest); }
+        .mobile-menu-cta { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
         .btn-ghost { background: none; border: 1.5px solid var(--forest); color: var(--forest); padding: 9px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.2s; }
         .btn-ghost:hover { background: var(--forest); color: white; }
         .btn-cta { background: var(--orange); color: white; padding: 10px 22px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; border: none; box-shadow: 0 4px 16px rgba(247,148,29,0.35); transition: all 0.25s; }
@@ -246,6 +279,8 @@ export default function HomePage() {
         @media (max-width: 640px) {
           nav { padding: 0 20px; }
           .nav-links { display: none; }
+          .nav-actions .btn-ghost { display: none; }
+          .nav-burger { display: flex; }
           .hero, section, .stats-band, .cta-section, footer { padding-left: 20px; padding-right: 20px; }
           .services-grid, .testimonials-grid, .process-grid { grid-template-columns: 1fr; }
           .stats-band { grid-template-columns: 1fr 1fr; }
@@ -265,17 +300,46 @@ export default function HomePage() {
           <Image src="/images/logo.png" alt="The Valeo Experience" width={140} height={48} style={{ height: '48px', width: 'auto' }} priority />
         </Link>
         <ul className="nav-links">
-          <li><a href="#services">Services</a></li>
-          <li><a href="#about">About</a></li>
-          <li><a href="#process">How It Works</a></li>
-          <li><a href="#testimonials">Stories</a></li>
-          <li><a href="#contact">Contact</a></li>
+          {NAV_SECTIONS.map((s) => (
+            <li key={s.href}><a href={s.href}>{s.label}</a></li>
+          ))}
         </ul>
         <div className="nav-actions">
           <Link href="/login" className="btn-ghost">Sign In</Link>
           <a href={CALENDLY} target="_blank" rel="noopener noreferrer" className="btn-cta">Get Started</a>
+          <button
+            type="button"
+            className="nav-burger"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((o) => !o)}
+          >
+            {menuOpen ? (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              </svg>
+            )}
+          </button>
         </div>
       </nav>
+
+      <div className={`mobile-menu${menuOpen ? ' open' : ''}`} id="mobile-nav">
+        {NAV_SECTIONS.map((s) => (
+          <a key={s.href} href={s.href} onClick={() => setMenuOpen(false)}>{s.label}</a>
+        ))}
+        <div className="mobile-menu-cta">
+          <Link href="/login" className="btn-ghost" onClick={() => setMenuOpen(false)} style={{ textAlign: 'center', display: 'block' }}>
+            Sign In
+          </Link>
+          <a href={CALENDLY} target="_blank" rel="noopener noreferrer" className="btn-cta" onClick={() => setMenuOpen(false)} style={{ textAlign: 'center', display: 'block' }}>
+            Get Started
+          </a>
+        </div>
+      </div>
 
       {/* HERO */}
       <section className="hero" id="home">

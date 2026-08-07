@@ -518,9 +518,14 @@ function NotesPageInner() {
       } catch { /* keep default list */ }
 
       if(clientIds.length > 0) {
-        const clientDocs = await Promise.all(clientIds.map(uid=>getDocs(query(collection(db,"users"),where("uid","==",uid)))));
+        // Doc id IS the uid — never query where("uid","==",uid)
+        const clientSnaps = await Promise.all(
+          clientIds.map(uid => getDoc(doc(db, "users", uid)))
+        );
         const loaded: Client[] = [];
-        clientDocs.forEach(snap=>snap.docs.forEach(d=>loaded.push({uid:d.id,...d.data()} as Client)));
+        clientSnaps.forEach(snap => {
+          if (snap.exists()) loaded.push({ uid: snap.id, ...snap.data() } as Client);
+        });
         loaded.sort((a,b)=>a.displayName.localeCompare(b.displayName));
         setClients(loaded);
       }

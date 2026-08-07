@@ -101,9 +101,10 @@ function AppointmentRow({ name, time, type, status }: {
 }
 
 // ── Action Card ────────────────────────────────────────────────────────────
-function ActionCard({ href, icon: Icon, label, count, accent }: {
-  href: string; icon: React.ElementType; label: string; count: number; accent: string;
+function ActionCard({ href, icon: Icon, label, count, accent, hint }: {
+  href: string; icon: React.ElementType; label: string; count?: number; accent: string; hint?: string;
 }) {
+  const showCount = typeof count === "number";
   return (
     <Link href={href} className="group rounded-xl p-4 flex items-center gap-3 transition-all hover:-translate-y-0.5"
       style={{ background:"white", boxShadow:"0 1px 4px rgba(30,56,16,0.07)" }}>
@@ -112,11 +113,11 @@ function ActionCard({ href, icon: Icon, label, count, accent }: {
       </div>
       <div className="flex-1">
         <p className="text-sm font-medium" style={{ color:"#1E3810" }}>{label}</p>
-        <p className="text-xs" style={{ color: count > 0 ? accent : "#8A9BA8" }}>
-          {count > 0 ? `${count} pending` : "All clear"}
+        <p className="text-xs" style={{ color: showCount && count > 0 ? accent : "#8A9BA8" }}>
+          {hint ?? (showCount ? (count > 0 ? `${count} pending` : "All clear") : "Open")}
         </p>
       </div>
-      {count > 0 && (
+      {showCount && count > 0 && (
         <span className="text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
           style={{ background:accent, color:"white" }}>{count > 9 ? "9+" : count}</span>
       )}
@@ -310,7 +311,7 @@ export default function DoctorDashboard() {
           <h3 className="text-sm font-semibold uppercase tracking-wider px-1" style={{ color:"#8A9BA8" }}>Needs Attention</h3>
           <ActionCard href="/doctor/schedule"    icon={Clock}         label="Pending Approvals"     count={pendingAppts.length}    accent="#F7941D"/>
           <ActionCard href="/doctor/assessments" icon={ClipboardList} label="Assessments to Review" count={pendingAssessments}     accent="#8DC63F"/>
-          <ActionCard href="/doctor/notes"       icon={FileText}      label="Notes to Complete"     count={0}                     accent="#1E3810"/>
+          <ActionCard href="/doctor/notes"       icon={FileText}      label="Session Notes"         hint="SOAP + AI assist"       accent="#1E3810"/>
           <ActionCard href="/doctor/clients"     icon={Users}         label="New Client Requests"   count={newClientsThisMonth}   accent="#F7941D"/>
 
           {/* This week stats */}

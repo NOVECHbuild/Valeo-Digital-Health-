@@ -160,7 +160,7 @@ export default function AdminDashboard() {
   });
   completedPay.slice(0,10).forEach(p => {
     const d = toDate(p.createdAt);
-    if (d) feedEvents.push({ id:"p-"+p.id, label:`Payment received — ${fmt(p.amount)}`, sub:p.source==="manual"?"Manual / Cash":"Online (WiPay)", time:d, type:"payment" });
+    if (d) feedEvents.push({ id:"p-"+p.id, label:`Payment received — ${fmt(p.amount)}`, sub:p.source==="manual"?"Manual / Cash":"Online (Stripe)", time:d, type:"payment" });
   });
   const feed = feedEvents.sort((a,b) => b.time.getTime()-a.time.getTime()).slice(0,8);
 
@@ -260,12 +260,12 @@ export default function AdminDashboard() {
 
         <div className="space-y-3">
           <h3 className="text-sm font-semibold uppercase tracking-wider px-1" style={{ color:C.slate }}>Quick Actions</h3>
-          <QuickAction href="/admin/users"         icon={Users}       label="Manage Users"      accent={C.teal}  />
-          <QuickAction href="/admin/users"         icon={Stethoscope} label="Add Doctor"        accent={C.ocean} />
-          <QuickAction href="/admin/financials"    icon={DollarSign}  label="View Financials"   accent={C.gold}  />
-          <QuickAction href="/admin/analytics"     icon={TrendingUp}  label="Analytics"         accent={C.coral} />
-          <QuickAction href="/admin/announcements" icon={Activity}    label="Announcements"     accent="#9B59B6" />
-          <QuickAction href="/admin/settings"      icon={Settings}    label="Platform Settings" accent={C.dark}  />
+          <QuickAction href="/admin/users"              icon={Users}       label="Manage Users"      accent={C.teal}  />
+          <QuickAction href="/admin/users/add-doctor"   icon={Stethoscope} label="Add Doctor"        accent={C.ocean} />
+          <QuickAction href="/admin/financials"         icon={DollarSign}  label="View Financials"   accent={C.gold}  />
+          <QuickAction href="/admin/analytics"          icon={TrendingUp}  label="Analytics"         accent={C.coral} />
+          <QuickAction href="/admin/announcements"      icon={Activity}    label="Announcements"     accent="#9B59B6" />
+          <QuickAction href="/admin/settings"           icon={Settings}    label="Platform Settings" accent={C.dark}  />
           <div className="rounded-xl p-4" style={{ background:"rgba(30,56,16,0.03)", border:"1px solid rgba(30,56,16,0.08)" }}>
             <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color:C.slate }}>System Health</p>
             {[
@@ -291,7 +291,7 @@ export default function AdminDashboard() {
         {[
           { label:"Clients",           count:clients.length,        icon:Users,       accent:C.teal,  desc:"Registered clients",  href:"/admin/users"        },
           { label:"Doctors",           count:doctors.length,        icon:Stethoscope, accent:C.ocean, desc:"Active practitioners", href:"/admin/users"        },
-          { label:"Pending",           count:pendingAppts.length,   icon:Clock,       accent:C.coral, desc:"Awaiting approval",    href:"/admin/assignments"  },
+          { label:"Pending",           count:pendingAppts.length,   icon:Clock,       accent:C.coral, desc:"Awaiting approval",    href:"/admin/analytics"    },
           { label:"Sessions Complete", count:completedAppts.length, icon:CheckCircle, accent:C.gold,  desc:"All time",            href:"/admin/analytics"    },
         ].map(({ label, count, icon: Icon, accent, desc, href }) => (
           <Link key={label} href={href}

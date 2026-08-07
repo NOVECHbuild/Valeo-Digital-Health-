@@ -63,6 +63,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, result });
   } catch (err: any) {
     console.error("[email/assessment]", err?.message ?? err);
-    return NextResponse.json({ ok: false, error: err?.message ?? "error" });
+    return NextResponse.json({ ok: false, error: err?.message ?? "error" }, { status: 500 });
   }
 }

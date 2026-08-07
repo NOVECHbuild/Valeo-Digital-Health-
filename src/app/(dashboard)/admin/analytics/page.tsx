@@ -112,7 +112,7 @@ export default function AdminAnalyticsPage(){
       ]);
       setUsers(uSnap.docs.map(d=>({uid:d.id,...d.data()}) as UserDoc));
       setAppts(aSnap.docs.map(d=>({id:d.id,...d.data()}) as Appointment));
-      const online:Payment[]=pSnap.docs.map(d=>{const data=d.data() as any;return{id:d.id,amount:data.amount??0,status:data.status??"pending",createdAt:data.createdAt,source:"online",method:data.provider??"WiPay",clientId:data.clientId};});
+      const online:Payment[]=pSnap.docs.map(d=>{const data=d.data() as any;return{id:d.id,amount:data.amount??0,status:data.status??"pending",createdAt:data.createdAt,source:"online",method:data.provider??"Stripe",clientId:data.clientId};});
       const manual:Payment[]=mpSnap.docs.map(d=>{const data=d.data() as any;return{id:d.id,amount:data.amount??0,status:data.status??"completed",createdAt:data.createdAt,source:"manual",method:data.method??"Cash",clientId:data.clientId};});
       setPayments([...online,...manual]);
       setAssessments(asSnap.docs.map(d=>({id:d.id,...d.data()}) as Assessment));
@@ -208,7 +208,7 @@ export default function AdminAnalyticsPage(){
           <div className="space-y-4">
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <span className="flex items-center gap-1.5 text-xs" style={{color:"#4A5568"}}><Globe size={12} style={{color:C.teal}}/> Online (WiPay)</span>
+                <span className="flex items-center gap-1.5 text-xs" style={{color:"#4A5568"}}><Globe size={12} style={{color:C.teal}}/> Online (Stripe)</span>
                 <span className="text-xs font-bold" style={{color:C.ocean}}>{fmt(onlineRevenue)}</span>
               </div>
               <div className="h-2 rounded-full overflow-hidden" style={{background:"rgba(42,74,26,0.06)"}}>

@@ -74,7 +74,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const pageTitle = navItems.find(i => isActive(i.href))?.label ?? "Dashboard";
 
   return (
-    <div className="min-h-screen flex overflow-hidden" style={{ background: "#F5F4F0" }}>
+    <div className="h-dvh flex overflow-hidden" style={{ background: "#F5F4F0" }}>
 
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -87,7 +87,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       {/* ── SIDEBAR ───────────────────────────────────────────────── */}
       <aside
         className={cn(
-          "fixed top-0 left-0 h-full z-30 flex flex-col transition-transform duration-300",
+          "fixed top-0 left-0 h-full z-30 flex flex-col flex-shrink-0 overflow-hidden transition-transform duration-300",
           // FIX: lg:!translate-x-0 prevents sidebar flash on desktop
           "lg:!translate-x-0 lg:static lg:z-auto",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"

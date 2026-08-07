@@ -3,9 +3,9 @@
 _Update this when Benny shares a new fact, decision, blocker, or “do not change” item._
 
 ## Current goal
-- **Stripe 3B deployed** + webhook secret on Vercel — next: E2E test with card `4242…`.
-- Parallel: finish Resend (Valeo free account). Mercury payout before live charges.
-- Payments: Stripe hosted Checkout (USD). WiPay routes kept but unused.
+- Work **CHECKLIST.md** step 1→7: commit/deploy QA+legal → smoke → Stripe/Resend → Meet → soft launch.
+- Plugins: Stripe, Resend, **Vercel** enabled for project.
+- Legal WiPay→Stripe done in code (awaiting deploy).
 
 ## Account map (business — confirmed 2026-08-07)
 
@@ -15,7 +15,7 @@ _Update this when Benny shares a new fact, decision, blocker, or “do not chang
 | GitHub | org **NOVECHbuild** | https://github.com/NOVECHbuild/Valeo-Digital-Health- (local origin switched) |
 | Firebase | `info@novech.io` / project `valeo-digital-health` | Business |
 | Google Cloud (OAuth/Calendar) | `info@novech.io` / **`valeo-digital-health-504817`** | Setup complete |
-| Resend | **New free account** under Valeo Experience Gmail (decision A) | Domain: `valeoexperience.com` — Benny setting up |
+| Resend | Team **thevaleoexperience** | Domain verified; new API key on Vercel; waiting on deploy then E2E email test |
 | Stripe | **NOVECH LLC** | Plugin installed; Test mode; keys + Mercury next |
 | Mercury | **NOVECH** | Not linked to Stripe yet |
 | GoDaddy | `jozellemiller@gmail.com` | Client-owned domain `valeoexperience.com` |

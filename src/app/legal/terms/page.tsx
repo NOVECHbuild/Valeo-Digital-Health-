@@ -55,7 +55,7 @@ export default function TermsOfServicePage() {
       <div className="hero-strip">
         <span className="label">Legal</span>
         <h1>Terms of Service</h1>
-        <p className="meta">The Valeo Experience Inc &nbsp;·&nbsp; Effective: June 1, 2026 &nbsp;·&nbsp; Last Updated: June 2026</p>
+        <p className="meta">The Valeo Experience Inc &nbsp;·&nbsp; Effective: June 1, 2026 &nbsp;·&nbsp; Last Updated: August 2026</p>
       </div>
 
       <div className="content-wrap">
@@ -120,7 +120,7 @@ export default function TermsOfServicePage() {
         <div className="section">
           <h2>6. Payment Terms</h2>
           <h3>Session Fees</h3>
-          <p>Session fees are displayed on our platform and are charged in USD. Payment is processed securely through WiPay, our Caribbean payment gateway. Fees are due at the time of booking or as otherwise indicated at checkout.</p>
+          <p>Session fees are displayed on our platform and are charged in USD. Payment is processed securely by Stripe, our payment processor. Card details are handled by Stripe; Valeo does not store full card numbers. Fees are due at the time of booking or as otherwise indicated at checkout.</p>
           <h3>Failed Payments</h3>
           <p>If a payment is declined, your appointment will not be confirmed. Please contact us to resolve payment issues prior to your scheduled session time.</p>
           <h3>Fee Changes</h3>
@@ -138,7 +138,7 @@ export default function TermsOfServicePage() {
           <h3>Clinician Cancellations</h3>
           <p>In the rare event that Dr. Miller must cancel a session, you will receive a full refund or the option to reschedule at no additional charge.</p>
           <h3>Refund Processing</h3>
-          <p>Approved refunds are processed within 5–10 business days to your original payment method, subject to WiPay processing timelines.</p>
+          <p>Approved refunds are processed within 5–10 business days to your original payment method, subject to Stripe processing timelines.</p>
         </div>
 
         <div className="section">

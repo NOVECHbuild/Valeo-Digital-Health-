@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     siteName:    "The Valeo Experience",
     images: [
       {
-        url:    "/images/og-image.jpg",
+        url:    "/images/og-image.png",
         width:  1200,
         height: 630,
         alt:    "The Valeo Experience — Caribbean Mental Health Platform",
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     card:        "summary_large_image",
     title:       "The Valeo Experience | Caribbean Mental Health Platform",
     description: "Expert psychological support rooted in Caribbean understanding. Individual therapy, resilience coaching, and workplace wellness with Dr. Jozelle Miller, PhD.",
-    images:      ["/images/og-image.jpg"],
+    images:      ["/images/og-image.png"],
   },
 };
 

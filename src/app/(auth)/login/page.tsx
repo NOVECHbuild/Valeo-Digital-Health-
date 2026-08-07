@@ -55,18 +55,18 @@ export default function LoginPage() {
 
         // 4. If client hasn't onboarded yet, send them there first
         if (role === "client" && userData.onboarded === false) {
-          router.push("/onboarding");
+          router.replace("/onboarding");
           return;
         }
 
         // 5. Redirect to correct dashboard based on role
-        if (role === "admin")       router.push("/admin");
-        else if (role === "doctor") router.push("/doctor");
-        else                        router.push("/client");
+        if (role === "admin")       router.replace("/admin");
+        else if (role === "doctor") router.replace("/doctor");
+        else                        router.replace("/client");
 
       } else {
         // No Firestore doc — default to client dashboard
-        router.push("/client");
+        router.replace("/client");
       }
 
     } catch (err: unknown) {
@@ -188,15 +188,15 @@ export default function LoginPage() {
 
       </form>
 
-      {/* Register link */}
+      {/* Invite-only — no public signup */}
       <p className="text-center text-sm text-slate-500 mt-6">
-        Don&apos;t have an account?{" "}
+        Need access?{" "}
         <Link
           href="/register"
           className="font-semibold hover:underline"
           style={{ color: "#2A4A1A" }}
         >
-          Create one
+          Request an invitation
         </Link>
       </p>
 

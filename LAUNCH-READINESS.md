@@ -40,7 +40,7 @@ Phased launch:
 | Reminder cron | ⚠️ Verify | `CRON_SECRET` set in Vercel; confirm the daily job runs (Vercel → Cron / function logs). |
 | Google Analytics | ✅ Done (set env) | `NEXT_PUBLIC_GA_ID` added — confirm Realtime shows traffic. |
 | Final cross-role QA | ⚠️ Action | Walk `TESTING.md` as client + doctor + admin on the live site. |
-| Legal pages review | ➡️ Decision | Privacy / Terms / HIPAA / Disclaimer are built — have a professional review them for accuracy, especially for a **mental-health** service handling sensitive data. |
+| Legal pages review | ⚠️ Action | Still say **WiPay** — Phase **B** in `CHECKLIST.md` (mechanical Stripe swap after Benny approves; optional lawyer before public). |
 | Firestore + Storage backups | ⚠️ Action | Enable scheduled Firestore backups (Firebase console) so client/clinical data is recoverable. |
 | Rollback plan | ✅ Available | Vercel keeps every deployment — one-click "Promote to Production" on a prior build if something breaks. |
 

@@ -58,7 +58,7 @@ export default function PrivacyPolicyPage() {
       <div className="hero-strip">
         <span className="label">Legal</span>
         <h1>Privacy Policy</h1>
-        <p className="meta">The Valeo Experience Inc &nbsp;·&nbsp; Effective: June 1, 2026 &nbsp;·&nbsp; Last Updated: June 2026</p>
+        <p className="meta">The Valeo Experience Inc &nbsp;·&nbsp; Effective: June 1, 2026 &nbsp;·&nbsp; Last Updated: August 2026</p>
       </div>
 
       <div className="content-wrap">
@@ -80,7 +80,7 @@ export default function PrivacyPolicyPage() {
             <li><strong>Account information:</strong> name, email address, phone number, date of birth</li>
             <li><strong>Profile information:</strong> gender, location, preferred language, emergency contact</li>
             <li><strong>Health information:</strong> intake questionnaire responses, presenting concerns, mental health history, session notes, and assessment responses</li>
-            <li><strong>Payment information:</strong> billing details processed securely through our payment gateway (WiPay). We do not store full card numbers on our servers.</li>
+            <li><strong>Payment information:</strong> billing details processed securely through our payment processor (Stripe). We do not store full card numbers on our servers.</li>
             <li><strong>Communications:</strong> messages sent through our secure in-platform messaging system</li>
           </ul>
           <h3>Information Collected Automatically</h3>
@@ -118,7 +118,7 @@ export default function PrivacyPolicyPage() {
           <h2>4. Information Sharing and Disclosure</h2>
           <p>We do not sell, rent, or trade your personal information. We may share your information only in the following limited circumstances:</p>
           <h3>Service Providers</h3>
-          <p>We engage trusted third-party providers who assist in operating our platform, including Google (Firebase, Google Meet, Google Calendar, Gemini AI) and WiPay (Caribbean payment processing). These providers are contractually bound to handle your data securely and only for the purposes we specify.</p>
+          <p>We engage trusted third-party providers who assist in operating our platform, including Google (Firebase, Google Meet, Google Calendar, Gemini AI) and Stripe (payment processing). These providers are contractually bound to handle your data securely and only for the purposes we specify.</p>
           <h3>Clinical Team</h3>
           <p>Your health information is accessible to the licensed clinician assigned to your care (Dr. Jozelle M. Miller, PhD) and, where applicable, platform administrators for care coordination purposes.</p>
           <h3>Legal Requirements</h3>
@@ -133,7 +133,7 @@ export default function PrivacyPolicyPage() {
           <ul>
             <li>All data is encrypted in transit (TLS/HTTPS) and at rest via Google Firebase&apos;s security infrastructure</li>
             <li>Access to health records is role-restricted — only your assigned clinician and platform administrators can view clinical notes</li>
-            <li>Payment transactions are processed through PCI-compliant infrastructure via WiPay</li>
+            <li>Payment transactions are processed through PCI-compliant infrastructure via Stripe</li>
             <li>Our platform is hosted on Vercel with enterprise-grade security and DDoS protection</li>
           </ul>
           <p>Despite these measures, no system is completely immune to security risks. We encourage you to use a strong, unique password and to contact us immediately if you suspect unauthorised access to your account.</p>

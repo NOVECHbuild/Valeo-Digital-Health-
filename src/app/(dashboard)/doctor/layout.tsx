@@ -91,7 +91,7 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
   const pageTitle   = activeItem?.label ?? "Dashboard";
 
   return (
-    <div className="min-h-screen flex overflow-hidden" style={{ background: "#F0F4F4" }}>
+    <div className="h-dvh flex overflow-hidden" style={{ background: "#F0F4F4" }}>
 
       {/* Mobile overlay */}
       {sidebarOpen && (

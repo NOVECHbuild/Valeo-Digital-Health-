@@ -58,7 +58,7 @@ export default function DisclaimerPage() {
       <div className="hero-strip">
         <span className="label">Legal</span>
         <h1>Disclaimer</h1>
-        <p className="meta">The Valeo Experience Inc &nbsp;·&nbsp; Effective: June 1, 2026 &nbsp;·&nbsp; Last Updated: June 2026</p>
+        <p className="meta">The Valeo Experience Inc &nbsp;·&nbsp; Effective: June 1, 2026 &nbsp;·&nbsp; Last Updated: August 2026</p>
       </div>
 
       <div className="content-wrap">
