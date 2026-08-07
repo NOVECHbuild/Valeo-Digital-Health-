@@ -9,9 +9,10 @@
 //
 //   conversations/{conversationId}/messages/{messageId}
 //     - senderId, senderName, senderRole
+//     - clientId, doctorId (denormalized for secure list rules)
 //     - text, createdAt, read
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import {
   collection, query, where, orderBy, onSnapshot,
   addDoc, updateDoc, doc, serverTimestamp,
@@ -42,6 +43,18 @@ export interface Message {
   text:       string;
   createdAt:  any;
   read:       boolean;
+  clientId?:  string;
+  doctorId?:  string;
+}
+
+function mapMessageDocs(docs: { id: string; data: () => Record<string, unknown> }[]): Message[] {
+  return docs
+    .map(d => ({ id: d.id, ...d.data() }) as Message)
+    .sort((a, b) => {
+      const ta = a.createdAt?.toMillis?.() ?? (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+      const tb = b.createdAt?.toMillis?.() ?? (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+      return ta - tb;
+    });
 }
 
 // ── Get or create a conversation between client and doctor ─────────────────
@@ -51,7 +64,6 @@ export async function getOrCreateConversation(
   doctorId:   string,
   doctorName: string,
 ): Promise<string> {
-  // Check if conversation already exists
   const q = query(
     collection(db, "conversations"),
     where("clientId", "==", clientId),
@@ -60,7 +72,6 @@ export async function getOrCreateConversation(
   const snap = await getDocs(q);
   if (!snap.empty) return snap.docs[0].id;
 
-  // Create new conversation
   const ref = doc(collection(db, "conversations"));
   await setDoc(ref, {
     clientId,
@@ -88,25 +99,30 @@ export async function sendMessage(
   const trimmed = text.trim();
   if (!trimmed) return;
 
-  // Add message to subcollection
+  // Denormalize participants onto each message so list rules can authorize
+  // without a get() that some clients reject as an unsafe query.
+  const convSnap = await getDoc(doc(db, "conversations", conversationId));
+  const conv     = convSnap.data();
+  if (!conv) throw new Error("Conversation not found");
+
   await addDoc(
     collection(db, "conversations", conversationId, "messages"),
     {
       senderId,
       senderName,
       senderRole,
+      clientId:  conv.clientId,
+      doctorId:  conv.doctorId,
       text:      trimmed,
       createdAt: serverTimestamp(),
       read:      false,
     }
   );
 
-  // Update conversation metadata + increment unread for the OTHER party
   await updateDoc(doc(db, "conversations", conversationId), {
     lastMessage:   trimmed,
     lastMessageAt: serverTimestamp(),
     lastSenderId:  senderId,
-    // Increment unread for recipient
     ...(senderRole === "client"
       ? { unreadDoctor: increment(1) }
       : { unreadClient: increment(1) }),
@@ -126,17 +142,30 @@ export function useConversations(userId: string, role: "client" | "doctor") {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      setConversations([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     const field = role === "client" ? "clientId" : "doctorId";
     const q = query(
       collection(db, "conversations"),
       where(field, "==", userId),
       orderBy("lastMessageAt", "desc"),
     );
-    const unsub = onSnapshot(q, snap => {
-      setConversations(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Conversation));
-      setLoading(false);
-    });
+    const unsub = onSnapshot(
+      q,
+      snap => {
+        setConversations(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Conversation));
+        setLoading(false);
+      },
+      err => {
+        console.error("[useConversations]", err);
+        setConversations([]);
+        setLoading(false);
+      },
+    );
     return unsub;
   }, [userId, role]);
 
@@ -144,9 +173,6 @@ export function useConversations(userId: string, role: "client" | "doctor") {
 }
 
 // ── Hook: live total unread message count for a user ──────────────────────
-// Sums the unreadClient / unreadDoctor counters that sendMessage() maintains
-// on each conversation. (The dashboards previously queried a top-level
-// "messages" collection that the chat never writes to, so counts stayed 0.)
 export function useUnreadCount(userId: string, role: "client" | "doctor") {
   const [count, setCount] = useState(0);
 
@@ -154,14 +180,18 @@ export function useUnreadCount(userId: string, role: "client" | "doctor") {
     if (!userId) { setCount(0); return; }
     const field = role === "client" ? "clientId" : "doctorId";
     const q = query(collection(db, "conversations"), where(field, "==", userId));
-    const unsub = onSnapshot(q, snap => {
-      let total = 0;
-      snap.docs.forEach(d => {
-        const data = d.data() as any;
-        total += (role === "client" ? data.unreadClient : data.unreadDoctor) || 0;
-      });
-      setCount(total);
-    });
+    const unsub = onSnapshot(
+      q,
+      snap => {
+        let total = 0;
+        snap.docs.forEach(d => {
+          const data = d.data() as any;
+          total += (role === "client" ? data.unreadClient : data.unreadDoctor) || 0;
+        });
+        setCount(total);
+      },
+      () => setCount(0),
+    );
     return unsub;
   }, [userId, role]);
 
@@ -172,19 +202,40 @@ export function useUnreadCount(userId: string, role: "client" | "doctor") {
 export function useMessages(conversationId: string | null) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState<string | null>(null);
 
   useEffect(() => {
-    if (!conversationId) { setLoading(false); return; }
-    const q = query(
-      collection(db, "conversations", conversationId, "messages"),
-      orderBy("createdAt", "asc"),
-    );
-    const unsub = onSnapshot(q, snap => {
-      setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Message));
+    if (!conversationId) {
+      setMessages([]);
       setLoading(false);
-    });
+      setError(null);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setMessages([]);
+
+    // Listen without orderBy (sort client-side). Avoids index failures and
+    // keeps the loading flag honest when the listener errors.
+    const col = collection(db, "conversations", conversationId, "messages");
+    const unsub = onSnapshot(
+      col,
+      snap => {
+        setMessages(mapMessageDocs(snap.docs));
+        setLoading(false);
+        setError(null);
+      },
+      err => {
+        console.error("[useMessages]", err);
+        setMessages([]);
+        setLoading(false);
+        setError("Could not load messages. Please refresh.");
+      },
+    );
+
     return unsub;
   }, [conversationId]);
 
-  return { messages, loading };
+  return { messages, loading, error };
 }

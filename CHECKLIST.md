@@ -10,7 +10,7 @@ _Living checklist. Mark `[x]` when done. Owner: **You** (Benny) · **Me** (Curso
 
 | # | Phase | What | Status |
 |---|--------|------|--------|
-| **1** | **A** | Commit + deploy QA + legal batch → smoke | `[~]` coded — **need your “commit”** |
+| **1** | **A** | Commit + deploy QA + legal batch → smoke | `[x]` sidebar fixed (`b94a5d8e`); finish A.13–A.14 if not done |
 | **2** | **C** | Portal smoke (invite → match → message → assessment) | `[ ]` after deploy |
 | **3** | **D** | Stripe test card + webhook + Resend Logs | `[ ]` |
 | **4** | **E** | Google Calendar connect → Meet on approve | `[ ]` |
@@ -46,8 +46,8 @@ _Living checklist. Mark `[x]` when done. Owner: **You** (Benny) · **Me** (Curso
 | A.8 | Me | `error.tsx` + `not-found.tsx` | `[x]` |
 | A.9 | Me | **Legal:** Privacy / Terms / HIPAA WiPay → Stripe; dates Aug 2026 | `[x]` |
 | A.10 | Me | Disclaimer Last Updated bump | `[x]` |
-| A.11 | You | **Say “commit”** (then push / deploy) | `[ ]` |
-| A.12 | You | Smoke: sidebar after login (no refresh) | `[ ]` |
+| A.11 | You | Commit + push QA + legal | `[x]` `d671f0ad` → main |
+| A.12 | You | Smoke: sidebar after login (no refresh) | `[x]` Benny confirmed |
 | A.13 | You | Smoke: phone hamburger menu | `[ ]` |
 | A.14 | You | Smoke: `/legal/*` say Stripe, not WiPay | `[ ]` |
 | A.15 | You | Optional: OG / social debugger refresh | `[ ]` |

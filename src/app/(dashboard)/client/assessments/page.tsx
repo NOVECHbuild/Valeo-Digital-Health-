@@ -7,6 +7,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { SYSTEM_TEMPLATES } from "@/lib/assessment-templates";
 import {
   ClipboardList, CheckCircle, Clock, AlertCircle,
   Loader2, Send, Lock, X, ChevronRight,
@@ -46,6 +47,8 @@ interface AssignedAssessment {
   assignedAt:    any;
   completedAt:   any;
   dueDate?:      string;
+  isSystem?:     boolean;
+  questions?:    Question[];
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -558,21 +561,54 @@ export default function ClientAssessmentsPage() {
 
   // FIX 2 + FIX 3 + FIX 9: Load templates via getDoc; use onSnapshot for live updates
   const loadTemplates = useCallback(async (loaded: AssignedAssessment[]) => {
-    const ids = [...new Set(loaded.map(a => a.templateId))];
-    if (ids.length === 0) return;
-    try {
-      const snaps = await Promise.all(
-        // FIX 2: getDoc is the correct, efficient way — not a query with __name__
-        ids.map(id => getDoc(doc(db, "assessmentTemplates", id)))
-      );
-      const tMap: Record<string, AssessmentTemplate> = {};
-      snaps.forEach(s => {
-        if (s.exists()) tMap[s.id] = { id: s.id, ...s.data() } as AssessmentTemplate;
-      });
-      setTemplates(tMap);
-    } catch (err) {
-      console.error("[Assessments] template load error:", err);
+    const tMap: Record<string, AssessmentTemplate> = {};
+
+    // 1) Questions snapshotted onto the assignment (doctor assign path)
+    for (const a of loaded) {
+      if (a.questions?.length) {
+        tMap[a.templateId] = {
+          id:          a.templateId,
+          title:       a.templateTitle || "Assessment",
+          description: "",
+          questions:   a.questions,
+          createdBy:   a.isSystem ? "system" : a.doctorId,
+        };
+      }
     }
+
+    // 2) Built-in clinical library (PHQ-9, GAD-7, …) — not in Firestore
+    for (const a of loaded) {
+      if (tMap[a.templateId]) continue;
+      if (!a.isSystem && !SYSTEM_TEMPLATES.some(t => t.id === a.templateId)) continue;
+      const st = SYSTEM_TEMPLATES.find(t => t.id === a.templateId);
+      if (!st) continue;
+      tMap[st.id] = {
+        id:          st.id,
+        title:       st.title,
+        description: st.description,
+        questions:   st.questions as Question[],
+        createdBy:   "system",
+      };
+    }
+
+    // 3) Custom templates from Firestore
+    const customIds = [...new Set(
+      loaded.map(a => a.templateId).filter(id => !tMap[id])
+    )];
+    if (customIds.length > 0) {
+      try {
+        const snaps = await Promise.all(
+          customIds.map(id => getDoc(doc(db, "assessmentTemplates", id)))
+        );
+        snaps.forEach(s => {
+          if (s.exists()) tMap[s.id] = { id: s.id, ...s.data() } as AssessmentTemplate;
+        });
+      } catch (err) {
+        console.error("[Assessments] template load error:", err);
+      }
+    }
+
+    setTemplates(tMap);
   }, []);
 
   useEffect(() => {

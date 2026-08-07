@@ -12,7 +12,7 @@ import {
   Calendar, Clock, CheckCircle, XCircle, Loader2, Users,
   FileText, Filter, Save, AlertCircle, Plus, X, Info,
   ToggleLeft, ToggleRight, Trash2, ChevronDown, Lock,
-  ChevronLeft, ChevronRight, Link2, ExternalLink, RefreshCw,
+  ChevronLeft, ChevronRight, Link2, ExternalLink, RefreshCw, Video,
 } from "lucide-react";
 
 // ══════════════════════════════════════════════════════════════
@@ -147,10 +147,16 @@ function FilterTab({ label, count, active, onClick }: { label:string; count:numb
   );
 }
 
-function AppointmentCard({ appt, onApprove, onReject, loading, hasNote }: {
-  appt:Appointment; onApprove:(id:string)=>Promise<void>; onReject:(id:string)=>Promise<void>; loading:string|null; hasNote?:boolean;
+function AppointmentCard({ appt, onApprove, onReject, onCreateMeet, loading, hasNote }: {
+  appt:Appointment;
+  onApprove:(id:string)=>Promise<void>;
+  onReject:(id:string)=>Promise<void>;
+  onCreateMeet?:(id:string)=>Promise<void>;
+  loading:string|null;
+  hasNote?:boolean;
 }) {
   const isActing = loading === appt.id;
+  const meetLink = (appt as any).meetLink as string | undefined;
   return (
     <div className="rounded-2xl p-5" style={{ background:"white", boxShadow:"0 1px 4px rgba(30,56,16,0.07)" }}>
       <div className="flex items-start justify-between gap-3 mb-4">
@@ -186,13 +192,20 @@ function AppointmentCard({ appt, onApprove, onReject, loading, hasNote }: {
           <p className="text-xs italic" style={{ color:"#4A5568" }}>{appt.notes}</p>
         </div>
       )}
-      {(appt as any).meetLink && (
-        <a href={(appt as any).meetLink} target="_blank" rel="noopener noreferrer"
+      {meetLink ? (
+        <a href={meetLink} target="_blank" rel="noopener noreferrer"
           className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium mb-4 transition-opacity hover:opacity-80"
           style={{ background:"rgba(66,133,244,0.08)", color:"#4285F4", border:"1px solid rgba(66,133,244,0.15)" }}>
           <ExternalLink size={12}/> Join Google Meet
         </a>
-      )}
+      ) : appt.status === "approved" && onCreateMeet ? (
+        <button onClick={() => onCreateMeet(appt.id)} disabled={!!isActing}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold mb-4 w-full justify-center disabled:opacity-60"
+          style={{ background:"rgba(66,133,244,0.08)", color:"#4285F4", border:"1px solid rgba(66,133,244,0.15)" }}>
+          {isActing ? <Loader2 size={12} className="animate-spin"/> : <Video size={12}/>}
+          Create Meet link for client
+        </button>
+      ) : null}
       {appt.status === "pending" && (
         <div className="flex gap-2">
           <button onClick={() => onApprove(appt.id)} disabled={!!isActing}
@@ -776,6 +789,21 @@ export default function DoctorSchedulePage() {
     }
     finally { setActing(null); }
   }
+  async function handleCreateMeet(id: string) {
+    setActing(id);
+    try {
+      await authedFetch("/api/meet/create", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ appointmentId: id }),
+      });
+    } catch (err) {
+      console.error("[Schedule] Create Meet failed:", err);
+    } finally {
+      setActing(null);
+    }
+  }
+
   async function handleReject(id: string) {
     setActing(id);
     try {
@@ -896,7 +924,7 @@ export default function DoctorSchedulePage() {
           ) : (
             <div className="grid gap-4 lg:grid-cols-2">
               {filtered.map(appt => (
-                <AppointmentCard key={appt.id} appt={appt} onApprove={handleApprove} onReject={handleReject} loading={acting} hasNote={notedApptIds.has(appt.id)}/>
+                <AppointmentCard key={appt.id} appt={appt} onApprove={handleApprove} onReject={handleReject} onCreateMeet={handleCreateMeet} loading={acting} hasNote={notedApptIds.has(appt.id)}/>
               ))}
             </div>
           )}

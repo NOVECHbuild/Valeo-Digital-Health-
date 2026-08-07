@@ -141,7 +141,7 @@ export default function DoctorMessagesPage() {
   const [mobileView,  setMobileView]  = useState<"list" | "chat">("list");
   const [showQuick,   setShowQuick]   = useState(false);    // quick replies panel
 
-  const { messages, loading: msgLoading } = useMessages(activeId);
+  const { messages, loading: msgLoading, error: msgError } = useMessages(activeId);
   const bottomRef  = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -389,6 +389,11 @@ export default function DoctorMessagesPage() {
                 {msgLoading ? (
                   <div className="flex items-center justify-center h-full">
                     <Loader2 size={24} className="animate-spin" style={{ color: "#8DC63F" }} />
+                  </div>
+                ) : msgError ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center px-6">
+                    <AlertCircle size={20} style={{ color: "#F7941D" }} className="mb-2" />
+                    <p className="text-sm font-medium" style={{ color: "#2A4A1A" }}>{msgError}</p>
                   </div>
                 ) : messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center px-6">

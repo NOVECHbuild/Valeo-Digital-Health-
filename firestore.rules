@@ -117,11 +117,15 @@ service cloud.firestore {
         request.auth.uid == resource.data.doctorId ||
         isAdmin()
       );
-      // Messages are scoped to the two participants on the parent conversation
-      // (plus admin). Prevents any signed-in user from reading a conversation
-      // they are not part of, even if they know the conversation ID.
+      // Messages: participants only (via parent conversation). New messages also
+      // carry denormalized clientId/doctorId for clearer auditing.
       match /messages/{msgId} {
-        allow read, create: if isAuth() && (
+        allow read: if isAuth() && (
+          get(/databases/$(database)/documents/conversations/$(convId)).data.clientId == request.auth.uid ||
+          get(/databases/$(database)/documents/conversations/$(convId)).data.doctorId == request.auth.uid ||
+          isAdmin()
+        );
+        allow create: if isAuth() && (
           get(/databases/$(database)/documents/conversations/$(convId)).data.clientId == request.auth.uid ||
           get(/databases/$(database)/documents/conversations/$(convId)).data.doctorId == request.auth.uid ||
           isAdmin()

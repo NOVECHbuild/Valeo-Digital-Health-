@@ -3,7 +3,7 @@
 _Update this when Benny shares a new fact, decision, blocker, or “do not change” item._
 
 ## Current goal
-- Work **CHECKLIST.md** step 1→7: commit/deploy QA+legal → smoke → Stripe/Resend → Meet → soft launch.
+- Work **CHECKLIST.md** step 2→7: portal smoke → Stripe/Resend → Meet → soft launch. Sidebar fixed.
 - Plugins: Stripe, Resend, **Vercel** enabled for project.
 - Legal WiPay→Stripe done in code (awaiting deploy).
 

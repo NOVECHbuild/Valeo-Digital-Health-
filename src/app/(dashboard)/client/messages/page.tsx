@@ -101,15 +101,29 @@ export default function ClientMessagesPage() {
   // S1: optimistic local messages appended before Firestore confirms
   const [optimistic, setOptimistic] = useState<any[]>([]);
 
-  const { messages, loading: msgLoading } = useMessages(activeId);
+  const { messages, loading: msgLoading, error: msgError } = useMessages(activeId);
   const bottomRef  = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null); // FIX 9: ref for resize
 
-  // Merge live messages with optimistic ones, de-duping by id
+  // Merge live messages with optimistic ones, de-duping by id / matching text
   const allMessages = [
     ...messages,
-    ...optimistic.filter(o => !messages.find(m => m.id === o.id)),
+    ...optimistic.filter(o =>
+      !messages.find(m =>
+        m.id === o.id || (m.senderId === o.senderId && m.text === o.text)
+      )
+    ),
   ];
+
+  // Drop optimistic bubbles once the real message lands
+  useEffect(() => {
+    if (!messages.length) return;
+    setOptimistic(prev =>
+      prev.filter(o =>
+        !messages.some(m => m.senderId === o.senderId && m.text === o.text)
+      )
+    );
+  }, [messages]);
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -186,11 +200,9 @@ export default function ClientMessagesPage() {
     setSending(true);
     try {
       await sendMessage(activeId, user.uid, user.displayName ?? "Client", "client", content);
-      // Remove optimistic message — the real one will arrive via onSnapshot
-      setOptimistic(prev => prev.filter(m => m.id !== tempId));
+      // Keep optimistic until onSnapshot confirms (see effect above)
     } catch (err) {
       console.error("[Messages] sendMessage:", err);
-      // Remove optimistic bubble and show error
       setOptimistic(prev => prev.filter(m => m.id !== tempId));
       setSendError("Failed to send message. Please try again.");
       setText(content); // restore text so user doesn't lose it
@@ -399,10 +411,15 @@ export default function ClientMessagesPage() {
               </div>
 
               {/* Messages area */}
-              <div className="flex-1 overflow-y-auto px-5 py-4">
+              <div className="flex-1 overflow-y-auto px-5 py-4 min-h-0">
                 {msgLoading ? (
                   <div className="flex items-center justify-center h-full">
                     <Loader2 size={24} className="animate-spin" style={{ color: "#8DC63F" }} />
+                  </div>
+                ) : msgError ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center px-6">
+                    <AlertCircle size={20} style={{ color: "#F7941D" }} className="mb-2" />
+                    <p className="text-sm font-medium" style={{ color: "#2A4A1A" }}>{msgError}</p>
                   </div>
                 ) : allMessages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center px-6">

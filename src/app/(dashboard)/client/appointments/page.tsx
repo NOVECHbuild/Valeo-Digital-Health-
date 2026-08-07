@@ -161,8 +161,11 @@ function AppointmentCard({
   onCancel?: (appt: Appointment) => void;
 }) {
   const canCancel  = ["pending","approved"].includes(appt.status);
-  const showJoin   = appt.status === "approved" && (appt as any).meetLink;
   const meetLink   = (appt as any).meetLink as string | undefined;
+  // Join whenever a Meet link exists (paid bookings auto-approve + create link)
+  const showJoin   = Boolean(meetLink) && ["approved", "pending"].includes(appt.status);
+  const awaitingConfirm = appt.status === "pending" && !meetLink;
+  const awaitingLink    = appt.status === "approved" && !meetLink;
 
   return (
     <div className="rounded-2xl p-5 transition-all"
@@ -197,10 +200,19 @@ function AppointmentCard({
           {appt.notes && (
             <p className="text-xs mt-2 italic" style={{ color: "#8A9BA8" }}>{appt.notes}</p>
           )}
+          {awaitingConfirm && (
+            <p className="text-xs mt-2" style={{ color: "#F7941D" }}>
+              Awaiting therapist confirmation. Your Join link appears once the session is approved.
+            </p>
+          )}
+          {awaitingLink && (
+            <p className="text-xs mt-2" style={{ color: "#F7941D" }}>
+              Session confirmed — video link is being prepared. Refresh in a moment, or message your therapist.
+            </p>
+          )}
         </div>
       </div>
 
-      {/* FIX 5: Action row for approved sessions with Meet link */}
       {(showJoin || canCancel) && (
         <div className="flex items-center gap-2 mt-4 pt-4 border-t"
           style={{ borderColor: "rgba(42,74,26,0.06)" }}>
@@ -211,7 +223,6 @@ function AppointmentCard({
               <ExternalLink size={14} /> Join Google Meet
             </a>
           )}
-          {/* FIX 6: Cancel button */}
           {canCancel && onCancel && (
             <button
               onClick={() => onCancel(appt)}
