@@ -226,6 +226,12 @@ function AppointmentCard({ appt, onApprove, onReject, onCreateMeet, loading, has
           <div>
             <p className="text-sm font-semibold" style={{ color:"#1E3810" }}>{appt.clientName}</p>
             <p className="text-xs" style={{ color:"#8A9BA8" }}>{appt.clientEmail}</p>
+            {appt.seriesId && appt.seriesIndex && appt.seriesCount && (
+              <span className="inline-flex items-center mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                style={{ background:"rgba(42,74,26,0.08)", color:"#1E3810" }}>
+                Series · {appt.seriesIndex}/{appt.seriesCount}
+              </span>
+            )}
           </div>
         </div>
         <StatusBadge status={appt.status}/>
@@ -467,7 +473,12 @@ function CalendarTab({ appointments }: { appointments: Appointment[] }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold truncate" style={{ color:"#1E3810" }}>{a.clientName}</p>
-                    <p className="text-xs" style={{ color:"#8A9BA8" }}>{a.time} · {a.type}</p>
+                    <p className="text-xs" style={{ color:"#8A9BA8" }}>
+                      {a.time} · {a.type}
+                      {a.seriesId && a.seriesIndex && a.seriesCount
+                        ? ` · Series ${a.seriesIndex}/${a.seriesCount}`
+                        : ""}
+                    </p>
                   </div>
                   <StatusBadge status={a.status}/>
                 </div>

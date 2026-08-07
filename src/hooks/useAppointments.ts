@@ -12,7 +12,8 @@ export interface Appointment {
   id: string; clientId: string; clientName: string; clientEmail: string;
   doctorId: string; doctorName?: string; type: string; date: string; time: string;
   duration: number; amount?: number; status: AppointmentStatus; notes?: string;
-  createdAt: any; updatedAt: any; meetLink?:   string;
+  createdAt: any; updatedAt: any; meetLink?: string;
+  seriesId?: string; seriesIndex?: number; seriesCount?: number;
 }
 
 export function useClientAppointments() {
@@ -50,15 +51,17 @@ export function useDoctorAppointments() {
 export async function bookAppointment(data: {
   clientId: string; clientName: string; clientEmail: string; doctorId: string;
   doctorName?: string; type: string; date: string; time: string; duration: number; amount?: number; notes?: string;
+  seriesId?: string; seriesIndex?: number; seriesCount?: number;
 }) {
-  const { notes, ...rest } = data;
-const ref = await addDoc(collection(db, "appointments"), {
-  ...rest,
-  ...(notes ? { notes } : {}),
-  status:    "pending",
-  createdAt: serverTimestamp(),
-  updatedAt: serverTimestamp(),
-});
+  const { notes, seriesId, seriesIndex, seriesCount, ...rest } = data;
+  const ref = await addDoc(collection(db, "appointments"), {
+    ...rest,
+    ...(notes ? { notes } : {}),
+    ...(seriesId ? { seriesId, seriesIndex, seriesCount } : {}),
+    status:    "pending",
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
   return ref.id;
 }
 

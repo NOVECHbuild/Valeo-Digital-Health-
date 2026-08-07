@@ -127,10 +127,10 @@ _Mechanical Stripe swap done. Optional lawyer review stays in Phase H._
 
 | # | Item | Priority | Status |
 |---|------|----------|--------|
-| G.1 | PHQ-9 / GAD-7 scored trends | High | `[ ]` |
-| G.2 | E-sign consent PDF | High | `[ ]` |
-| G.3 | Mark complete → Add note prompt | Med | `[ ]` |
-| G.4 | Recurring appointments | Med | `[ ]` |
+| G.1 | PHQ-9 / GAD-7 scored trends | High | `[x]` |
+| G.2 | E-sign consent (in-app typed) | High | `[x]` |
+| G.3 | Mark complete → Add note prompt | Med | `[x]` |
+| G.4 | Recurring appointments (weekly series) | Med | `[x]` |
 | G.5 | SMS (Twilio) — ask first | Later | `[ ]` |
 | G.6 | Wire/hide platform toggles | Low | `[ ]` |
 | G.7 | Role middleware harden | Low | `[ ]` |

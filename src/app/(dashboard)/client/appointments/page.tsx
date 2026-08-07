@@ -22,11 +22,20 @@ import {
   overlapsAny,
   type AvailabilitySchedule,
 } from "@/lib/availability";
+import {
+  SERIES_DEFAULT,
+  SERIES_MAX,
+  SERIES_MIN,
+  expandWeeklyDates,
+  evaluateSeriesOccurrence,
+  seriesChipLabel,
+  type SeriesOccurrence,
+} from "@/lib/series";
 import { isConsentCurrent } from "@/lib/consent";
 import {
   Calendar, Clock, Plus, X, CheckCircle, AlertCircle,
   XCircle, Loader2, ChevronLeft, ChevronRight, Video,
-  CreditCard, Lock, ExternalLink, Ban, AlertTriangle,
+  CreditCard, Lock, ExternalLink, Ban, AlertTriangle, Repeat,
 } from "lucide-react";
 export const dynamic = "force-dynamic";
 
@@ -197,6 +206,13 @@ function AppointmentCard({
             <span className="flex items-center gap-1 text-xs" style={{ color: "#4A5568" }}>
               <Video size={11} />{appt.duration} min
             </span>
+            {seriesChipLabel(appt.seriesIndex, appt.seriesCount) && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                style={{ background: "rgba(42,74,26,0.08)", color: "#2A4A1A" }}>
+                <Repeat size={10} />
+                {seriesChipLabel(appt.seriesIndex, appt.seriesCount)}
+              </span>
+            )}
           </div>
           {appt.notes && (
             <p className="text-xs mt-2 italic" style={{ color: "#8A9BA8" }}>{appt.notes}</p>
@@ -384,6 +400,10 @@ function ClientAppointmentsPageInner() {
   const [filter, setFilter]             = useState<FilterTab>("all");
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
   const [cancelling, setCancelling]     = useState(false);
+  const [repeatWeekly, setRepeatWeekly] = useState(false);
+  const [seriesCount, setSeriesCount]   = useState(SERIES_DEFAULT);
+  const [seriesPreview, setSeriesPreview] = useState<SeriesOccurrence[]>([]);
+  const [seriesLoading, setSeriesLoading] = useState(false);
 
   // Already-booked intervals for the selected date (for duration-aware blocking)
   const bookedIntervals = useBookedIntervals(doctorId, selectedDate);
@@ -460,6 +480,64 @@ function ClientAppointmentsPageInner() {
   function resetBooking() {
     setStep(1); setSelectedType(""); setSelectedDate(""); setSelectedTime("");
     setNotes(""); setError(null); setRedirecting(false); setShowBooking(false);
+    setRepeatWeekly(false); setSeriesCount(SERIES_DEFAULT);
+    setSeriesPreview([]); setSeriesLoading(false);
+  }
+
+  async function buildSeriesPreview(): Promise<SeriesOccurrence[]> {
+    if (!selectedDate || !selectedTime) return [];
+    const dates = expandWeeklyDates(selectedDate, seriesCount);
+    const results: SeriesOccurrence[] = [];
+    for (const date of dates) {
+      let booked: { start: number; end: number }[] = [];
+      try {
+        const snap = await getDocs(
+          query(
+            collection(db, "appointments"),
+            where("doctorId", "==", doctorId),
+            where("date", "==", date),
+            where("status", "in", ["pending", "approved"]),
+          )
+        );
+        booked = snap.docs.map(d => {
+          const a = d.data() as any;
+          const start = labelToMinutes(a.time || "");
+          const dur = Number(a.duration) || 60;
+          return { start, end: start + dur };
+        });
+      } catch { /* treat as no bookings */ }
+
+      let occ = evaluateSeriesOccurrence({
+        date,
+        time: selectedTime,
+        duration: selectedDuration,
+        schedule,
+        fallbackSlots: TIME_SLOTS,
+        bookedIntervals: booked,
+      });
+
+      if (occ.available) {
+        try {
+          const res = await authedFetch("/api/calendar/freebusy", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              date,
+              slots: [selectedTime],
+              duration: selectedDuration,
+              timezone: schedule?.timezone,
+              doctorId,
+            }),
+          });
+          const data = await res.json();
+          if (Array.isArray(data?.busy) && data.busy.includes(selectedTime)) {
+            occ = { date, time: selectedTime, available: false, reason: "calendar" };
+          }
+        } catch { /* fail-safe: keep available */ }
+      }
+      results.push(occ);
+    }
+    return results;
   }
 
   // Multi-doctor gate + telehealth consent required before booking.
@@ -505,7 +583,7 @@ function ClientAppointmentsPageInner() {
     }
   }
 
-    async function handleSubmit() {
+  async function handleSubmit() {
     if (!user || !selectedType || !selectedDate || !selectedTime) return;
     if (!doctorId) {
       setError(`Unable to reach ${doctorName}'s profile. Please refresh and try again.`);
@@ -514,36 +592,72 @@ function ClientAppointmentsPageInner() {
     setSubmitting(true); setError(null);
 
     try {
-      const appointmentId = await bookAppointment({
-        clientId:    user.uid,
-        clientName:  user.displayName ?? "Client",
-        clientEmail: user.email ?? "",
-        doctorId,
-        doctorName:  doctor?.doctorName ?? "",
-        type:        selectedService?.name ?? selectedType,
-        date:        selectedDate,
-        time:        selectedTime,
-        duration:    selectedService?.duration ?? 60,
-        amount:      selectedPrice,
-        ...(notes ? { notes } : {}),
-      });
+      let toBook: SeriesOccurrence[] = [{ date: selectedDate, time: selectedTime, available: true }];
+      if (repeatWeekly) {
+        const preview = seriesPreview.length
+          ? seriesPreview
+          : await buildSeriesPreview();
+        toBook = preview.filter(o => o.available);
+        if (toBook.length === 0) {
+          setError("None of the weekly dates are available. Pick another start date or turn off repeat.");
+          setSubmitting(false);
+          return;
+        }
+      }
 
-      // Notify by email (fire-and-forget — never block booking on email)
+      const seriesId =
+        repeatWeekly && toBook.length > 1
+          ? (typeof crypto !== "undefined" && crypto.randomUUID
+              ? crypto.randomUUID()
+              : `series-${Date.now()}`)
+          : undefined;
+      const count = seriesId ? toBook.length : undefined;
+
+      let appointmentId = "";
+      for (let i = 0; i < toBook.length; i++) {
+        const id = await bookAppointment({
+          clientId:    user.uid,
+          clientName:  user.displayName ?? "Client",
+          clientEmail: user.email ?? "",
+          doctorId,
+          doctorName:  doctor?.doctorName ?? "",
+          type:        selectedService?.name ?? selectedType,
+          date:        toBook[i].date,
+          time:        toBook[i].time,
+          duration:    selectedService?.duration ?? 60,
+          amount:      selectedPrice,
+          ...(notes ? { notes } : {}),
+          ...(seriesId
+            ? { seriesId, seriesIndex: i + 1, seriesCount: count }
+            : {}),
+        });
+        if (i === 0) appointmentId = id;
+      }
+
+      // Notify by email for the first session only (avoid spam)
       authedFetch("/api/email/appointment", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ appointmentId, event: "requested" }),
       }).catch(() => {});
 
+      const seriesNote =
+        toBook.length > 1
+          ? ` ${toBook.length} weekly sessions requested.`
+          : "";
+
       // Free consultation — skip payment
       if (selectedPrice === 0) {
         setSubmitting(false);
         resetBooking();
-        setToast({ type: "success", msg: `Free consultation booked! ${doctorName} will confirm shortly.` });
+        setToast({
+          type: "success",
+          msg: `Free consultation booked!${seriesNote} ${doctorName} will confirm shortly.`,
+        });
         return;
       }
 
-      // Paid session — Stripe Checkout (hosted)
+      // Paid session — Stripe Checkout for the FIRST session only
       setStep(4);
       setSubmitting(false);
       setRedirecting(true);
@@ -868,16 +982,66 @@ function ClientAppointmentsPageInner() {
                     </div>
                   )}
 
+                  {selectedDate && selectedTime && (
+                    <div className="rounded-xl p-4 space-y-3"
+                      style={{ background: "white", border: "1px solid rgba(42,74,26,0.1)" }}>
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={repeatWeekly}
+                          onChange={e => setRepeatWeekly(e.target.checked)}
+                          className="w-4 h-4 rounded accent-[#2A4A1A]"
+                        />
+                        <span className="flex items-center gap-1.5 text-sm font-medium" style={{ color: "#2A4A1A" }}>
+                          <Repeat size={14} /> Repeat weekly
+                        </span>
+                      </label>
+                      {repeatWeekly && (
+                        <div className="flex items-center justify-between gap-3 pl-7">
+                          <span className="text-xs" style={{ color: "#8A9BA8" }}>
+                            How many weeks? ({SERIES_MIN}–{SERIES_MAX})
+                          </span>
+                          <select
+                            value={seriesCount}
+                            onChange={e => setSeriesCount(Number(e.target.value))}
+                            className="px-3 py-1.5 rounded-lg text-sm border focus:outline-none"
+                            style={{ borderColor: "rgba(42,74,26,0.15)", color: "#2A4A1A" }}
+                          >
+                            {Array.from({ length: SERIES_MAX - SERIES_MIN + 1 }, (_, i) => SERIES_MIN + i).map(n => (
+                              <option key={n} value={n}>{n}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex gap-3">
                     <button onClick={() => setStep(1)}
                       className="flex-1 py-3 rounded-xl text-sm font-semibold border-2"
                       style={{ borderColor: "rgba(42,74,26,0.15)", color: "#2A4A1A" }}>
                       Back
                     </button>
-                    <button disabled={!selectedDate || !selectedTime} onClick={() => setStep(3)}
-                      className="flex-1 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-40"
+                    <button
+                      disabled={!selectedDate || !selectedTime || seriesLoading}
+                      onClick={async () => {
+                        if (repeatWeekly) {
+                          setSeriesLoading(true);
+                          try {
+                            setSeriesPreview(await buildSeriesPreview());
+                          } finally {
+                            setSeriesLoading(false);
+                          }
+                        } else {
+                          setSeriesPreview([]);
+                        }
+                        setStep(3);
+                      }}
+                      className="flex-1 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-40 flex items-center justify-center gap-2"
                       style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
-                      Continue
+                      {seriesLoading
+                        ? <><Loader2 size={15} className="animate-spin" /> Checking…</>
+                        : "Continue"}
                     </button>
                   </div>
                 </div>
@@ -897,6 +1061,12 @@ function ClientAppointmentsPageInner() {
                       { label: "Date",     value: fmtDate(selectedDate) },
                       { label: "Time",     value: selectedTime },
                       { label: "Duration", value: `${selectedService?.duration} minutes` },
+                      ...(repeatWeekly
+                        ? [{
+                            label: "Repeat",
+                            value: `Weekly × ${seriesCount}`,
+                          }]
+                        : []),
                     ].map(({ label, value }) => (
                       <div key={label} className="flex items-center justify-between py-2 border-b last:border-0"
                         style={{ borderColor: "rgba(42,74,26,0.06)" }}>
@@ -904,14 +1074,55 @@ function ClientAppointmentsPageInner() {
                         <span className="text-sm font-medium" style={{ color: "#2A4A1A" }}>{value}</span>
                       </div>
                     ))}
-                    {/* FIX 4: USD currency */}
+                    {/* FIX 4: USD currency — pay first session only when series */}
                     <div className="flex items-center justify-between pt-2">
-                      <span className="text-sm font-bold" style={{ color: "#2A4A1A" }}>Total</span>
+                      <span className="text-sm font-bold" style={{ color: "#2A4A1A" }}>
+                        {repeatWeekly && selectedService && selectedService.price > 0
+                          ? "Pay now (1st session)"
+                          : "Total"}
+                      </span>
                       <span className="text-lg font-bold" style={{ color: "#2A4A1A" }}>
                         {selectedService?.price === 0 ? "Free" : `USD $${selectedService?.price}`}
                       </span>
                     </div>
                   </div>
+
+                  {repeatWeekly && (
+                    <div className="rounded-2xl p-4 space-y-2"
+                      style={{ background: "white", border: "1px solid rgba(42,74,26,0.08)" }}>
+                      <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#8A9BA8" }}>
+                        Weekly dates
+                      </p>
+                      {seriesPreview.length === 0 ? (
+                        <p className="text-xs" style={{ color: "#8A9BA8" }}>Loading preview…</p>
+                      ) : (
+                        <ul className="space-y-1.5">
+                          {seriesPreview.map((o, i) => (
+                            <li key={o.date} className="flex items-center justify-between text-xs">
+                              <span style={{ color: "#2A4A1A" }}>
+                                {i + 1}. {fmtDate(o.date)} · {o.time}
+                              </span>
+                              <span className="font-semibold"
+                                style={{ color: o.available ? "#6BA028" : "#F7941D" }}>
+                                {o.available
+                                  ? "Available"
+                                  : o.reason === "calendar"
+                                    ? "Calendar busy"
+                                    : o.reason === "booked"
+                                      ? "Already booked"
+                                      : "Unavailable"}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {seriesPreview.some(o => !o.available) && (
+                        <p className="text-[11px] pt-1" style={{ color: "#8A9BA8" }}>
+                          Unavailable weeks are skipped — only available dates will be booked.
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3}
                     placeholder={`Anything ${doctorName} should know before your session (optional)…`}
@@ -924,8 +1135,11 @@ function ClientAppointmentsPageInner() {
                       style={{ background: "rgba(141,198,63,0.06)", border: "1px solid rgba(141,198,63,0.2)" }}>
                       <Lock size={14} className="flex-shrink-0 mt-0.5" style={{ color: "#8DC63F" }} />
                       <p className="text-xs" style={{ color: "#4A5568" }}>
-                        You will be redirected to <strong>Stripe</strong> to securely complete your payment of{" "}
-                        <strong>USD ${selectedService.price}</strong>. Your session will be confirmed upon payment.
+                        You will be redirected to <strong>Stripe</strong> to securely complete payment of{" "}
+                        <strong>USD ${selectedService.price}</strong>
+                        {repeatWeekly
+                          ? " for the first session. Later sessions in the series are requested without payment for now."
+                          : ". Your session will be confirmed upon payment."}
                       </p>
                     </div>
                   )}
@@ -936,7 +1150,7 @@ function ClientAppointmentsPageInner() {
                       style={{ background: "rgba(141,198,63,0.06)", border: "1px solid rgba(141,198,63,0.2)" }}>
                       <CheckCircle size={14} className="flex-shrink-0 mt-0.5" style={{ color: "#8DC63F" }} />
                       <p className="text-xs" style={{ color: "#4A5568" }}>
-                        No payment required. Dr. Miller will review and confirm your free consultation shortly.
+                        No payment required. {doctorName} will review and confirm your free consultation shortly.
                       </p>
                     </div>
                   )}
@@ -954,7 +1168,13 @@ function ClientAppointmentsPageInner() {
                       style={{ borderColor: "rgba(42,74,26,0.15)", color: "#2A4A1A" }}>
                       Back
                     </button>
-                    <button disabled={submitting || !doctorId} onClick={handleSubmit}
+                    <button
+                      disabled={
+                        submitting ||
+                        !doctorId ||
+                        (repeatWeekly && seriesPreview.filter(o => o.available).length === 0)
+                      }
+                      onClick={handleSubmit}
                       className="flex-1 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-60 flex items-center justify-center gap-2"
                       style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
                       {submitting
