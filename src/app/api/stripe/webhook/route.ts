@@ -100,8 +100,13 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        // For card payments, payment_status is usually "paid" immediately
-        if (session.payment_status === "paid" || session.status === "complete") {
+        // Fulfill only when funds are settled (or no charge due). Do not use
+        // session.status === "complete" — that only means Checkout was submitted;
+        // payment_status can still be "unpaid" for delayed methods.
+        if (
+          session.payment_status === "paid" ||
+          session.payment_status === "no_payment_required"
+        ) {
           await fulfillCheckout(session);
         }
         break;

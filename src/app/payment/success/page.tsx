@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { CheckCircle, Calendar, Video, ArrowRight, Loader2 } from 'lucide-react';
+import { CheckCircle, Calendar, Video, ArrowRight, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 
 // ── Shared loading card ───────────────────────────────────────────────────────
 function LoadingCard() {
@@ -32,14 +32,20 @@ function SuccessContent() {
   const [sessionDate, setSessionDate] = useState<string>('');
   const [sessionType, setSessionType] = useState<string>('Therapy Session');
   const [loading,     setLoading]     = useState(true);
+  const [error,       setError]       = useState<string | null>(null);
+  const [retryKey,    setRetryKey]    = useState(0);
 
   useEffect(() => {
+    let cancelled = false;
     (async () => {
+      setLoading(true);
+      setError(null);
       try {
         let appointmentId = appointmentIdQ;
 
         if (orderId) {
           const paySnap = await getDoc(doc(db, 'payments', orderId));
+          if (cancelled) return;
           if (paySnap.exists()) {
             const pay = paySnap.data();
             setSessionType(pay.sessionType ?? 'Therapy Session');
@@ -49,6 +55,7 @@ function SuccessContent() {
 
         if (appointmentId) {
           const apptSnap = await getDoc(doc(db, 'appointments', appointmentId));
+          if (cancelled) return;
           if (apptSnap.exists()) {
             const a = apptSnap.data();
             setMeetLink(a.meetLink ?? null);
@@ -56,11 +63,17 @@ function SuccessContent() {
             if (a.sessionType) setSessionType(a.sessionType);
           }
         }
+      } catch (err) {
+        console.error('[Payment success] load details:', err);
+        if (!cancelled) {
+          setError('We confirmed your payment, but could not load session details. You can retry or open your appointments.');
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
-  }, [orderId, appointmentIdQ]);
+    return () => { cancelled = true; };
+  }, [orderId, appointmentIdQ, retryKey]);
 
   function fmtDate(d: string) {
     if (!d) return '';
@@ -70,6 +83,42 @@ function SuccessContent() {
   }
 
   if (loading) return <LoadingCard />;
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4"
+        style={{ background: 'linear-gradient(135deg, #2A4A1A 0%, #3D6B24 100%)' }}>
+        <div className="rounded-3xl p-10 text-center max-w-sm w-full"
+          style={{ background: 'white', boxShadow: '0 20px 60px rgba(42,74,26,0.25)' }}>
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
+            style={{ background: 'rgba(247,148,29,0.1)' }}>
+            <AlertCircle size={32} style={{ color: '#F7941D' }} />
+          </div>
+          <h2 className="text-2xl mb-2"
+            style={{ fontFamily: 'var(--font-dm-serif)', color: '#2A4A1A' }}>
+            Payment received
+          </h2>
+          <p className="text-sm mb-6" style={{ color: '#8A9BA8' }}>{error}</p>
+          <button
+            type="button"
+            onClick={() => setRetryKey(k => k + 1)}
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-semibold text-white mb-3 transition-all hover:-translate-y-0.5"
+            style={{ background: 'linear-gradient(135deg, #2A4A1A, #3D6B24)' }}
+          >
+            <RefreshCw size={15} /> Retry loading details
+          </button>
+          <Link href="/client/appointments"
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-semibold mb-3 transition-all hover:-translate-y-0.5"
+            style={{ background: 'rgba(42,74,26,0.06)', color: '#2A4A1A' }}>
+            <Calendar size={15} /> View My Appointments <ArrowRight size={13} />
+          </Link>
+          <Link href="/client" className="text-xs" style={{ color: '#C4C4C4' }}>
+            Back to dashboard
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4"
