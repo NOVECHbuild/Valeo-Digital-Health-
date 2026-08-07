@@ -5,6 +5,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { labelToMinutes } from "@/lib/availability";
 
 export type AppointmentStatus = "pending" | "approved" | "rejected" | "completed" | "cancelled";
 
@@ -14,6 +15,19 @@ export interface Appointment {
   duration: number; amount?: number; status: AppointmentStatus; notes?: string;
   createdAt: any; updatedAt: any; meetLink?: string;
   seriesId?: string; seriesIndex?: number; seriesCount?: number;
+}
+
+/** Sort by session date + time. Default soonest first (asc). */
+export function sortAppointmentsBySession(
+  list: Appointment[],
+  direction: "asc" | "desc" = "asc",
+): Appointment[] {
+  const mul = direction === "asc" ? 1 : -1;
+  return [...list].sort((a, b) => {
+    const byDate = a.date.localeCompare(b.date);
+    if (byDate !== 0) return byDate * mul;
+    return (labelToMinutes(a.time || "") - labelToMinutes(b.time || "")) * mul;
+  });
 }
 
 export function useClientAppointments() {

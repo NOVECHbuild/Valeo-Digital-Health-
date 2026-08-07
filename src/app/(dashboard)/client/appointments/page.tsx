@@ -9,6 +9,7 @@ import { authedFetch } from "@/lib/authedFetch";
 import {
   useClientAppointments,
   bookAppointment,
+  sortAppointmentsBySession,
   type Appointment,
 } from "@/hooks/useAppointments";
 import {
@@ -705,12 +706,17 @@ function ClientAppointmentsPageInner() {
   // ── Filtered appointments ─────────────────────────────────────────────
   const todayStr = typeof window !== "undefined" ? new Date().toISOString().split("T")[0] : "";
 
-  const filtered = appointments.filter(a => {
+  const filteredRaw = appointments.filter(a => {
     if (filter === "upcoming")  return ["pending","approved"].includes(a.status);
     if (filter === "past")      return ["completed","rejected"].includes(a.status);
     if (filter === "cancelled") return a.status === "cancelled";
     return true;
   });
+  // Soonest on top for upcoming/all; past & cancelled newest-first
+  const filtered = sortAppointmentsBySession(
+    filteredRaw,
+    filter === "past" || filter === "cancelled" ? "desc" : "asc",
+  );
 
   const counts: Record<FilterTab, number> = {
     all:       appointments.length,
@@ -720,8 +726,14 @@ function ClientAppointmentsPageInner() {
   };
 
   // ── Upcoming for the top section ──────────────────────────────────────
-  const upcoming = appointments.filter(a => ["pending","approved"].includes(a.status));
-  const past     = appointments.filter(a => ["completed","rejected","cancelled"].includes(a.status));
+  const upcoming = sortAppointmentsBySession(
+    appointments.filter(a => ["pending","approved"].includes(a.status)),
+    "asc",
+  );
+  const past     = sortAppointmentsBySession(
+    appointments.filter(a => ["completed","rejected","cancelled"].includes(a.status)),
+    "desc",
+  );
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">

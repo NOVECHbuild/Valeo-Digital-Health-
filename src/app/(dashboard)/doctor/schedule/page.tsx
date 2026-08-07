@@ -5,7 +5,12 @@ import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, onSnaps
 import Link from "next/link";
 import { db, auth } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
-import { useDoctorAppointments, updateAppointmentStatus, type Appointment } from "@/hooks/useAppointments";
+import {
+  useDoctorAppointments,
+  updateAppointmentStatus,
+  sortAppointmentsBySession,
+  type Appointment,
+} from "@/hooks/useAppointments";
 import { type Service, servicesForEditing } from "@/lib/availability";
 import { authedFetch } from "@/lib/authedFetch";
 import {
@@ -345,13 +350,16 @@ function CalendarTab({ appointments }: { appointments: Appointment[] }) {
   // Pad to complete last row
   while (cells.length % 7 !== 0) cells.push(null);
 
-  // Map appointments by date string
+  // Map appointments by date string (soonest time first within each day)
   const apptsByDate = useMemo(() => {
     const map: Record<string, Appointment[]> = {};
     appointments.forEach(a => {
       if (!a.date) return;
       if (!map[a.date]) map[a.date] = [];
       map[a.date].push(a);
+    });
+    Object.keys(map).forEach(d => {
+      map[d] = sortAppointmentsBySession(map[d], "asc");
     });
     return map;
   }, [appointments]);
@@ -833,7 +841,12 @@ export default function DoctorSchedulePage() {
     completed: appointments.filter(a=>a.status==="completed").length,
     all:       appointments.length,
   };
-  const filtered = apptFilter==="all" ? appointments : appointments.filter(a=>a.status===apptFilter);
+  const filteredRaw = apptFilter==="all" ? appointments : appointments.filter(a=>a.status===apptFilter);
+  // Soonest session on top; completed history newest-first
+  const filtered = sortAppointmentsBySession(
+    filteredRaw,
+    apptFilter === "completed" ? "desc" : "asc",
+  );
 
   async function handleApprove(id: string) {
     const appt = appointments.find(a=>a.id===id);
