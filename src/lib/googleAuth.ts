@@ -9,8 +9,21 @@ import { google } from "googleapis";
 import { adminDb } from "@/lib/firebase-admin";
 import { decryptSecret } from "@/lib/crypto";
 
-export const GOOGLE_REDIRECT_URI =
-  process.env.GOOGLE_REDIRECT_URI ?? "https://www.valeoexperience.com/api/auth/callback/google";
+function resolveRedirectUri(): string {
+  const fromEnv = (process.env.GOOGLE_REDIRECT_URI || "").trim();
+  if (fromEnv) return fromEnv.replace(/\/$/, "");
+
+  const base = (
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    "https://www.valeoexperience.com"
+  ).replace(/\/$/, "");
+
+  return `${base}/api/auth/callback/google`;
+}
+
+/** Exact URI Google must list under Authorized redirect URIs. */
+export const GOOGLE_REDIRECT_URI = resolveRedirectUri();
 
 // Scopes needed for free/busy lookups and creating Meet events.
 export const GOOGLE_SCOPES = [
@@ -26,6 +39,19 @@ export function makeOAuthClient() {
   );
 }
 
+/** True when we have any refresh token (doctor-owned or shared env). */
+export function hasGoogleRefreshToken(doctorId?: string): Promise<boolean> {
+  return (async () => {
+    if (doctorId) {
+      try {
+        const snap = await adminDb.collection("googleTokens").doc(doctorId).get();
+        if (snap.data()?.refreshToken) return true;
+      } catch { /* fall through */ }
+    }
+    return Boolean(process.env.GOOGLE_REFRESH_TOKEN);
+  })();
+}
+
 // Returns an OAuth2 client authorized as the given doctor.
 // Uses the doctor's own stored refresh token when connected; otherwise falls
 // back to the shared GOOGLE_REFRESH_TOKEN env var (Dr. Miller's account).
@@ -39,6 +65,14 @@ export async function getDoctorAuth(doctorId?: string) {
     } catch {
       // fall back to env token on any lookup error
     }
+  }
+  if (!refreshToken) {
+    throw Object.assign(
+      new Error(
+        "Google Calendar is not connected. Open Schedule → Availability → Calendar Sync and connect Google Calendar.",
+      ),
+      { code: "GOOGLE_NOT_CONNECTED", status: 503 },
+    );
   }
   const client = makeOAuthClient();
   client.setCredentials({ refresh_token: refreshToken });

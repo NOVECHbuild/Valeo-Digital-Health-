@@ -35,6 +35,8 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: any) {
     console.error("[meet/create]", err);
-    return NextResponse.json({ error: err.message ?? "Internal error" }, { status: 500 });
+    const msg = err?.message ?? "Internal error";
+    const status = err?.code === "GOOGLE_NOT_CONNECTED" || err?.status === 503 ? 503 : 500;
+    return NextResponse.json({ error: msg }, { status });
   }
 }

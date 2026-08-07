@@ -8,16 +8,17 @@ import {
   Calendar, Users, ClipboardList, DollarSign,
   Clock, CheckCircle, AlertCircle, ArrowRight,
   TrendingUp, FileText, Loader2, Banknote,
-  MessageCircle, Activity,
+  MessageCircle, Activity, ExternalLink, Video,
 } from "lucide-react";
 import Link from "next/link";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type Appointment = {
-  id: string; status: string; sessionType: string;
-  createdAt: any; scheduledAt: any; clientId: string;
+  id: string; status: string; sessionType?: string; type?: string;
+  createdAt: any; scheduledAt?: any; clientId: string;
   clientName?: string;
+  date?: string; time?: string; meetLink?: string;
 };
 type ClientDoc = { uid: string; displayName: string; email: string; createdAt: any; };
 type Payment   = { id: string; amount: number; status: string; createdAt: any; source: string; };
@@ -33,9 +34,9 @@ function toDate(ts: any): Date | null {
   return null;
 }
 function monthKey(d: Date) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`; }
-function isToday(d: Date) {
-  const now = new Date();
-  return d.getDate()===now.getDate() && d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+function todayKey() {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`;
 }
 function isThisWeek(d: Date) {
   const now = new Date();
@@ -71,31 +72,46 @@ function StatCard({ label, value, sub, icon: Icon, accent, trend }: {
 }
 
 // ── Appointment Row ────────────────────────────────────────────────────────
-function AppointmentRow({ name, time, type, status }: {
+function AppointmentRow({ name, time, type, status, meetLink }: {
   name: string; time: string; type: string;
-  status: "pending"|"approved"|"completed"|"cancelled";
+  status: "pending"|"approved"|"completed"|"cancelled"|string;
+  meetLink?: string;
 }) {
-  const styles = {
+  const styles: Record<string, { bg: string; color: string; label: string }> = {
     pending:   { bg:"rgba(247,148,29,0.1)",  color:"#F7941D", label:"Pending"   },
     approved:  { bg:"rgba(141,198,63,0.1)",  color:"#6BA028", label:"Approved"  },
     completed: { bg:"rgba(42,74,26,0.08)",   color:"#1E3810", label:"Completed" },
     cancelled: { bg:"rgba(247,148,29,0.1)",   color:"#F7941D", label:"Cancelled" },
   };
   const s = styles[status] ?? styles.pending;
+  const canJoin = Boolean(meetLink) && (status === "approved" || status === "pending");
+  const needsLink = !meetLink && (status === "approved" || status === "pending");
+
   return (
-    <div className="flex items-center gap-4 py-3 border-b last:border-0" style={{ borderColor:"rgba(30,56,16,0.06)" }}>
+    <div className="flex items-center gap-3 py-3 border-b last:border-0" style={{ borderColor:"rgba(30,56,16,0.06)" }}>
       <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
         style={{ background:"rgba(141,198,63,0.15)", color:"#1E3810" }}>
         {name?.[0]?.toUpperCase() ?? "?"}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate" style={{ color:"#1E3810" }}>{name}</p>
-        <p className="text-xs" style={{ color:"#8A9BA8" }}>{type}</p>
+        <p className="text-xs" style={{ color:"#8A9BA8" }}>{type} · {time}</p>
       </div>
-      <div className="text-right flex-shrink-0">
-        <p className="text-xs font-medium mb-0.5" style={{ color:"#1E3810" }}>{time}</p>
-        <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background:s.bg, color:s.color }}>{s.label}</span>
-      </div>
+      <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0" style={{ background:s.bg, color:s.color }}>{s.label}</span>
+      {canJoin && (
+        <a href={meetLink} target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white flex-shrink-0"
+          style={{ background:"linear-gradient(135deg,#1E3810,#3D6B24)" }}>
+          <Video size={12}/> Join Session
+        </a>
+      )}
+      {needsLink && (
+        <Link href="/doctor/schedule"
+          className="flex items-center gap-1 px-2.5 py-2 rounded-xl text-xs font-semibold flex-shrink-0"
+          style={{ background:"rgba(66,133,244,0.08)", color:"#2B6CB0" }}>
+          <ExternalLink size={11}/> Open in Schedule
+        </Link>
+      )}
     </div>
   );
 }
@@ -182,7 +198,14 @@ export default function DoctorDashboard() {
   const now        = new Date();
   const thisMonthK = monthKey(now);
 
-  const todayAppts     = appts.filter(a => { const d=toDate(a.scheduledAt??a.createdAt); return d && isToday(d); });
+  const todayStr       = todayKey();
+  const todayAppts     = appts.filter(a => {
+    if (a.date) return a.date === todayStr && a.status !== "cancelled" && a.status !== "rejected";
+    // Legacy fallback if date field missing
+    const d = toDate(a.scheduledAt ?? a.createdAt);
+    if (!d) return false;
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}` === todayStr;
+  });
   const pendingAppts   = appts.filter(a => a.status==="pending");
   const completedAppts = appts.filter(a => a.status==="completed");
 
@@ -290,19 +313,16 @@ export default function DoctorDashboard() {
               <p className="text-xs" style={{ color:"#8A9BA8" }}>Your schedule is clear. Appointments will appear here.</p>
             </div>
           ) : (
-            todayAppts.map(a => {
-              const d = toDate(a.scheduledAt ?? a.createdAt);
-              const time = d ? d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"}) : "—";
-              return (
-                <AppointmentRow
-                  key={a.id}
-                  name={a.clientName ?? "Unknown"}
-                  time={time}
-                  type={a.sessionType ?? "Session"}
-                  status={a.status as any}
-                />
-              );
-            })
+            todayAppts.map(a => (
+              <AppointmentRow
+                key={a.id}
+                name={a.clientName ?? "Unknown"}
+                time={a.time || "—"}
+                type={a.type ?? a.sessionType ?? "Session"}
+                status={a.status}
+                meetLink={a.meetLink}
+              />
+            ))
           )}
         </div>
 

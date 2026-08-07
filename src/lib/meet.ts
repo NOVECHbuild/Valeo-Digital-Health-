@@ -10,6 +10,44 @@ export type MeetCreateResult =
   | { ok: true; meetLink: string; calendarEventId: string }
   | { ok: false; error: string; status: number };
 
+const CONNECT_HINT =
+  "Connect Google Calendar under Schedule → Availability → Calendar Sync, then try again.";
+
+function friendlyGoogleError(err: any): MeetCreateResult {
+  const msg = String(err?.message ?? err ?? "");
+  const code = err?.code ?? err?.status;
+  const lower = msg.toLowerCase();
+
+  if (err?.code === "GOOGLE_NOT_CONNECTED" || code === 503) {
+    return { ok: false, error: msg || CONNECT_HINT, status: 503 };
+  }
+  if (
+    lower.includes("invalid_grant") ||
+    lower.includes("invalid credentials") ||
+    lower.includes("unauthorized") ||
+    lower.includes("login required") ||
+    code === 401
+  ) {
+    return {
+      ok: false,
+      error: `Google Calendar authorization expired or missing. ${CONNECT_HINT}`,
+      status: 503,
+    };
+  }
+  if (lower.includes("access_token") || lower.includes("refresh_token")) {
+    return {
+      ok: false,
+      error: `Google Calendar is not connected. ${CONNECT_HINT}`,
+      status: 503,
+    };
+  }
+  return {
+    ok: false,
+    error: msg || "Could not create Meet link. Please try again.",
+    status: typeof code === "number" && code >= 400 && code < 600 ? code : 500,
+  };
+}
+
 export async function createMeetForAppointment(
   appointmentId: string,
 ): Promise<MeetCreateResult> {
@@ -25,6 +63,14 @@ export async function createMeetForAppointment(
       ok: true,
       meetLink: appt.meetLink,
       calendarEventId: appt.calendarEventId ?? "",
+    };
+  }
+
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    return {
+      ok: false,
+      error: "Google Calendar is not configured on the server. Contact support.",
+      status: 503,
     };
   }
 
@@ -50,7 +96,13 @@ export async function createMeetForAppointment(
   }
   const endDate = new Date(startDate.getTime() + (appt.duration || 50) * 60 * 1000);
 
-  const auth     = await getDoctorAuth(appt.doctorId);
+  let auth;
+  try {
+    auth = await getDoctorAuth(appt.doctorId);
+  } catch (err: any) {
+    return friendlyGoogleError(err);
+  }
+
   const calendar = google.calendar({ version: "v3", auth });
 
   const event = {
@@ -83,25 +135,34 @@ export async function createMeetForAppointment(
     },
   };
 
-  const response = await calendar.events.insert({
-    calendarId:            "primary",
-    requestBody:           event,
-    conferenceDataVersion: 1,
-    sendUpdates:           "all",
-  });
+  try {
+    const response = await calendar.events.insert({
+      calendarId:            "primary",
+      requestBody:           event,
+      conferenceDataVersion: 1,
+      sendUpdates:           "all",
+    });
 
-  const meetLink        = response.data.hangoutLink;
-  const calendarEventId = response.data.id ?? "";
+    const meetLink        = response.data.hangoutLink;
+    const calendarEventId = response.data.id ?? "";
 
-  if (!meetLink) {
-    return { ok: false, error: "Meet link not generated", status: 500 };
+    if (!meetLink) {
+      return {
+        ok: false,
+        error: "Google did not return a Meet link. Reconnect Google Calendar and try again.",
+        status: 502,
+      };
+    }
+
+    await adminDb.collection("appointments").doc(appointmentId).update({
+      meetLink,
+      calendarEventId,
+      meetCreatedAt: new Date().toISOString(),
+    });
+
+    return { ok: true, meetLink, calendarEventId };
+  } catch (err: any) {
+    console.error("[meet] calendar.events.insert", err?.message ?? err);
+    return friendlyGoogleError(err);
   }
-
-  await adminDb.collection("appointments").doc(appointmentId).update({
-    meetLink,
-    calendarEventId,
-    meetCreatedAt: new Date().toISOString(),
-  });
-
-  return { ok: true, meetLink, calendarEventId };
 }

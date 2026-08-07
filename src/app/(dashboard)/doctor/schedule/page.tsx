@@ -548,9 +548,12 @@ function GoogleCalendarPanel({ calendarId, doctorId }: { calendarId: string; doc
   useEffect(() => {
     const c = new URLSearchParams(window.location.search).get("calendar");
     if (c === "connected") {
-      setSyncMsg({ type: "success", text: "Google Calendar connected. Your booking availability now respects your calendar and sessions get a Meet link automatically." });
+      setSyncMsg({ type: "success", text: "Google Calendar connected. Sessions can now get a Meet link automatically." });
     } else if (c === "error") {
-      setSyncMsg({ type: "error", text: "Couldn't connect Google Calendar. Please try again." });
+      setSyncMsg({
+        type: "error",
+        text: "Couldn't connect Google Calendar. If Google showed redirect_uri_mismatch, the callback URL in Google Cloud must exactly match https://www.valeoexperience.com/api/auth/callback/google (and the non-www version if you use it).",
+      });
     }
   }, []);
 
@@ -601,9 +604,9 @@ function GoogleCalendarPanel({ calendarId, doctorId }: { calendarId: string; doc
           </svg>
         </div>
         <div>
-          <p className="text-sm font-semibold" style={{ color:"#2A4A1A" }}>Google Calendar Sync</p>
+          <p className="text-sm font-semibold" style={{ color:"#2A4A1A" }}>Google Calendar &amp; Meet</p>
           <p className="text-xs mt-0.5" style={{ color:"#8A9BA8" }}>
-            Sync Valeo appointments to your personal Google Calendar so everything stays in one place.
+            Connect once so Valeo can create Google Meet links for sessions and keep your calendar in sync.
           </p>
         </div>
         {connected && (
@@ -619,9 +622,9 @@ function GoogleCalendarPanel({ calendarId, doctorId }: { calendarId: string; doc
         style={{ background:"rgba(66,133,244,0.04)", border:"1px solid rgba(66,133,244,0.12)" }}>
         <p className="text-xs font-semibold" style={{ color:"#4285F4" }}>How it works</p>
         {[
-          "When you approve an appointment, it is automatically added to your Google Calendar with a Google Meet link.",
-          "When you reject or cancel, the event is removed from your calendar.",
-          "Blocked dates in Valeo will also appear on your Google Calendar as all-day busy events.",
+          "Connect your Google account here — this is what powers Meet link generation.",
+          "When you approve a session (or tap Create Meet link), Valeo adds a Calendar event with a Google Meet URL.",
+          "You and the client both get a Join Google Meet button once the link exists.",
         ].map((t,i) => (
           <p key={i} className="text-xs flex gap-2" style={{ color:"#4A5568" }}>
             <span className="font-bold flex-shrink-0" style={{ color:"#4285F4" }}>{i+1}.</span>{t}
@@ -792,16 +795,28 @@ export default function DoctorSchedulePage() {
   async function handleCreateMeet(id: string) {
     setActing(id);
     try {
-      await authedFetch("/api/meet/create", {
+      const res = await authedFetch("/api/meet/create", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ appointmentId: id }),
       });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        showToast("error", data.error || "Could not create Meet link.");
+        return;
+      }
+      showToast("success", "Meet link created — you and the client can Join Session.");
     } catch (err) {
       console.error("[Schedule] Create Meet failed:", err);
+      showToast("error", "Could not create Meet link. Check your Google Calendar connection.");
     } finally {
       setActing(null);
     }
+  }
+
+  function goToCalendarSync() {
+    setMainTab("availability");
+    setAvailSubTab("calendar-sync");
   }
 
   async function handleReject(id: string) {
@@ -881,6 +896,27 @@ export default function DoctorSchedulePage() {
       {/* ── APPOINTMENTS TAB ── */}
       {mainTab==="appointments" && (
         <div className="space-y-5">
+          {!availLoading && !avail.googleCalendarId && (
+            <div className="rounded-2xl px-4 py-3.5 flex flex-wrap items-center justify-between gap-3"
+              style={{ background:"rgba(66,133,244,0.06)", border:"1px solid rgba(66,133,244,0.18)" }}>
+              <div className="flex items-start gap-2.5 min-w-0">
+                <Video size={16} className="flex-shrink-0 mt-0.5" style={{ color:"#4285F4" }}/>
+                <div>
+                  <p className="text-sm font-semibold" style={{ color:"#2A4A1A" }}>
+                    Connect Google Calendar to generate Meet links
+                  </p>
+                  <p className="text-xs mt-0.5" style={{ color:"#4A5568" }}>
+                    Required before you or clients can join video sessions from Valeo.
+                  </p>
+                </div>
+              </div>
+              <button type="button" onClick={goToCalendarSync}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white flex-shrink-0"
+                style={{ background:"linear-gradient(135deg,#4285F4,#2B6CB0)" }}>
+                <Link2 size={13}/> Connect Google Calendar
+              </button>
+            </div>
+          )}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[
               { label:"Pending",   value:counts.pending,   accent:"#F7941D", Icon:Clock        },
