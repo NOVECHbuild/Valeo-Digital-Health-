@@ -67,13 +67,9 @@ export default function AccountSettingsPage() {
   const [accent,     setAccent]     = useState('#F7941D');
   const [accentLight,setAccentLight]= useState('#C4700A');
 
-  // ── Profile ───────────────────────────────────────────────────────────────
-  const [displayName,     setDisplayName]     = useState('');
-  const [phone,           setPhone]           = useState('');
-  const [initName,        setInitName]        = useState('');
-  const [initPhone,       setInitPhone]       = useState('');
-  const [loadingProfile,  setLoadingProfile]  = useState(true);
-  const [loadError,       setLoadError]       = useState<string | null>(null);
+  // ── Display name (for Profile link card only — edits live on Profile page)
+  const [displayName, setDisplayName] = useState('');
+  const [loadError,   setLoadError]   = useState<string | null>(null);
 
   // ── Password ──────────────────────────────────────────────────────────────
   const [pwCurrent,   setPwCurrent]   = useState('');
@@ -92,10 +88,8 @@ export default function AccountSettingsPage() {
   const [notifsDirty, setNotifsDirty] = useState(false);
 
   // ── Status ────────────────────────────────────────────────────────────────
-  const [profileStatus,  setProfileStatus]  = useState<'idle'|'saving'|'success'|'error'>('idle');
   const [passwordStatus, setPasswordStatus] = useState<'idle'|'saving'|'success'|'error'>('idle');
   const [notifStatus,    setNotifStatus]    = useState<'idle'|'saving'|'success'|'error'>('idle');
-  const [profileError,   setProfileError]   = useState('');
   const [passwordError,  setPasswordError]  = useState('');
 
   // ── Toast ─────────────────────────────────────────────────────────────────
@@ -103,13 +97,12 @@ export default function AccountSettingsPage() {
 
   // ── Timer refs (cleared on unmount) ───────────────────────────────────────
   const toastTimerRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const profileTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const passwordTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const notifTimerRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     return () => {
-      [toastTimerRef, profileTimerRef, passwordTimerRef, notifTimerRef].forEach(ref => {
+      [toastTimerRef, passwordTimerRef, notifTimerRef].forEach(ref => {
         if (ref.current) clearTimeout(ref.current);
       });
     };
@@ -131,7 +124,7 @@ export default function AccountSettingsPage() {
   }
 
   // ══════════════════════════════════════════════════════════════
-  //  Load profile + role from Firestore
+  //  Load role + notifs from Firestore (name for Profile link card)
   // ══════════════════════════════════════════════════════════════
   useEffect(() => {
     if (!user) return;
@@ -140,15 +133,8 @@ export default function AccountSettingsPage() {
         const snap = await getDoc(doc(db, 'users', user.uid));
         const data = snap.data() ?? {};
 
-        const name = user.displayName || data.displayName || '';
-        const ph   = data.phone || '';
+        setDisplayName(user.displayName || data.displayName || '');
 
-        setDisplayName(name);
-        setPhone(ph);
-        setInitName(name);
-        setInitPhone(ph);
-
-        // Derive role and matching accent colours
         const firestoreRole: UserRole = data.role ?? 'client';
         setRole(firestoreRole);
         const { accent: a, accentLight: al } = getAccentForRole(firestoreRole);
@@ -161,22 +147,11 @@ export default function AccountSettingsPage() {
       } catch (err) {
         console.error('[AccountSettings] load:', err);
         setLoadError('Could not load your settings. Please refresh the page.');
-      } finally {
-        setLoadingProfile(false);
       }
     })();
   }, [user]);
 
-  useEffect(() => {
-    if (user?.displayName && !displayName) {
-      setDisplayName(user.displayName);
-      setInitName(user.displayName);
-    }
-  }, [user?.displayName, displayName]);
-
   // ── Derived ───────────────────────────────────────────────────────────────
-  const profileDirty = displayName !== initName || phone !== initPhone;
-
   const strength = (() => {
     if (!pwNew) return 0;
     let s = 0;
@@ -199,39 +174,6 @@ export default function AccountSettingsPage() {
         hour: '2-digit', minute: '2-digit',
       })
     : null;
-
-  // ── Save profile ──────────────────────────────────────────────────────────
-  async function handleSaveProfile() {
-    if (!displayName.trim()) {
-      setProfileError('Name cannot be empty.');
-      return;
-    }
-    setProfileStatus('saving');
-    setProfileError('');
-    try {
-      if (auth.currentUser) {
-        const rawName    = displayName.trim().replace(/^Dr\.\s*/i, '');
-        const nameToSave = role === 'doctor' ? `Dr. ${rawName}` : displayName.trim();
-
-        await updateProfile(auth.currentUser, { displayName: nameToSave });
-        await updateDoc(doc(db, 'users', auth.currentUser.uid), {
-          displayName: nameToSave,
-          phone:       phone.trim(),
-          updatedAt:   serverTimestamp(),
-        });
-        setDisplayName(nameToSave);
-        setInitName(nameToSave);
-        setInitPhone(phone.trim());
-      }
-      setProfileStatus('success');
-      showToast('Profile updated successfully.');
-      scheduleReset(setProfileStatus, profileTimerRef, 3000);
-    } catch {
-      setProfileError('Failed to update profile. Please try again.');
-      setProfileStatus('error');
-      scheduleReset(setProfileStatus, profileTimerRef, 4000);
-    }
-  }
 
   // ── Change password ───────────────────────────────────────────────────────
   async function handleChangePassword() {
