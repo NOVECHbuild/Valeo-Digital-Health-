@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
@@ -18,7 +17,6 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const router   = useRouter();
   const [error,   setError]   = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -53,20 +51,23 @@ export default function LoginPage() {
         const userData = userDoc.data();
         const role     = userData.role as string;
 
-        // 4. If client hasn't onboarded yet, send them there first
-        if (role === "client" && userData.onboarded === false) {
-          router.replace("/onboarding");
-          return;
-        }
-
-        // 5. Redirect to correct dashboard based on role
-        if (role === "admin")       router.replace("/admin");
-        else if (role === "doctor") router.replace("/doctor");
-        else                        router.replace("/client");
+        // Hard navigation after login — soft router.replace mounts the dashboard
+        // shell without a full layout pass and can collapse the sidebar until refresh.
+        const dest =
+          role === "client" && userData.onboarded === false
+            ? "/onboarding"
+            : role === "admin"
+              ? "/admin"
+              : role === "doctor"
+                ? "/doctor"
+                : "/client";
+        window.location.assign(dest);
+        return;
 
       } else {
         // No Firestore doc — default to client dashboard
-        router.replace("/client");
+        window.location.assign("/client");
+        return;
       }
 
     } catch (err: unknown) {

@@ -74,7 +74,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const pageTitle = navItems.find(i => isActive(i.href))?.label ?? "Dashboard";
 
   return (
-    <div className="h-dvh flex overflow-hidden" style={{ background: "#F5F4F0" }}>
+    <div className="flex h-dvh max-h-dvh overflow-hidden" style={{ background: "#F5F4F0" }}>
 
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -87,15 +87,15 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       {/* ── SIDEBAR ───────────────────────────────────────────────── */}
       <aside
         className={cn(
-          "fixed top-0 left-0 h-full z-30 flex flex-col flex-shrink-0 overflow-hidden transition-transform duration-300",
-          // FIX: lg:!translate-x-0 prevents sidebar flash on desktop
-          "lg:!translate-x-0 lg:static lg:z-auto",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed inset-y-0 left-0 z-30 flex h-dvh max-h-dvh w-64 flex-shrink-0 flex-col overflow-hidden",
+          "transition-transform duration-300 ease-out lg:transition-none",
+          "lg:static lg:z-auto lg:translate-x-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
-        style={{ width: "256px", minWidth: "256px", background: "#2A4A1A" }}
+        style={{ background: "#2A4A1A" }}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between px-6 py-6 border-b border-white/10">
+        <div className="flex flex-shrink-0 items-center justify-between px-6 py-6 border-b border-white/10">
           <div>
             <span className="text-white text-lg block" style={{ fontFamily: "var(--font-dm-serif)" }}>
               Valeo
@@ -115,7 +115,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
         {/* User pill */}
         <div
-          className="mx-4 mt-5 mb-2 rounded-xl p-3 flex items-center gap-3"
+          className="mx-4 mt-5 mb-2 flex flex-shrink-0 items-center gap-3 rounded-xl p-3"
           style={{ background: "rgba(255,255,255,0.07)" }}
         >
           <div
@@ -133,7 +133,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 min-h-0 px-3 py-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
+        <nav className="min-h-0 flex-1 space-y-0.5 overflow-x-hidden overflow-y-auto px-3 py-2">
           <p
             className="text-xs font-semibold tracking-widest uppercase px-3 py-2"
             style={{ color: "rgba(255,255,255,0.3)" }}
@@ -181,7 +181,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         </nav>
 
         {/* Sign out */}
-        <div className="p-3 border-t border-white/10">
+        <div className="flex-shrink-0 border-t border-white/10 p-3">
           <button
             onClick={handleSignOut}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/50 hover:text-white hover:bg-white/5 transition-all"

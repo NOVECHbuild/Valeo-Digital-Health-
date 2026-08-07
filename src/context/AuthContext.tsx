@@ -3,7 +3,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { Role } from "@/types/user";
 
@@ -23,7 +22,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user,    setUser]    = useState<User | null>(null);
   const [role,    setRole]    = useState<Role | null>(null);
   const [loading, setLoading] = useState(true);
-  const router                = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -48,15 +46,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           );
 
           if (userRole === "client" && data.onboarded === false && !onOnboarding) {
-            // New client — send to onboarding
-            router.push("/onboarding");
+            // New client — send to onboarding (full load so shell layouts paint correctly)
+            window.location.assign("/onboarding");
           } else if (onAuth && !currentPath.startsWith("/register")) {
-  // Already logged in on login page — send to correct dashboard
-  // (register page handles its own redirect)
-  if (userRole === "admin")  router.push("/admin");
-  else if (userRole === "doctor") router.push("/doctor");
-  else router.push("/client");
-}
+            // Already logged in on login page — hard nav to dashboard
+            if (userRole === "admin") window.location.assign("/admin");
+            else if (userRole === "doctor") window.location.assign("/doctor");
+            else window.location.assign("/client");
+          }
         }
 
         // Set session cookie for middleware

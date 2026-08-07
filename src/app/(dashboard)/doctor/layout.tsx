@@ -91,7 +91,7 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
   const pageTitle   = activeItem?.label ?? "Dashboard";
 
   return (
-    <div className="h-dvh flex overflow-hidden" style={{ background: "#F0F4F4" }}>
+    <div className="flex h-dvh max-h-dvh overflow-hidden" style={{ background: "#F0F4F4" }}>
 
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -104,14 +104,15 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
       {/* ── SIDEBAR ─────────────────────────────────────────────────── */}
       <aside
         className={cn(
-          "fixed top-0 left-0 h-full z-30 flex flex-col flex-shrink-0 overflow-hidden transition-transform duration-300",
-          "lg:!translate-x-0 lg:static lg:z-auto",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed inset-y-0 left-0 z-30 flex h-dvh max-h-dvh w-64 flex-shrink-0 flex-col overflow-hidden",
+          "transition-transform duration-300 ease-out lg:transition-none",
+          "lg:static lg:z-auto lg:translate-x-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
-        style={{ width: "256px", minWidth: "256px", background: "#1E3810" }}
+        style={{ background: "#1E3810" }}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between px-6 py-6 border-b border-white/10">
+        <div className="flex flex-shrink-0 items-center justify-between px-6 py-6 border-b border-white/10">
           <div>
             <span className="text-white text-lg block" style={{ fontFamily: "var(--font-dm-serif)" }}>
               Valeo
@@ -129,7 +130,7 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
         </div>
 
         {/* Doctor identity pill */}
-        <div className="mx-4 mt-5 mb-2 rounded-xl p-3 flex items-center gap-3"
+        <div className="mx-4 mt-5 mb-2 flex flex-shrink-0 items-center gap-3 rounded-xl p-3"
           style={{ background: "rgba(255,255,255,0.07)" }}>
           <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
             style={{ background: "linear-gradient(135deg, #8DC63F, #6BA028)", color: "#1E3810", fontFamily: "var(--font-dm-serif)" }}>
@@ -145,7 +146,7 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 min-h-0 px-3 py-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
+        <nav className="min-h-0 flex-1 space-y-0.5 overflow-x-hidden overflow-y-auto px-3 py-2">
           <p className="text-xs font-semibold tracking-widest uppercase px-3 py-2"
             style={{ color: "rgba(255,255,255,0.3)" }}>
             Navigation
@@ -188,7 +189,7 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
         </nav>
 
         {/* Sign out */}
-        <div className="p-3 border-t border-white/10">
+        <div className="flex-shrink-0 border-t border-white/10 p-3">
           <button
             onClick={handleSignOut}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/50 hover:text-white hover:bg-white/5 transition-all">
