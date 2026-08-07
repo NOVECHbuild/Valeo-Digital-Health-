@@ -1,14 +1,14 @@
 'use client';
 
-// src/app/(dashboard)/client/pay/[appointmentId]/page.tsx
-// Shows a payment summary and initiates the WiPay redirect.
-// Called from the appointments page "Pay Now" button.
+// Shows a payment summary and redirects to Stripe Checkout.
+// Called from appointments when a client needs to pay for a pending session.
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
+import { authedFetch } from '@/lib/authedFetch';
 import {
   CreditCard, Lock, Loader2, AlertCircle,
   Calendar, Clock, ArrowRight, ShieldCheck,
@@ -33,7 +33,6 @@ export default function ClientPayPage() {
   const [paying,   setPaying]   = useState(false);
   const [error,    setError]    = useState<string | null>(null);
 
-  // ── Load appointment details ───────────────────────────────────────────
   useEffect(() => {
     if (!appointmentId) return;
     (async () => {
@@ -43,7 +42,6 @@ export default function ClientPayPage() {
 
         const d = snap.data();
 
-        // Guard: already paid
         if (d.status === 'approved' || d.status === 'completed') {
           router.replace('/client/appointments');
           return;
@@ -66,47 +64,51 @@ export default function ClientPayPage() {
     })();
   }, [appointmentId, router]);
 
-  // ── Initiate WiPay payment ─────────────────────────────────────────────
   async function handlePay() {
     if (!user || !appt || !appointmentId) return;
     setPaying(true);
     setError(null);
 
     try {
-      const res = await fetch('/api/wipay/create-payment', {
+      const res = await authedFetch('/api/payments/initiate', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
           appointmentId,
           clientId:    user.uid,
+          clientName:  user.displayName ?? 'Client',
           clientEmail: user.email ?? '',
-          doctorId:    appt.doctorId,
-          amount:      appt.amount,
           sessionType: appt.sessionType,
-          sessionDate: appt.sessionDate,
         }),
       });
 
       const data = await res.json();
 
-      if (!res.ok || !data.checkoutUrl) {
+      if (!res.ok || data.error) {
         setError(data.error ?? 'Could not initiate payment. Please try again.');
+        setPaying(false);
         return;
       }
 
-      // Redirect to WiPay hosted checkout page
-      window.location.href = data.checkoutUrl;
+      if (data.free && data.redirect) {
+        window.location.href = data.redirect;
+        return;
+      }
 
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl as string;
+        return;
+      }
+
+      setError('Could not initiate payment. Please try again.');
+      setPaying(false);
     } catch (err) {
-      console.error('[Pay] create-payment:', err);
+      console.error('[Pay] initiate:', err);
       setError('Something went wrong. Please try again.');
-    } finally {
-      // Only clear spinner if we're NOT redirecting (i.e. on error)
-      if (error) setPaying(false);
+      setPaying(false);
     }
   }
 
-  // ── Format helpers ─────────────────────────────────────────────────────
   function fmtDate(d: string) {
     if (!d) return '—';
     return new Date(d + 'T12:00:00').toLocaleDateString('en-US', {
@@ -118,7 +120,6 @@ export default function ClientPayPage() {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
   }
 
-  // ── Render ─────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
@@ -142,8 +143,6 @@ export default function ClientPayPage() {
 
   return (
     <div className="max-w-md mx-auto space-y-4">
-
-      {/* Header */}
       <div>
         <h2 className="text-2xl" style={{ fontFamily: 'var(--font-dm-serif)', color: '#2A4A1A' }}>
           Complete Payment
@@ -153,7 +152,6 @@ export default function ClientPayPage() {
         </p>
       </div>
 
-      {/* Order summary card */}
       <div className="rounded-2xl p-6"
         style={{ background: 'white', boxShadow: '0 1px 4px rgba(42,74,26,0.07)' }}>
         <p className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: '#8A9BA8' }}>
@@ -191,7 +189,6 @@ export default function ClientPayPage() {
           )}
         </div>
 
-        {/* Divider */}
         <div className="border-t pt-4 mb-4" style={{ borderColor: 'rgba(42,74,26,0.07)' }}>
           <div className="flex items-center justify-between">
             <p className="text-sm" style={{ color: '#4A5568' }}>Session fee</p>
@@ -214,7 +211,6 @@ export default function ClientPayPage() {
           </div>
         </div>
 
-        {/* Error */}
         {error && (
           <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl mb-4"
             style={{ background: 'rgba(247,148,29,0.08)', border: '1px solid rgba(247,148,29,0.15)' }}>
@@ -223,7 +219,6 @@ export default function ClientPayPage() {
           </div>
         )}
 
-        {/* Pay button */}
         <button
           onClick={handlePay}
           disabled={paying || !appt}
@@ -245,17 +240,16 @@ export default function ClientPayPage() {
         </button>
       </div>
 
-      {/* Security note */}
       <div className="rounded-xl p-4 flex items-start gap-3"
         style={{ background: 'rgba(42,74,26,0.03)', border: '1px solid rgba(42,74,26,0.07)' }}>
         <ShieldCheck size={15} className="flex-shrink-0 mt-0.5" style={{ color: '#8DC63F' }} />
         <div>
           <p className="text-xs font-semibold mb-0.5" style={{ color: '#2A4A1A' }}>
-            Secure checkout powered by WiPay
+            Secure checkout powered by Stripe
           </p>
           <p className="text-xs" style={{ color: '#8A9BA8' }}>
-            You'll be redirected to WiPay's secure payment page. Your card details are never
-            stored by Valeo. Supports Visa, Mastercard and local Caribbean debit cards.
+            You&apos;ll be redirected to Stripe&apos;s secure payment page. Your card details are never
+            stored by Valeo.
           </p>
         </div>
       </div>

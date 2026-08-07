@@ -24,8 +24,9 @@ function LoadingCard() {
 
 // ── Inner component — useSearchParams() is safe inside Suspense ──────────────
 function SuccessContent() {
-  const searchParams = useSearchParams();
-  const orderId      = searchParams.get('order_id') ?? '';
+  const searchParams   = useSearchParams();
+  const orderId        = searchParams.get('order_id') ?? '';
+  const appointmentIdQ = searchParams.get('appointment_id') ?? '';
 
   const [meetLink,    setMeetLink]    = useState<string | null>(null);
   const [sessionDate, setSessionDate] = useState<string>('');
@@ -33,27 +34,33 @@ function SuccessContent() {
   const [loading,     setLoading]     = useState(true);
 
   useEffect(() => {
-    if (!orderId) { setLoading(false); return; }
     (async () => {
       try {
-        const paySnap = await getDoc(doc(db, 'payments', orderId));
-        if (!paySnap.exists()) return;
-        const pay = paySnap.data();
-        setSessionType(pay.sessionType ?? 'Therapy Session');
+        let appointmentId = appointmentIdQ;
 
-        if (pay.appointmentId) {
-          const apptSnap = await getDoc(doc(db, 'appointments', pay.appointmentId));
+        if (orderId) {
+          const paySnap = await getDoc(doc(db, 'payments', orderId));
+          if (paySnap.exists()) {
+            const pay = paySnap.data();
+            setSessionType(pay.sessionType ?? 'Therapy Session');
+            if (pay.appointmentId) appointmentId = pay.appointmentId;
+          }
+        }
+
+        if (appointmentId) {
+          const apptSnap = await getDoc(doc(db, 'appointments', appointmentId));
           if (apptSnap.exists()) {
             const a = apptSnap.data();
             setMeetLink(a.meetLink ?? null);
             setSessionDate(a.date  ?? '');
+            if (a.sessionType) setSessionType(a.sessionType);
           }
         }
       } finally {
         setLoading(false);
       }
     })();
-  }, [orderId]);
+  }, [orderId, appointmentIdQ]);
 
   function fmtDate(d: string) {
     if (!d) return '';

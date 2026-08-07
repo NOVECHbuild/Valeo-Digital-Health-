@@ -359,7 +359,7 @@ export default function AdminFinancialsPage() {
             id: d.id, source: "online" as PaymentSource,
             clientId: data.clientId ?? "", clientName: userMap[data.clientId]?.displayName ?? data.clientName ?? "Unknown",
             clientEmail: userMap[data.clientId]?.email ?? "", amount: data.amount ?? 0, currency: data.currency ?? "USD",
-            status: data.status ?? "pending", sessionType: data.sessionType ?? "", method: data.provider ?? "WiPay",
+            status: data.status ?? "pending", sessionType: data.sessionType ?? "", method: data.provider ?? data.gateway ?? "Stripe",
             reference: data.reference ?? "", description: data.sessionType ?? "", date: data.sessionDate ?? "",
             createdAt: data.createdAt,
           };

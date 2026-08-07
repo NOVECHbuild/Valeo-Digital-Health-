@@ -425,7 +425,7 @@ function ClientAppointmentsPageInner() {
     return () => clearTimeout(t);
   }, [toast]);
 
-  // Handle return from WiPay
+  // Handle return from payment gateway
   useEffect(() => {
     const success = searchParams.get("success");
     const err     = searchParams.get("error");
@@ -519,7 +519,7 @@ function ClientAppointmentsPageInner() {
         return;
       }
 
-      // Paid session — get WiPay form params from server
+      // Paid session — Stripe Checkout (hosted)
       setStep(4);
       setSubmitting(false);
       setRedirecting(true);
@@ -535,36 +535,26 @@ function ClientAppointmentsPageInner() {
           sessionType: selectedService?.name,
         }),
       });
-const data = await res.json();
+      const data = await res.json();
 
-if (!res.ok || data.error) {
-  setError(data.error ?? "Could not initiate payment. Please try again.");
-  setRedirecting(false);
-  return;
-}
+      if (!res.ok || data.error) {
+        setError(data.error ?? "Could not initiate payment. Please try again.");
+        setRedirecting(false);
+        return;
+      }
 
-if (data.free && data.redirect) {
-  window.location.href = data.redirect;
-  return;
-}
+      if (data.free && data.redirect) {
+        window.location.href = data.redirect;
+        return;
+      }
 
-if (data.formAction && data.formFields) {
-  const form = document.createElement("form");
-  form.method = "POST";
-  form.action = data.formAction;
-  Object.entries(data.formFields as Record<string, string>).forEach(([key, value]) => {
-    const input = document.createElement("input");
-    input.type  = "hidden";
-    input.name  = key;
-    input.value = value;
-    form.appendChild(input);
-  });
-  document.body.appendChild(form);
-  form.submit();
-  return;
-}
-setError("Could not initiate payment. Please try again.");
-setRedirecting(false);
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl as string;
+        return;
+      }
+
+      setError("Could not initiate payment. Please try again.");
+      setRedirecting(false);
 
     } catch (err) {
       console.error("Booking error:", err);
@@ -755,13 +745,12 @@ setRedirecting(false);
                     {redirecting ? "Redirecting to payment…" : "Ready to pay"}
                   </h4>
                   <p className="text-sm mb-1" style={{ color: "#4A5568" }}>
-                    You will be securely redirected to WiPay to complete payment of{" "}
-                    {/* FIX 4: USD throughout */}
+                    You will be securely redirected to Stripe to complete payment of{" "}
                     <strong>USD ${selectedPrice}</strong>.
                   </p>
                   <p className="text-xs flex items-center justify-center gap-1 mt-4"
                     style={{ color: "#8A9BA8" }}>
-                    <Lock size={11} /> Secured by WiPay · SSL encrypted
+                    <Lock size={11} /> Secured by Stripe · SSL encrypted
                   </p>
                   {error && (
                     <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm mt-4"
@@ -911,7 +900,7 @@ setRedirecting(false);
                       style={{ background: "rgba(141,198,63,0.06)", border: "1px solid rgba(141,198,63,0.2)" }}>
                       <Lock size={14} className="flex-shrink-0 mt-0.5" style={{ color: "#8DC63F" }} />
                       <p className="text-xs" style={{ color: "#4A5568" }}>
-                        You will be redirected to <strong>WiPay</strong> to securely complete your payment of{" "}
+                        You will be redirected to <strong>Stripe</strong> to securely complete your payment of{" "}
                         <strong>USD ${selectedService.price}</strong>. Your session will be confirmed upon payment.
                       </p>
                     </div>

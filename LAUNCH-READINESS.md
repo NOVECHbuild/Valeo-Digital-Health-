@@ -1,27 +1,24 @@
 # Valeo Experience — Launch Readiness Review
 
+> **Superseded for day-to-day work by [`CHECKLIST.md`](./CHECKLIST.md)**  
+> (Stripe → Mercury, GoDaddy↔Vercel DNS, phased setup). Keep this file as historical context.
+
 _A go-live assessment for taking on real clients. Status is one of:_
 **✅ Done** · **⚠️ Action needed (you)** · **⛔ Blocked** · **➡️ Decision**
 
-The platform is **feature-complete**. What stands between here and launch is mostly
-verification, the WiPay payment blocker, and a few operational steps — not new code.
+The platform is **feature-complete**. Critical path updated Aug 2026: **Stripe + domain migration**, not WiPay.
 
 ---
 
 ## TL;DR — the critical path
 
-The single gating item is **WiPay** (online card payments aren't tested/working yet).
-Everything else is either done or a short checklist. So the realistic path is a
-**phased launch**:
+**Payment direction (Aug 2026):** Stripe → Mercury. WiPay is dormant. See `CHECKLIST.md`.
 
-1. **Phase 0 — soft launch now (invite-only, no online card payments).** Free
-   consultations work end-to-end today; paid sessions can be handled as **manual/cash**
-   (the admin Financials "manual payment" flow) until WiPay clears. This lets Dr. Miller
-   see real clients immediately.
-2. **Phase 1 — enable online payments** once WiPay is resolved + tested and the currency
-   mismatch is fixed.
-3. **Phase 2 — open to the public** (self-registration) + onboard more doctors + complete
-   Google OAuth verification.
+Phased launch:
+
+1. **Phase 0–2 — workbench + GoDaddy/Vercel DNS + env** (invite-only; free/manual until Stripe).
+2. **Phase 3 — Stripe online payments** (test → live) + soft launch with paid bookings.
+3. **Phase 5 — public** (self-registration) + Google OAuth verification + more doctors.
 
 ---
 

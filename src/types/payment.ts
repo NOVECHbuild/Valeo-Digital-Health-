@@ -4,10 +4,10 @@ export interface Payment {
   clientId:             string;
   doctorId:             string;
   amount:               number;
-  currency:             "USD" | "XCD";
-  gateway:              "WiPay";
+  currency:             "USD" | "XCD" | "TTD";
+  gateway:              "stripe" | "WiPay" | "manual";
   gatewayTransactionId?: string;
-  status:               "initiated" | "success" | "failed" | "refunded";
+  status:               "initiated" | "pending" | "completed" | "success" | "failed" | "refunded";
   receiptURL?:          string;
   createdAt:            Date;
   updatedAt:            Date;

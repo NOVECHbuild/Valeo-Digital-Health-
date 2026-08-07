@@ -272,7 +272,7 @@ export default function AdminDashboard() {
               { label:"Firebase Auth",  status:"Operational",    ok:true  },
               { label:"Firestore DB",   status:"Operational",    ok:true  },
               { label:"Storage",        status:"Operational",    ok:true  },
-              { label:"WiPay Gateway",  status:"Not configured", ok:false },
+              { label:"Stripe Gateway", status:"Test mode",      ok:true  },
             ].map(({ label, status, ok }) => (
               <div key={label} className="flex items-center justify-between py-1.5 border-b last:border-0" style={{ borderColor:"rgba(30,56,16,0.06)" }}>
                 <span className="text-xs" style={{ color:"#4A5568" }}>{label}</span>

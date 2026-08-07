@@ -1071,7 +1071,7 @@ export default function DoctorSchedulePage() {
                   <div className="mt-1 p-3 rounded-xl flex items-start gap-2" style={{ background:"rgba(42,74,26,0.03)", border:"1px solid rgba(42,74,26,0.07)" }}>
                     <Lock size={12} className="flex-shrink-0 mt-0.5" style={{ color:"#8A9BA8" }}/>
                     <p className="text-xs" style={{ color:"#8A9BA8" }}>
-                      Click <strong>Save Availability</strong> to apply. Prices are shown to clients before booking and used by WiPay to charge the correct amount.
+                      Click <strong>Save Availability</strong> to apply. Prices are shown to clients before booking and used by Stripe to charge the correct amount.
                     </p>
                   </div>
                 </div>

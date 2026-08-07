@@ -29,6 +29,7 @@ interface Payment {
   sessionDate?:  string;
   reference?:    string;
   provider:      string;
+  gateway?:      string;
   createdAt:     any;
   updatedAt:     any;
   receiptUrl?:   string;
@@ -174,7 +175,7 @@ function PaymentCard({ payment }: { payment: Payment }) {
             {[
               {
                 label: "Payment Provider",
-                value: payment.provider || "WiPay",
+                value: payment.provider || payment.gateway || "Stripe",
               },
               {
                 label: "Session Type",
@@ -465,7 +466,7 @@ export default function ClientPaymentsPage() {
       >
         <Lock size={13} className="flex-shrink-0 mt-0.5" style={{ color: "#8A9BA8" }} />
         <p className="text-xs" style={{ color: "#8A9BA8" }}>
-          Payments are processed securely by WiPay. Valeo does not store your card details.
+          Payments are processed securely by Stripe. Valeo does not store your card details.
           For billing questions, contact{" "}
           <a
             href="mailto:support@valeoexperience.com"
