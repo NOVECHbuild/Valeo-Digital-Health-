@@ -3,9 +3,9 @@
 _Update this when Benny shares a new fact, decision, blocker, or “do not change” item._
 
 ## Current goal
-- Work **CHECKLIST.md** step 2→7: portal smoke → Stripe/Resend → Meet → soft launch. Sidebar fixed.
-- Plugins: Stripe, Resend, **Vercel** enabled for project.
-- Legal WiPay→Stripe done in code (awaiting deploy).
+- **Stripe parked** until website/product feels complete (Benny 2026-08-07).
+- Product pass: session complete → note prompt; PHQ-9/GAD-7 score trends; then soft-launch ops.
+- Meet/Calendar working. Stay invite-only + Calendly homepage until public launch.
 
 ## Account map (business — confirmed 2026-08-07)
 

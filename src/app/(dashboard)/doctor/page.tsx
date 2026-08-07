@@ -150,6 +150,7 @@ export default function DoctorDashboard() {
   const [clients,     setClients]     = useState<ClientDoc[]>([]);
   const [payments,    setPayments]    = useState<Payment[]>([]);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
+  const [notedApptIds, setNotedApptIds] = useState<Set<string>>(new Set());
   const [loading,     setLoading]     = useState(true);
 
   // Client-only state to avoid hydration mismatch
@@ -166,11 +167,12 @@ export default function DoctorDashboard() {
 
     (async () => {
       // All queries scoped to this doctor's uid
-      const [aSnap, uSnap, pSnap, asSnap] = await Promise.all([
+      const [aSnap, uSnap, pSnap, asSnap, nSnap] = await Promise.all([
         getDocs(query(collection(db,"appointments"), where("doctorId","==",user.uid), orderBy("createdAt","desc"))),
         getDocs(collection(db,"users")),
         getDocs(query(collection(db,"payments"), where("doctorId","==",user.uid), orderBy("createdAt","desc"))),
         getDocs(query(collection(db,"assessments"), where("doctorId","==",user.uid))),
+        getDocs(query(collection(db,"notes"), where("doctorId","==",user.uid))),
       ]);
 
       const allAppts = aSnap.docs.map(d => ({ id:d.id, ...d.data() }) as Appointment);
@@ -186,10 +188,17 @@ export default function DoctorDashboard() {
       const myClientIds = [...new Set(allAppts.map(a => a.clientId))];
       const myClients   = allUsers.filter(u => myClientIds.includes(u.uid));
 
+      const noted = new Set<string>();
+      nSnap.docs.forEach(d => {
+        const aid = (d.data() as any).appointmentId;
+        if (aid) noted.add(aid);
+      });
+
       setAppts(enriched);
       setClients(myClients);
       setPayments(pSnap.docs.map(d => ({ id:d.id, ...d.data() }) as Payment));
       setAssessments(asSnap.docs.map(d => ({ id:d.id, ...d.data() }) as Assessment));
+      setNotedApptIds(noted);
       setLoading(false);
     })();
   }, [user?.uid]);
@@ -217,6 +226,7 @@ export default function DoctorDashboard() {
   const totalRevenue    = completedPay.reduce((s,p) => s+p.amount, 0);
 
   const pendingAssessments = assessments.filter(a => a.status==="pending").length;
+  const notesNeeded = appts.filter(a => a.status === "completed" && !notedApptIds.has(a.id)).length;
 
   const weekAppts      = appts.filter(a => { const d=toDate(a.createdAt); return d && isThisWeek(d) && a.status==="completed"; }).length;
   const weekNewClients = clients.filter(c => { const d=toDate(c.createdAt); return d && isThisWeek(d); }).length;
@@ -331,7 +341,14 @@ export default function DoctorDashboard() {
           <h3 className="text-sm font-semibold uppercase tracking-wider px-1" style={{ color:"#8A9BA8" }}>Needs Attention</h3>
           <ActionCard href="/doctor/schedule"    icon={Clock}         label="Pending Approvals"     count={pendingAppts.length}    accent="#F7941D"/>
           <ActionCard href="/doctor/assessments" icon={ClipboardList} label="Assessments to Review" count={pendingAssessments}     accent="#8DC63F"/>
-          <ActionCard href="/doctor/notes"       icon={FileText}      label="Session Notes"         hint="SOAP + AI assist"       accent="#1E3810"/>
+          <ActionCard
+            href="/doctor/schedule"
+            icon={FileText}
+            label="Notes to write"
+            count={notesNeeded}
+            hint={notesNeeded > 0 ? "Completed sessions without a note" : "All caught up"}
+            accent="#1E3810"
+          />
           <ActionCard href="/doctor/clients"     icon={Users}         label="New Client Requests"   count={newClientsThisMonth}   accent="#F7941D"/>
 
           {/* This week stats */}

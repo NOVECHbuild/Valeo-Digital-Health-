@@ -12,7 +12,7 @@ import {
   ClipboardList, Plus, Search, X, Loader2, Send,
   CheckCircle, AlertCircle, Clock, Trash2, Eye,
   FileText, Users, BookOpen, Lock, RefreshCw,
-  RotateCcw, ChevronRight,
+  RotateCcw, ChevronRight, TrendingUp,
 } from "lucide-react";
 import {
   SYSTEM_TEMPLATES, CATEGORY_COLORS, calculateScore, getPID5DomainScores,
@@ -494,6 +494,195 @@ function AssignModal({ allTemplates, systemTemplates, clients, doctorId,
 }
 
 // ══════════════════════════════════════════════════════════════
+//  SCORE TRENDS (PHQ-9 / GAD-7)
+// ══════════════════════════════════════════════════════════════
+const TREND_IDS = ["system_phq9", "system_gad7"] as const;
+
+function ScoreTrendsPanel({
+  assessments, clients, onOpen,
+}: {
+  assessments: AssignedAssessment[];
+  clients: Client[];
+  onOpen: (a: AssignedAssessment) => void;
+}) {
+  const [clientId, setClientId] = useState("");
+  const [instrument, setInstrument] = useState<(typeof TREND_IDS)[number]>("system_phq9");
+
+  const template = SYSTEM_TEMPLATES.find(t => t.id === instrument)!;
+
+  const clientsWithScores = clients.filter(c =>
+    assessments.some(a =>
+      a.clientId === c.uid &&
+      a.status === "completed" &&
+      TREND_IDS.includes(a.templateId as (typeof TREND_IDS)[number])
+    )
+  );
+
+  useEffect(() => {
+    if (clientId) return;
+    if (clientsWithScores[0]) setClientId(clientsWithScores[0].uid);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- seed once when data arrives
+  }, [clientsWithScores.length, clientId]);
+
+  const points = assessments
+    .filter(a =>
+      a.status === "completed" &&
+      a.clientId === clientId &&
+      a.templateId === instrument
+    )
+    .map(a => {
+      const d = toDate(a.completedAt) ?? toDate(a.assignedAt);
+      return {
+        assessment: a,
+        date: d,
+        score: calculateScore(template.questions as any, a.responses ?? {}),
+      };
+    })
+    .filter(p => p.date)
+    .sort((a, b) => a.date!.getTime() - b.date!.getTime());
+
+  const maxScore = template.scoring.maxScore;
+  const latest = points.length ? points[points.length - 1] : null;
+  const prev   = points.length > 1 ? points[points.length - 2] : null;
+  const delta  = latest && prev ? latest.score - prev.score : null;
+  const latestRange = latest
+    ? template.scoring.ranges.find(r => latest.score >= r.min && latest.score <= r.max)
+    : null;
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl p-3 flex items-start gap-2.5"
+        style={{ background: "rgba(42,74,26,0.03)", border: "1px solid rgba(42,74,26,0.07)" }}>
+        <TrendingUp size={13} className="flex-shrink-0 mt-0.5" style={{ color: "#8A9BA8" }} />
+        <p className="text-xs" style={{ color: "#8A9BA8" }}>
+          Track PHQ-9 and GAD-7 scores over time for each client. Clinical interpretation remains yours —
+          trends help spot improvement or relapse between sessions.
+        </p>
+      </div>
+
+      {clientsWithScores.length === 0 ? (
+        <div className="rounded-2xl p-12 text-center"
+          style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
+          <TrendingUp size={24} className="mx-auto mb-3" style={{ color: "#8DC63F" }} />
+          <p className="text-sm font-medium mb-1" style={{ color: "#2A4A1A" }}>No scored assessments yet</p>
+          <p className="text-xs" style={{ color: "#8A9BA8" }}>
+            Assign PHQ-9 or GAD-7 and wait for a client to complete one — trends appear here.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-wrap gap-3">
+            <select value={clientId} onChange={e => setClientId(e.target.value)}
+              className="px-3 py-2.5 rounded-xl text-sm border focus:outline-none min-w-[200px]"
+              style={{ borderColor: "rgba(42,74,26,0.12)", background: "white", color: "#2A4A1A" }}>
+              {clientsWithScores.map(c => (
+                <option key={c.uid} value={c.uid}>{c.displayName}</option>
+              ))}
+            </select>
+            <div className="flex gap-1 p-1 rounded-xl" style={{ background: "rgba(42,74,26,0.06)" }}>
+              {TREND_IDS.map(id => {
+                const t = SYSTEM_TEMPLATES.find(x => x.id === id)!;
+                return (
+                  <button key={id} type="button" onClick={() => setInstrument(id)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                    style={{
+                      background: instrument === id ? "white" : "transparent",
+                      color: instrument === id ? "#2A4A1A" : "#8A9BA8",
+                      boxShadow: instrument === id ? "0 1px 3px rgba(42,74,26,0.1)" : "none",
+                    }}>
+                    {t.shortName}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-2xl p-5 space-y-5"
+            style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div>
+                <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>{template.shortName} trend</p>
+                <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>
+                  {points.length} completed submission{points.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+              {latest && (
+                <div className="text-right">
+                  <p className="text-2xl font-semibold leading-none"
+                    style={{ fontFamily: "var(--font-dm-serif)", color: latestRange?.color ?? "#2A4A1A" }}>
+                    {latest.score}
+                    <span className="text-sm font-normal" style={{ color: "#8A9BA8" }}> / {maxScore}</span>
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: latestRange?.color ?? "#8A9BA8" }}>
+                    {latestRange?.label ?? "Latest"}
+                    {delta !== null && (
+                      <span style={{ color: delta < 0 ? "#6BA028" : delta > 0 ? "#F7941D" : "#8A9BA8" }}>
+                        {" "}· {delta > 0 ? "+" : ""}{delta} vs prior
+                      </span>
+                    )}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {points.length === 0 ? (
+              <p className="text-sm text-center py-8" style={{ color: "#C4C4C4" }}>
+                No completed {template.shortName} for this client yet.
+              </p>
+            ) : (
+              <div className="flex items-end gap-2 h-44 px-1">
+                {points.map((p, i) => {
+                  const barH = Math.max(12, Math.round((p.score / maxScore) * 140));
+                  const range = template.scoring.ranges.find(r => p.score >= r.min && p.score <= r.max);
+                  return (
+                    <button
+                      key={p.assessment.id}
+                      type="button"
+                      onClick={() => onOpen(p.assessment)}
+                      className="flex-1 flex flex-col items-center justify-end gap-1.5 min-w-0 h-full group"
+                      title={`${fmtDate(p.date)} · score ${p.score}`}
+                    >
+                      <span className="text-xs font-semibold" style={{ color: "#2A4A1A" }}>{p.score}</span>
+                      <div className="w-full max-w-[48px] rounded-t-lg transition-all group-hover:opacity-90"
+                        style={{
+                          height: barH,
+                          background: range?.color ?? "#8DC63F",
+                          opacity: i === points.length - 1 ? 1 : 0.75,
+                        }}
+                      />
+                      <span className="text-xs truncate w-full text-center" style={{ color: "#8A9BA8" }}>
+                        {p.date!.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {points.length > 0 && (
+              <div className="space-y-2 pt-2 border-t" style={{ borderColor: "rgba(42,74,26,0.06)" }}>
+                {[...points].reverse().map(p => {
+                  const range = template.scoring.ranges.find(r => p.score >= r.min && p.score <= r.max);
+                  return (
+                    <button key={p.assessment.id} type="button" onClick={() => onOpen(p.assessment)}
+                      className="w-full flex items-center justify-between gap-3 py-2 px-2 rounded-xl hover:bg-black/[0.02] text-left">
+                      <span className="text-xs" style={{ color: "#4A5568" }}>{fmtDate(p.date)}</span>
+                      <span className="text-xs font-semibold" style={{ color: range?.color ?? "#2A4A1A" }}>
+                        {p.score} · {range?.label ?? "—"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
 //  MAIN PAGE
 // ══════════════════════════════════════════════════════════════
 type ResponseFilter = "all" | "pending" | "completed";
@@ -504,7 +693,7 @@ export default function DoctorAssessmentsPage() {
   const [assessments,      setAssessments]      = useState<AssignedAssessment[]>([]);
   const [clients,          setClients]          = useState<Client[]>([]);
   const [loading,          setLoading]          = useState(true);
-  const [tab,              setTab]              = useState<"responses" | "library" | "custom">("responses");
+  const [tab,              setTab]              = useState<"responses" | "trends" | "library" | "custom">("responses");
   const [responseFilter,   setResponseFilter]   = useState<ResponseFilter>("all");
   const [search,           setSearch]           = useState("");
   const [showBuilder,      setShowBuilder]      = useState(false);
@@ -715,9 +904,10 @@ export default function DoctorAssessmentsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: "rgba(42,74,26,0.06)" }}>
+      <div className="flex gap-1 p-1 rounded-xl w-fit flex-wrap" style={{ background: "rgba(42,74,26,0.06)" }}>
         {([
           { key: "responses", label: "Client Responses" },
+          { key: "trends",    label: "Score Trends"     },
           { key: "library",   label: "Clinical Library" },
           { key: "custom",    label: "My Templates"     },
         ] as const).map(({ key, label }) => (
@@ -865,6 +1055,13 @@ export default function DoctorAssessmentsPage() {
             </div>
           )}
         </div>
+
+      ) : tab === "trends" ? (
+        <ScoreTrendsPanel
+          assessments={assessments}
+          clients={clients}
+          onOpen={a => setViewing(a)}
+        />
 
       ) : tab === "library" ? (
         /* ── Clinical Library ── */

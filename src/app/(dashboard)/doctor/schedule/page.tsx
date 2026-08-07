@@ -147,6 +147,64 @@ function FilterTab({ label, count, active, onClick }: { label:string; count:numb
   );
 }
 
+function PostCompleteNoteModal({
+  appt, hasNote, onClose,
+}: {
+  appt: Appointment;
+  hasNote: boolean;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }}>
+      <div className="w-full max-w-md rounded-3xl p-6 space-y-4"
+        style={{ background: "#F6FAF0", boxShadow: "0 20px 50px rgba(30,56,16,0.2)" }}>
+        <div className="flex items-start gap-3">
+          <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
+            style={{ background: "rgba(141,198,63,0.15)" }}>
+            <CheckCircle size={22} style={{ color: "#6BA028" }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-semibold" style={{ fontFamily: "var(--font-dm-serif)", color: "#1E3810" }}>
+              Session completed
+            </h3>
+            <p className="text-sm mt-1" style={{ color: "#4A5568" }}>
+              {appt.clientName} · {appt.type} · {appt.date} at {appt.time}
+            </p>
+          </div>
+          <button type="button" onClick={onClose} className="p-1 rounded-lg hover:bg-black/5" aria-label="Close">
+            <X size={18} style={{ color: "#8A9BA8" }} />
+          </button>
+        </div>
+
+        {hasNote ? (
+          <p className="text-sm" style={{ color: "#4A5568" }}>
+            A session note is already linked. You can review or update it anytime.
+          </p>
+        ) : (
+          <p className="text-sm" style={{ color: "#4A5568" }}>
+            Capture SOAP notes while the session is fresh. You can also add them later from Schedule.
+          </p>
+        )}
+
+        <div className="flex flex-col sm:flex-row gap-2 pt-1">
+          <Link href={`/doctor/notes?appointmentId=${appt.id}`}
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white"
+            style={{ background: "linear-gradient(135deg,#1E3810,#3D6B24)" }}>
+            <FileText size={15} />
+            {hasNote ? "View session note" : "Add session note"}
+          </Link>
+          <button type="button" onClick={onClose}
+            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold"
+            style={{ background: "white", color: "#2A4A1A", border: "1px solid rgba(42,74,26,0.12)" }}>
+            Do later
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AppointmentCard({ appt, onApprove, onReject, onCreateMeet, loading, hasNote }: {
   appt:Appointment;
   onApprove:(id:string)=>Promise<void>;
@@ -704,6 +762,7 @@ export default function DoctorSchedulePage() {
   const [availSubTab,  setAvailSubTab]  = useState<"hours"|"pricing"|"settings"|"calendar-sync">("hours");
 
   const [mainTab, setMainTab] = useState<MainTab>("appointments");
+  const [postComplete, setPostComplete] = useState<Appointment | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -771,7 +830,8 @@ export default function DoctorSchedulePage() {
     setActing(id);
     try {
       const becomingApproved = appt.status !== "approved";
-      await updateAppointmentStatus(id, appt.status==="approved"?"completed":"approved");
+      const becomingCompleted = appt.status === "approved";
+      await updateAppointmentStatus(id, becomingCompleted ? "completed" : "approved");
       if (becomingApproved) {
         // Create Meet first so the confirmation email can include Join Session.
         try {
@@ -790,6 +850,10 @@ export default function DoctorSchedulePage() {
           headers: { "Content-Type": "application/json" },
           body:    JSON.stringify({ appointmentId: id, event: "approved" }),
         }).catch(() => {});
+      }
+      if (becomingCompleted) {
+        showToast("success", "Session marked completed.");
+        setPostComplete(appt);
       }
     }
     finally { setActing(null); }
@@ -842,6 +906,14 @@ export default function DoctorSchedulePage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+
+      {postComplete && (
+        <PostCompleteNoteModal
+          appt={postComplete}
+          hasNote={notedApptIds.has(postComplete.id)}
+          onClose={() => setPostComplete(null)}
+        />
+      )}
 
       {/* Toast */}
       {toast && (
