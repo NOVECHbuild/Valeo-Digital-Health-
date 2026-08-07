@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
 import {
   collection, query, where, onSnapshot,
-  orderBy, limit, getDocs, doc, getDoc,
+  doc, getDoc,
 } from "firebase/firestore";
 import {
   Calendar, ClipboardList, MessageSquare, TrendingUp,
@@ -135,7 +135,7 @@ function ActivityRow({ icon: Icon, label, time, accent }: ActivityItem) {
 
 // ── Main page ─────────────────────────────────────────────────────────────
 export default function ClientDashboard() {
-  const { user } = useAuth();
+  const { user, displayName: profileName } = useAuth();
 
   // ── State ──────────────────────────────────────────────────────────────
   const [loading,         setLoading]         = useState(true);
@@ -147,7 +147,7 @@ export default function ClientDashboard() {
   const [nextSession,     setNextSession]     = useState<UpcomingSession | null>(null);
   const [needsConsent,    setNeedsConsent]    = useState(false);
 
-  const firstName = user?.displayName?.split(" ")[0] ?? "there";
+  const firstName = (profileName ?? user?.displayName)?.split(" ")[0] ?? "there";
   const { doctor } = useAssignedDoctor();
   const quoteAttribution = doctor?.doctorName
     ? `— ${doctor.doctorName}`
@@ -180,132 +180,106 @@ export default function ClientDashboard() {
   useEffect(() => {
     if (!user) return;
     const uid = user.uid;
+    setLoading(true);
 
-    // Today's date for comparisons (computed once, outside any render)
     const todayStr = new Date().toISOString().split("T")[0];
+    let apptDocs: { id: string; [k: string]: any }[] = [];
+    let assessDocs: { id: string; [k: string]: any }[] = [];
 
-    // 1. Appointments ────────────────────────────────────────────────────
-    const apptQ = query(
-      collection(db, "appointments"),
-      where("clientId", "==", uid),
-    );
-    const unsubAppts = onSnapshot(apptQ, snap => {
-      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() as any }));
+    function rebuildActivity() {
+      const events: { date: Date; item: ActivityItem }[] = [];
 
-      // Completed sessions count
-      setTotalSessions(docs.filter(a => a.status === "completed").length);
+      apptDocs.forEach(a => {
+        const ts = toDate(a.createdAt);
+        let label = "";
+        let icon = Calendar;
+        let accent = "#8DC63F";
+        if (a.status === "completed") {
+          label = `Session completed${a.type ? " · " + a.type : ""}`;
+          icon = CheckCircle;
+          accent = "#8DC63F";
+        } else if (a.status === "approved") {
+          label = `Session booked for ${a.date ?? ""}`;
+          icon = Calendar;
+          accent = "#2A4A1A";
+        } else if (a.status === "pending") {
+          label = "Appointment request submitted";
+          icon = Clock;
+          accent = "#F7941D";
+        } else if (a.status === "cancelled") {
+          label = "Session cancelled";
+          icon = AlertTriangle;
+          accent = "#F7941D";
+        }
+        if (label) events.push({ date: ts, item: { id: a.id, icon, label, time: timeAgo(ts), accent } });
+      });
 
-      // Upcoming (approved + date >= today)
-      const upcoming = docs.filter(a =>
-        a.status === "approved" && a.date >= todayStr
-      ).sort((a, b) => a.date < b.date ? -1 : 1);
-      setUpcomingCount(upcoming.length);
+      assessDocs.forEach(a => {
+        const ts = toDate(a.updatedAt ?? a.createdAt);
+        let label = "";
+        let icon = ClipboardList;
+        let accent = "#F7941D";
+        if (a.status === "completed") {
+          label = `${a.title ?? "Assessment"} completed`;
+          icon = CheckCircle;
+          accent = "#8DC63F";
+        } else if (a.status === "sent" || a.status === "pending") {
+          label = `New assessment: ${a.title ?? "Wellness check-in"}`;
+          icon = ClipboardList;
+          accent = "#F7941D";
+        }
+        if (label) events.push({ date: ts, item: { id: a.id, icon, label, time: timeAgo(ts), accent } });
+      });
 
-      // Next session
-      if (upcoming.length > 0) {
-        const n = upcoming[0];
-        setNextSession({
-          id:       n.id,
-          date:     n.date,
-          time:     n.time,
-          type:     n.type,
-          meetLink: n.meetLink,
-        });
-      } else {
-        setNextSession(null);
-      }
-    });
+      events.sort((a, b) => b.date.getTime() - a.date.getTime());
+      setActivity(events.slice(0, 6).map(e => e.item));
+    }
 
-    // 2. Assessments — pending (sent to client, not yet submitted) ────────
-    const assessQ = query(
-      collection(db, "assessments"),
-      where("clientId", "==", uid),
-      where("status",   "==", "sent"),
-    );
-    const unsubAssess = onSnapshot(assessQ, snap => {
-      setPendingAssess(snap.size);
-    });
+    const unsubAppts = onSnapshot(
+      query(collection(db, "appointments"), where("clientId", "==", uid)),
+      snap => {
+        const docs = snap.docs.map(d => ({ id: d.id, ...d.data() as any }));
+        apptDocs = docs;
 
-    // 3. Recent activity (last 5 events across appointments + assessments) ─
-    // We pull the most recent 8 appointments + 8 assessments and merge them
-    (async () => {
-      try {
-        const [apptSnap, assessSnap] = await Promise.all([
-          getDocs(query(
-            collection(db, "appointments"),
-            where("clientId", "==", uid),
-            orderBy("createdAt", "desc"),
-            limit(8),
-          )),
-          getDocs(query(
-            collection(db, "assessments"),
-            where("clientId", "==", uid),
-            orderBy("updatedAt", "desc"),
-            limit(8),
-          )),
-        ]);
+        setTotalSessions(docs.filter(a => a.status === "completed").length);
 
-        const events: { date: Date; item: ActivityItem }[] = [];
+        const upcoming = docs.filter(a =>
+          ["approved", "pending"].includes(a.status) && a.date >= todayStr
+        ).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+        // Prefer approved for "next session", else soonest pending
+        const next =
+          upcoming.find(a => a.status === "approved") ??
+          upcoming[0] ??
+          null;
+        setUpcomingCount(upcoming.filter(a => a.status === "approved").length);
 
-        apptSnap.docs.forEach(d => {
-          const a = d.data() as any;
-          const ts = toDate(a.createdAt);
+        if (next) {
+          setNextSession({
+            id: next.id,
+            date: next.date,
+            time: next.time,
+            type: next.type,
+            meetLink: next.meetLink,
+          });
+        } else {
+          setNextSession(null);
+        }
 
-          let label  = "";
-          let icon   = Calendar;
-          let accent = "#8DC63F";
-
-          if (a.status === "completed") {
-            label  = `Session completed${a.type ? " · " + a.type : ""}`;
-            icon   = CheckCircle;
-            accent = "#8DC63F";
-          } else if (a.status === "approved") {
-            label  = `Session booked for ${a.date ?? ""}`;
-            icon   = Calendar;
-            accent = "#2A4A1A";
-          } else if (a.status === "pending") {
-            label  = `Appointment request submitted`;
-            icon   = Clock;
-            accent = "#F7941D";
-          } else if (a.status === "cancelled") {
-            label  = `Session cancelled`;
-            icon   = AlertTriangle;
-            accent = "#F7941D";
-          }
-
-          if (label) events.push({ date: ts, item: { id: d.id, icon, label, time: timeAgo(ts), accent } });
-        });
-
-        assessSnap.docs.forEach(d => {
-          const a = d.data() as any;
-          const ts = toDate(a.updatedAt ?? a.createdAt);
-
-          let label  = "";
-          let icon   = ClipboardList;
-          let accent = "#F7941D";
-
-          if (a.status === "completed") {
-            label  = `${a.title ?? "Assessment"} completed`;
-            icon   = CheckCircle;
-            accent = "#8DC63F";
-          } else if (a.status === "sent") {
-            label  = `New assessment: ${a.title ?? "Wellness check-in"}`;
-            icon   = ClipboardList;
-            accent = "#F7941D";
-          }
-
-          if (label) events.push({ date: ts, item: { id: d.id, icon, label, time: timeAgo(ts), accent } });
-        });
-
-        // Sort newest first, take 6
-        events.sort((a, b) => b.date.getTime() - a.date.getTime());
-        setActivity(events.slice(0, 6).map(e => e.item));
-      } catch {
-        // silent — activity just stays empty
-      } finally {
+        rebuildActivity();
         setLoading(false);
+      },
+      () => setLoading(false)
+    );
+
+    const unsubAssess = onSnapshot(
+      query(collection(db, "assessments"), where("clientId", "==", uid)),
+      snap => {
+        const docs = snap.docs.map(d => ({ id: d.id, ...d.data() as any }));
+        assessDocs = docs;
+        setPendingAssess(docs.filter(a => a.status === "sent" || a.status === "pending").length);
+        rebuildActivity();
       }
-    })();
+    );
 
     return () => {
       unsubAppts();
@@ -376,7 +350,11 @@ export default function ClientDashboard() {
           >
             {firstName} 👋
           </h2>
-          {nextSession ? (
+          {loading ? (
+            <p className="text-sm flex items-center gap-2" style={{ color: "rgba(255,255,255,0.65)" }}>
+              <Loader2 size={14} className="animate-spin" /> Loading your schedule…
+            </p>
+          ) : nextSession ? (
             <div>
               <p className="text-sm" style={{ color: "rgba(255,255,255,0.65)" }}>
                 Your next session is coming up.

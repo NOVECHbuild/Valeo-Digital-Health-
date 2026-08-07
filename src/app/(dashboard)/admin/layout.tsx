@@ -43,7 +43,7 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const router   = useRouter();
-  const { user } = useAuth();
+  const { user, displayName: profileName } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   async function handleSignOut() {
@@ -116,7 +116,7 @@ export default function AdminLayout({
           </div>
           <div className="overflow-hidden">
             <p className="text-white text-sm font-medium truncate">
-              {user?.displayName ?? "Admin"}
+              {profileName ?? user?.displayName ?? "Admin"}
             </p>
             <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
               Platform Administrator

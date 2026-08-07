@@ -36,14 +36,14 @@ const navItems = [
 export default function DoctorLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router   = useRouter();
-  const { user } = useAuth();
+  const { user, displayName: profileName } = useAuth();
   const [sidebarOpen,    setSidebarOpen]    = useState(false);
   const [specialization, setSpecialization] = useState("Health Psychologist");
   // Real unread count from the conversations' unreadDoctor counters
   const unreadMessages = useUnreadCount(user?.uid ?? "", "doctor");
 
   // ── Dr. name — strip leading "Dr." so we never get "Dr. Dr. Name" ─────────
-  const rawName   = user?.displayName ?? "Doctor";
+  const rawName   = profileName ?? user?.displayName ?? "Doctor";
   const cleanName = rawName.replace(/^Dr\.?\s*/i, "");
   const firstName = cleanName.split(" ")[0];
 

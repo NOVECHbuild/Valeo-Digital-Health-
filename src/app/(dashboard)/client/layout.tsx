@@ -43,10 +43,11 @@ const navItems = [
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router   = useRouter();
-  const { user } = useAuth();
+  const { user, displayName: profileName } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const firstName = user?.displayName?.split(" ")[0] ?? "there";
+  const shellName = profileName ?? user?.displayName ?? null;
+  const firstName = shellName?.split(" ")[0] ?? "there";
 
   // Real unread message count from the conversations' unreadClient counters
   const unreadMessages = useUnreadCount(user?.uid ?? "", "client");
@@ -125,7 +126,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             {firstName?.[0]?.toUpperCase() ?? "U"}
           </div>
           <div className="overflow-hidden">
-            <p className="text-white text-sm font-medium truncate">{user?.displayName}</p>
+            <p className="text-white text-sm font-medium truncate">{shellName}</p>
             <p className="text-xs truncate" style={{ color: "rgba(255,255,255,0.4)" }}>
               {user?.email}
             </p>

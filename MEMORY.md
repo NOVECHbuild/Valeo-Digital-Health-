@@ -4,11 +4,8 @@ _Update this when Benny shares a new fact, decision, blocker, or “do not chang
 
 ## Current goal
 - **Stripe parked** until website/product feels complete (Benny 2026-08-07).
-- Build sequence: **1 recurring** (done) → **2 portal polish** (done) → **3 stale-data pass** next.
+- Build sequence: **1 recurring** → **2 portal polish** → **3 stale-data** (done). Soft-launch ops next when ready.
 - Meet/Calendar working. Stay invite-only + Calendly homepage until public launch.
-
-## Later (noted, not now)
-- Client/Firestore dashboards feel stale: first paint shows old data, then catches up; live updates feel slow. Likely cache + snapshot timing — tackle in a dedicated pass.
 
 ## Account map (business — confirmed 2026-08-07)
 

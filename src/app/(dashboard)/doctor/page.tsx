@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
+import { collection, query, where, orderBy, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -144,7 +144,7 @@ function ActionCard({ href, icon: Icon, label, count, accent, hint }: {
 
 // ── Main ───────────────────────────────────────────────────────────────────
 export default function DoctorDashboard() {
-  const { user } = useAuth();
+  const { user, displayName: profileName } = useAuth();
 
   const [appts,       setAppts]       = useState<Appointment[]>([]);
   const [clients,     setClients]     = useState<ClientDoc[]>([]);
@@ -152,6 +152,7 @@ export default function DoctorDashboard() {
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [notedApptIds, setNotedApptIds] = useState<Set<string>>(new Set());
   const [loading,     setLoading]     = useState(true);
+  const [nameCache,   setNameCache]   = useState<Record<string, string>>({});
 
   // Client-only state to avoid hydration mismatch
   const [greeting,    setGreeting]    = useState("");
@@ -160,63 +161,110 @@ export default function DoctorDashboard() {
   useEffect(() => {
     if (!user?.uid) return;
 
-    // Set greeting client-side only
     const hour = new Date().getHours();
     setGreeting(hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening");
     setToday(new Date().toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric" }));
 
-    (async () => {
-      // All queries scoped to this doctor's uid
-      const [aSnap, uSnap, pSnap, asSnap, nSnap] = await Promise.all([
-        getDocs(query(collection(db,"appointments"), where("doctorId","==",user.uid), orderBy("createdAt","desc"))),
-        getDocs(collection(db,"users")),
-        getDocs(query(collection(db,"payments"), where("doctorId","==",user.uid), orderBy("createdAt","desc"))),
-        getDocs(query(collection(db,"assessments"), where("doctorId","==",user.uid))),
-        getDocs(query(collection(db,"notes"), where("doctorId","==",user.uid))),
-      ]);
+    setLoading(true);
+    let apptsReady = false;
+    let paymentsReady = false;
+    let assessReady = false;
+    let notesReady = false;
+    const maybeDone = () => {
+      if (apptsReady && paymentsReady && assessReady && notesReady) setLoading(false);
+    };
 
-      const allAppts = aSnap.docs.map(d => ({ id:d.id, ...d.data() }) as Appointment);
-      const allUsers = uSnap.docs.map(d => ({ uid:d.id, ...d.data() }) as ClientDoc);
+    const unsubAppts = onSnapshot(
+      query(collection(db, "appointments"), where("doctorId", "==", user.uid), orderBy("createdAt", "desc")),
+      (snap) => {
+        const allAppts = snap.docs.map(d => ({ id: d.id, ...d.data() }) as Appointment);
+        setAppts(allAppts);
+        apptsReady = true;
+        maybeDone();
 
-      // Enrich appointments with client names
-      const enriched = allAppts.map(a => ({
-        ...a,
-        clientName: allUsers.find(u => u.uid===a.clientId)?.displayName ?? "Unknown Client",
-      }));
+        // Resolve client profiles by id (no full users scan)
+        const ids = [...new Set(allAppts.map(a => a.clientId).filter(Boolean))];
+        (async () => {
+          const snaps = await Promise.all(ids.map(id => getDoc(doc(db, "users", id))));
+          const myClients: ClientDoc[] = [];
+          const names: Record<string, string> = {};
+          snaps.forEach((s, i) => {
+            if (!s.exists()) return;
+            const data = s.data() as any;
+            myClients.push({ uid: s.id, ...data } as ClientDoc);
+            names[ids[i]] = data.displayName || "Client";
+          });
+          myClients.sort((a, b) => (a.displayName || "").localeCompare(b.displayName || ""));
+          setClients(myClients);
+          setNameCache(prev => ({ ...prev, ...names }));
+        })();
+      },
+      () => { apptsReady = true; maybeDone(); }
+    );
 
-      // Only clients assigned to this doctor
-      const myClientIds = [...new Set(allAppts.map(a => a.clientId))];
-      const myClients   = allUsers.filter(u => myClientIds.includes(u.uid));
+    const unsubPay = onSnapshot(
+      query(collection(db, "payments"), where("doctorId", "==", user.uid), orderBy("createdAt", "desc")),
+      (snap) => {
+        setPayments(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Payment));
+        paymentsReady = true;
+        maybeDone();
+      },
+      () => { paymentsReady = true; maybeDone(); }
+    );
 
-      const noted = new Set<string>();
-      nSnap.docs.forEach(d => {
-        const aid = (d.data() as any).appointmentId;
-        if (aid) noted.add(aid);
-      });
+    const unsubAssess = onSnapshot(
+      query(collection(db, "assessments"), where("doctorId", "==", user.uid)),
+      (snap) => {
+        setAssessments(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Assessment));
+        assessReady = true;
+        maybeDone();
+      },
+      () => { assessReady = true; maybeDone(); }
+    );
 
-      setAppts(enriched);
-      setClients(myClients);
-      setPayments(pSnap.docs.map(d => ({ id:d.id, ...d.data() }) as Payment));
-      setAssessments(asSnap.docs.map(d => ({ id:d.id, ...d.data() }) as Assessment));
-      setNotedApptIds(noted);
-      setLoading(false);
-    })();
+    const unsubNotes = onSnapshot(
+      query(collection(db, "notes"), where("doctorId", "==", user.uid)),
+      (snap) => {
+        const noted = new Set<string>();
+        snap.docs.forEach(d => {
+          const aid = (d.data() as any).appointmentId;
+          if (aid) noted.add(aid);
+        });
+        setNotedApptIds(noted);
+        notesReady = true;
+        maybeDone();
+      },
+      () => { notesReady = true; maybeDone(); }
+    );
+
+    return () => {
+      unsubAppts();
+      unsubPay();
+      unsubAssess();
+      unsubNotes();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- nameCache read inside snap; avoid re-subscribe loop
   }, [user?.uid]);
+
+  // Enrich appointment rows with cached names
+  const enrichedAppts = appts.map(a => ({
+    ...a,
+    clientName: a.clientName || nameCache[a.clientId] || "Client",
+  }));
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const now        = new Date();
   const thisMonthK = monthKey(now);
 
   const todayStr       = todayKey();
-  const todayAppts     = appts.filter(a => {
+  const todayAppts     = enrichedAppts.filter(a => {
     if (a.date) return a.date === todayStr && a.status !== "cancelled" && a.status !== "rejected";
-    // Legacy fallback if date field missing
     const d = toDate(a.scheduledAt ?? a.createdAt);
     if (!d) return false;
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}` === todayStr;
   });
-  const pendingAppts   = appts.filter(a => a.status==="pending");
-  const completedAppts = appts.filter(a => a.status==="completed");
+  const pendingAppts   = enrichedAppts.filter(a => a.status==="pending");
+  const completedAppts = enrichedAppts.filter(a => a.status==="completed");
 
   const completedThisMonth = completedAppts.filter(a => { const d=toDate(a.createdAt); return d && monthKey(d)===thisMonthK; }).length;
   const newClientsThisMonth = clients.filter(c => { const d=toDate(c.createdAt); return d && monthKey(d)===thisMonthK; }).length;
@@ -226,14 +274,13 @@ export default function DoctorDashboard() {
   const totalRevenue    = completedPay.reduce((s,p) => s+p.amount, 0);
 
   const pendingAssessments = assessments.filter(a => a.status==="pending").length;
-  const notesNeeded = appts.filter(a => a.status === "completed" && !notedApptIds.has(a.id)).length;
+  const notesNeeded = enrichedAppts.filter(a => a.status === "completed" && !notedApptIds.has(a.id)).length;
 
-  const weekAppts      = appts.filter(a => { const d=toDate(a.createdAt); return d && isThisWeek(d) && a.status==="completed"; }).length;
+  const weekAppts      = enrichedAppts.filter(a => { const d=toDate(a.createdAt); return d && isThisWeek(d) && a.status==="completed"; }).length;
   const weekNewClients = clients.filter(c => { const d=toDate(c.createdAt); return d && isThisWeek(d); }).length;
   const weekAssess     = assessments.filter(a => { return a.status==="completed"; }).length;
 
-  // Fix "Dr. Dr." — strip leading "Dr. " from displayName if present
-  const rawName   = user?.displayName ?? "Doctor";
+  const rawName   = profileName ?? user?.displayName ?? "Doctor";
   const cleanName = rawName.replace(/^Dr\.?\s*/i, "");
   const firstName = cleanName.split(" ")[0];
 
@@ -399,8 +446,8 @@ export default function DoctorDashboard() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {clients.slice(0,6).map(c => {
-              const sessions = appts.filter(a => a.clientId===c.uid && a.status==="completed").length;
-              const lastAppt = appts.filter(a => a.clientId===c.uid).sort((a,b) => {
+              const sessions = enrichedAppts.filter(a => a.clientId===c.uid && a.status==="completed").length;
+              const lastAppt = enrichedAppts.filter(a => a.clientId===c.uid).sort((a,b) => {
                 const da=toDate(a.createdAt)?.getTime()??0, db2=toDate(b.createdAt)?.getTime()??0;
                 return db2-da;
               })[0];

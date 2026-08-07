@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, getDocs, getDoc, doc, orderBy } from "firebase/firestore";
+import { collection, query, where, getDoc, doc, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -483,34 +483,38 @@ export default function DoctorClientsPage() {
 
   useEffect(() => {
     if (!user) return;
-    (async () => {
-      // ── Step 1: load all appointments for this doctor ──────────────────
-      const apptSnap = await getDocs(
-        query(
-          collection(db, "appointments"),
-          where("doctorId", "==", user.uid),
-          orderBy("createdAt", "desc")
-        )
-      );
+    setLoading(true);
+    setClients([]);
+    setAllAppts({});
 
-      const apptsByClient: Record<string, Appointment[]> = {};
-      const clientIds = new Set<string>();
+    const unsub = onSnapshot(
+      query(
+        collection(db, "appointments"),
+        where("doctorId", "==", user.uid),
+        orderBy("createdAt", "desc")
+      ),
+      async (apptSnap) => {
+        const apptsByClient: Record<string, Appointment[]> = {};
+        const clientIds = new Set<string>();
 
-      apptSnap.docs.forEach(d => {
-        const data = d.data() as any;
-        const cid  = data.clientId as string;
-        if (!cid) return;
-        clientIds.add(cid);
-        if (!apptsByClient[cid]) apptsByClient[cid] = [];
-        apptsByClient[cid].push({ id: d.id, ...data } as Appointment);
-      });
+        apptSnap.docs.forEach(d => {
+          const data = d.data() as any;
+          const cid  = data.clientId as string;
+          if (!cid) return;
+          clientIds.add(cid);
+          if (!apptsByClient[cid]) apptsByClient[cid] = [];
+          apptsByClient[cid].push({ id: d.id, ...data } as Appointment);
+        });
 
-      setAllAppts(apptsByClient);
+        setAllAppts(apptsByClient);
 
-      // ── Step 2: fetch each client doc by document ID (not a field query) ──
-      // BUG FIX: users collection uses uid as the doc ID, not a "uid" field.
-      // where("uid","==",x) returns nothing. Use getDoc(doc(db,"users",uid)) instead.
-      if (clientIds.size > 0) {
+        if (clientIds.size === 0) {
+          setClients([]);
+          setConsents({});
+          setLoading(false);
+          return;
+        }
+
         const ids = [...clientIds];
         const [clientDocs, consentDocs] = await Promise.all([
           Promise.all(ids.map(uid => getDoc(doc(db, "users", uid)))),
@@ -531,10 +535,12 @@ export default function DoctorClientsPage() {
         loaded.sort((a, b) => a.displayName?.localeCompare(b.displayName ?? "") ?? 0);
         setClients(loaded);
         setConsents(consentMap);
-      }
+        setLoading(false);
+      },
+      () => setLoading(false)
+    );
 
-      setLoading(false);
-    })();
+    return () => unsub();
   }, [user]);
 
   // ── Derived stats ────────────────────────────────────────────────────────

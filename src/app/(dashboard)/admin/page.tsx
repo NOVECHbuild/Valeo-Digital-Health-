@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import {
   Users, DollarSign, Calendar, TrendingUp, ArrowRight,
@@ -103,32 +103,72 @@ export default function AdminDashboard() {
   const [today, setToday] = useState("");
 
   useEffect(() => {
-    // Set date only on client — avoids server/client timezone mismatch
     setToday(new Date().toLocaleDateString("en-US", {
       weekday:"long", month:"long", day:"numeric", year:"numeric"
     }));
 
-    (async () => {
-      const [uSnap, aSnap, pSnap, mpSnap] = await Promise.all([
-        getDocs(collection(db, "users")),
-        getDocs(query(collection(db, "appointments"),    orderBy("createdAt","desc"))),
-        getDocs(query(collection(db, "payments"),        orderBy("createdAt","desc"))),
-        getDocs(query(collection(db, "manualPayments"),  orderBy("createdAt","desc"))),
-      ]);
-      setUsers(uSnap.docs.map(d => ({ uid:d.id, ...d.data() }) as UserDoc));
-      setAppts(aSnap.docs.map(d => ({ id:d.id, ...d.data() }) as Appointment));
+    setLoading(true);
+    let onlinePay: Payment[] = [];
+    let manualPay: Payment[] = [];
+    let usersReady = false;
+    let apptsReady = false;
+    let payReady = false;
+    let manualReady = false;
+    const maybeDone = () => {
+      if (usersReady && apptsReady && payReady && manualReady) {
+        setPayments([...onlinePay, ...manualPay]);
+        setLoading(false);
+      }
+    };
 
-      const online: Payment[] = pSnap.docs.map(d => {
-        const data = d.data() as any;
-        return { id:d.id, amount:data.amount??0, status:data.status??"pending", createdAt:data.createdAt, source:"online" };
-      });
-      const manual: Payment[] = mpSnap.docs.map(d => {
-        const data = d.data() as any;
-        return { id:d.id, amount:data.amount??0, status:data.status??"completed", createdAt:data.createdAt, source:"manual" };
-      });
-      setPayments([...online, ...manual]);
-      setLoading(false);
-    })();
+    const unsubUsers = onSnapshot(collection(db, "users"), (snap) => {
+      setUsers(snap.docs.map(d => ({ uid: d.id, ...d.data() }) as UserDoc));
+      usersReady = true;
+      maybeDone();
+    }, () => { usersReady = true; maybeDone(); });
+
+    const unsubAppts = onSnapshot(
+      query(collection(db, "appointments"), orderBy("createdAt", "desc")),
+      (snap) => {
+        setAppts(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Appointment));
+        apptsReady = true;
+        maybeDone();
+      },
+      () => { apptsReady = true; maybeDone(); }
+    );
+
+    const unsubPay = onSnapshot(
+      query(collection(db, "payments"), orderBy("createdAt", "desc")),
+      (snap) => {
+        onlinePay = snap.docs.map(d => {
+          const data = d.data() as any;
+          return { id: d.id, amount: data.amount ?? 0, status: data.status ?? "pending", createdAt: data.createdAt, source: "online" as const };
+        });
+        payReady = true;
+        maybeDone();
+      },
+      () => { payReady = true; maybeDone(); }
+    );
+
+    const unsubManual = onSnapshot(
+      query(collection(db, "manualPayments"), orderBy("createdAt", "desc")),
+      (snap) => {
+        manualPay = snap.docs.map(d => {
+          const data = d.data() as any;
+          return { id: d.id, amount: data.amount ?? 0, status: data.status ?? "completed", createdAt: data.createdAt, source: "manual" as const };
+        });
+        manualReady = true;
+        maybeDone();
+      },
+      () => { manualReady = true; maybeDone(); }
+    );
+
+    return () => {
+      unsubUsers();
+      unsubAppts();
+      unsubPay();
+      unsubManual();
+    };
   }, []);
 
   const now        = new Date();

@@ -35,12 +35,18 @@ export function useClientAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setAppointments([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setAppointments([]);
     const q = query(collection(db, "appointments"), where("clientId", "==", user.uid), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(q, (snap) => {
       setAppointments(snap.docs.map(d => ({ id: d.id, ...d.data() } as Appointment)));
       setLoading(false);
-    });
+    }, () => setLoading(false));
     return () => unsub();
   }, [user]);
   return { appointments, loading };
@@ -51,12 +57,18 @@ export function useDoctorAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setAppointments([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setAppointments([]);
     const q = query(collection(db, "appointments"), where("doctorId", "==", user.uid), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(q, (snap) => {
       setAppointments(snap.docs.map(d => ({ id: d.id, ...d.data() } as Appointment)));
       setLoading(false);
-    });
+    }, () => setLoading(false));
     return () => unsub();
   }, [user]);
   return { appointments, loading };

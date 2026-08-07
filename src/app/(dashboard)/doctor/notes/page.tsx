@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import {
-  collection, query, where, getDocs, getDoc, addDoc, updateDoc,
+  collection, query, where, getDoc, addDoc, updateDoc, onSnapshot,
   deleteDoc, doc, orderBy, serverTimestamp,
 } from "firebase/firestore";
 import { bookableServices } from "@/lib/availability";
@@ -501,36 +501,48 @@ function NotesPageInner() {
 
   useEffect(()=>{
     if(!user) return;
-    (async()=>{
-      const notesSnap = await getDocs(query(collection(db,"notes"),where("doctorId","==",user.uid),orderBy("createdAt","desc")));
-      setNotes(notesSnap.docs.map(d=>({id:d.id,...d.data()}) as Note));
+    setLoading(true);
 
-      const apptSnap = await getDocs(query(collection(db,"appointments"),where("doctorId","==",user.uid)));
-      setAppointments(apptSnap.docs.map(d=>({id:d.id,...d.data()}) as Appointment));
-      const clientIds = [...new Set(apptSnap.docs.map(d=>(d.data() as any).clientId as string))];
-
-      // Session-type options from the doctor's own services (fallback to defaults)
+    (async () => {
       try {
         const schedSnap = await getDoc(doc(db,"schedules",user.uid));
         const sched = schedSnap.exists() ? (schedSnap.data() as any) : null;
         const names = bookableServices(sched).map(s=>s.name);
         if (names.length) setSessionTypes(names);
       } catch { /* keep default list */ }
-
-      if(clientIds.length > 0) {
-        // Doc id IS the uid — never query where("uid","==",uid)
-        const clientSnaps = await Promise.all(
-          clientIds.map(uid => getDoc(doc(db, "users", uid)))
-        );
-        const loaded: Client[] = [];
-        clientSnaps.forEach(snap => {
-          if (snap.exists()) loaded.push({ uid: snap.id, ...snap.data() } as Client);
-        });
-        loaded.sort((a,b)=>a.displayName.localeCompare(b.displayName));
-        setClients(loaded);
-      }
-      setLoading(false);
     })();
+
+    const unsubNotes = onSnapshot(
+      query(collection(db,"notes"),where("doctorId","==",user.uid),orderBy("createdAt","desc")),
+      (notesSnap) => {
+        setNotes(notesSnap.docs.map(d=>({id:d.id,...d.data()}) as Note));
+        setLoading(false);
+      },
+      () => setLoading(false)
+    );
+
+    const unsubAppts = onSnapshot(
+      query(collection(db,"appointments"),where("doctorId","==",user.uid)),
+      async (apptSnap) => {
+        setAppointments(apptSnap.docs.map(d=>({id:d.id,...d.data()}) as Appointment));
+        const clientIds = [...new Set(apptSnap.docs.map(d=>(d.data() as any).clientId as string).filter(Boolean))];
+        if(clientIds.length > 0) {
+          const clientSnaps = await Promise.all(
+            clientIds.map(uid => getDoc(doc(db, "users", uid)))
+          );
+          const loaded: Client[] = [];
+          clientSnaps.forEach(snap => {
+            if (snap.exists()) loaded.push({ uid: snap.id, ...snap.data() } as Client);
+          });
+          loaded.sort((a,b)=>a.displayName.localeCompare(b.displayName));
+          setClients(loaded);
+        } else {
+          setClients([]);
+        }
+      }
+    );
+
+    return () => { unsubNotes(); unsubAppts(); };
   },[user]);
 
   // ── Deep-link from the schedule page: ?appointmentId=… opens a pre-linked note
