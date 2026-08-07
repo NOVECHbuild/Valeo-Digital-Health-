@@ -25,9 +25,15 @@ service cloud.firestore {
     }
     // ── Users ─────────────────────────────────────────────────────────────────
     match /users/{userId} {
-      allow get:    if isUser(userId) || isDoctorOrAdmin();
-      // Only doctors/admins may LIST/query users; clients can't enumerate others' PII.
-      allow list:   if isDoctorOrAdmin();
+      // Clients may read doctor profiles (match, My Therapist, booking).
+      // They still cannot read other clients' user docs.
+      allow get: if isUser(userId)
+        || isDoctorOrAdmin()
+        || (isAuth() && resource.data.role == 'doctor');
+      // List/query: doctors/admins see all users; any signed-in user may query
+      // doctors only (query MUST include where role == 'doctor').
+      allow list: if isDoctorOrAdmin()
+        || (isAuth() && resource.data.role == 'doctor');
       allow create: if isUser(userId);
       allow update: if (isUser(userId)
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']))
