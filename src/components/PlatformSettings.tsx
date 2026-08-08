@@ -18,7 +18,6 @@ import {
 // ════════════════════════════════════════════════════════════════════════════
 
 interface PlatformConfig {
-  defaultSessionPrice: number;
   platformFeePercent:  number;
   minPayoutUsd:        number;
   payoutReceiptEmail:  string;
@@ -28,7 +27,6 @@ interface PlatformConfig {
 }
 
 const DEFAULTS: PlatformConfig = {
-  defaultSessionPrice: 75,
   platformFeePercent:  10,
   minPayoutUsd:        100,
   payoutReceiptEmail:  "",
@@ -73,11 +71,12 @@ export default function PlatformSettings() {
       await setDoc(
         doc(db, "settings", "platform"),
         {
-          ...cfg,
-          defaultSessionPrice: Number(cfg.defaultSessionPrice) || 0,
           platformFeePercent:  Number(cfg.platformFeePercent)  || 0,
           minPayoutUsd:        Number(cfg.minPayoutUsd)        || 0,
           payoutReceiptEmail:  String(cfg.payoutReceiptEmail || "").trim(),
+          currency:            cfg.currency || "USD",
+          maintenanceMode:     !!cfg.maintenanceMode,
+          betaRegistration:    !!cfg.betaRegistration,
           updatedAt:           serverTimestamp(),
           updatedBy:           user?.displayName ?? user?.email ?? "Admin",
         },
@@ -129,20 +128,7 @@ export default function PlatformSettings() {
             </div>
           ) : (
             <div className="space-y-5">
-              {/* Pricing row */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#8A9BA8" }}>
-                    Default Session Price
-                  </label>
-                  <div className="relative">
-                    <DollarSign size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "#8A9BA8" }} />
-                    <input type="number" min={0} value={cfg.defaultSessionPrice}
-                      onChange={e => setCfg(c => ({ ...c, defaultSessionPrice: e.target.value === "" ? 0 : Number(e.target.value) }))}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none"
-                      style={{ background: "#F8F9FA", border: "1px solid rgba(42,74,26,0.1)", color: "#2A4A1A" }} />
-                  </div>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#8A9BA8" }}>
                     Currency
@@ -158,6 +144,11 @@ export default function PlatformSettings() {
                   </div>
                 </div>
               </div>
+
+              <p className="text-xs flex items-start gap-1.5" style={{ color: "#8A9BA8" }}>
+                <Info size={12} style={{ marginTop: "1px", flexShrink: 0 }} />
+                Session prices come from each doctor&apos;s Services in Schedule — not from a platform default.
+              </p>
 
               <div style={{ borderTop: "1px solid rgba(42,74,26,0.06)" }} />
 
@@ -208,7 +199,7 @@ export default function PlatformSettings() {
 
               <p className="text-xs flex items-start gap-1.5" style={{ color: "#8A9BA8" }}>
                 <Info size={12} style={{ marginTop: "1px", flexShrink: 0 }} />
-                Fee % and minimum drive the Admin → Financials settlement panel. Receipt email is used when you record a Mercury payout to Valeo. Stripe is not auto-split yet — you transfer manually and log it.
+                Fee % applies to gross online client payments (actual amounts charged). Minimum and receipt email drive Admin → Financials payouts. Stripe is not auto-split — you transfer from Mercury and log it.
               </p>
 
               <div style={{ borderTop: "1px solid rgba(42,74,26,0.06)" }} />

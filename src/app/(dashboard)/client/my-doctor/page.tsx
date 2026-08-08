@@ -342,33 +342,31 @@ export default function MyDoctorPage() {
           )}
 
           {/* ── Doctor card ───────────────────────────────────────────────── */}
-          <div className="rounded-2xl overflow-hidden"
+          {/* No overflow-hidden on the outer card — it clipped the overlapping avatar. */}
+          <div className="rounded-2xl"
             style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
 
-            {/* Gradient header */}
-            <div className="p-6 pb-16 relative"
+            {/* Gradient header — clip only here for rounded top */}
+            <div className="p-6 pb-12 relative overflow-hidden rounded-t-2xl"
               style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
-              <div className="absolute right-0 top-0 w-48 h-full opacity-10"
+              <div className="absolute right-0 top-0 w-48 h-full opacity-10 pointer-events-none"
                 style={{ background: "radial-gradient(circle at 80% 50%, #8DC63F, transparent 70%)" }} />
               <div className="flex items-start justify-between relative z-10">
-                <div>
+                <div className="min-w-0 pr-3">
                   <p className="text-xs font-semibold uppercase tracking-widest mb-1"
                     style={{ color: "rgba(141,198,63,0.8)" }}>
                     Your Therapist
                   </p>
-                  {/* FIX 4: Render title only when it exists */}
                   <h3 className="text-2xl text-white" style={{ fontFamily: "var(--font-dm-serif)" }}>
                     {(doctor as any).title ? `${(doctor as any).title} ` : ""}
                     {doctor.displayName}
                   </h3>
-                  {/* S2: Assigned since date */}
                   {assignment.assignedAt && (
                     <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.45)" }}>
                       With you since {fmtMonthYear(assignment.assignedAt)}
                     </p>
                   )}
                 </div>
-                {/* FIX 5: Only show match badge when matchPercent is a positive number */}
                 {(assignment.matchPercent ?? 0) > 0 && (
                   <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full flex-shrink-0"
                     style={{ background: "rgba(141,198,63,0.15)" }}>
@@ -381,12 +379,12 @@ export default function MyDoctorPage() {
               </div>
             </div>
 
-            {/* Avatar overlapping header */}
-            <div className="px-6" style={{ marginTop: "-40px" }}>
+            {/* Avatar sits half on the header, half on the white body */}
+            <div className="px-6 relative z-10" style={{ marginTop: "-2.5rem" }}>
               {(doctor as any).photoURL ? (
                 <img
                   src={(doctor as any).photoURL}
-                  alt={doctor.displayName}
+                  alt={doctor.displayName || "Therapist"}
                   className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-md"
                 />
               ) : (
@@ -394,8 +392,7 @@ export default function MyDoctorPage() {
                   className="w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-bold border-4 border-white shadow-md"
                   style={{ background: "rgba(141,198,63,0.15)", color: "#2A4A1A" }}
                 >
-                  {/* FIX 3: Safe character access — no crash on empty/undefined displayName */}
-                  {doctor.displayName?.[0]?.toUpperCase() ?? "D"}
+                  {(doctor.displayName || "").replace(/^Dr\.?\s*/i, "").trim()?.[0]?.toUpperCase() ?? "D"}
                 </div>
               )}
             </div>
