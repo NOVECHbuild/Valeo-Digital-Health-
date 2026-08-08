@@ -478,6 +478,31 @@ function ClientAppointmentsPageInner() {
     }
   }, [searchParams]);
 
+  // Sticky-header "Book Session" lands here with ?book=1 (replaces the old page-level CTA)
+  useEffect(() => {
+    if (searchParams.get("book") !== "1") return;
+    if (doctorLoading) return;
+    let cancelled = false;
+    (async () => {
+      router.replace("/client/appointments", { scroll: false });
+      if (!doctor) { router.push("/onboarding/match"); return; }
+      if (!user) return;
+      try {
+        const cSnap = await getDoc(doc(db, "consents", user.uid));
+        const version = cSnap.exists() ? (cSnap.data() as { version?: string }).version : null;
+        if (!isConsentCurrent(version)) {
+          router.push("/onboarding/consent?next=/client/appointments");
+          return;
+        }
+      } catch {
+        router.push("/onboarding/consent?next=/client/appointments");
+        return;
+      }
+      if (!cancelled) { setShowBooking(true); setStep(1); }
+    })();
+    return () => { cancelled = true; };
+  }, [searchParams, doctorLoading, doctor, user, router]);
+
   function resetBooking() {
     setStep(1); setSelectedType(""); setSelectedDate(""); setSelectedTime("");
     setNotes(""); setError(null); setRedirecting(false); setShowBooking(false);
@@ -758,18 +783,10 @@ function ClientAppointmentsPageInner() {
         </div>
       )}
 
-      {/* Subtitle + booking CTA — page name lives in the sticky header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <p className="text-sm" style={{ color: "#8A9BA8" }}>
-          Manage your sessions with {doctorName}
-        </p>
-        <button
-          onClick={startBooking}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-0.5"
-          style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
-          <Plus size={16} /> Book Session
-        </button>
-      </div>
+      {/* Subtitle only — Book Session lives in the sticky header */}
+      <p className="text-sm" style={{ color: "#8A9BA8" }}>
+        Manage your sessions with {doctorName}
+      </p>
 
       {/* Not-yet-matched notice — booking requires an assigned doctor */}
       {!doctorLoading && !doctor && (

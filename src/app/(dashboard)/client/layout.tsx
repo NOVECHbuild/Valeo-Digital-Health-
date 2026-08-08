@@ -226,9 +226,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           <div className="flex items-center gap-3">
             <NotificationBell role="client" unreadCount={unreadMessages} />
 
-            {/* Book session CTA */}
+            {/* Book session CTA — ?book=1 opens the booking modal on the appointments page */}
             <Link
-              href="/client/appointments"
+              href="/client/appointments?book=1"
               className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all"
               style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
             >
