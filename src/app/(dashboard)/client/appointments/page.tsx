@@ -15,6 +15,11 @@ import {
   type Appointment,
 } from "@/hooks/useAppointments";
 import {
+  PAYMENT_BADGE,
+  resolvePaymentStatus,
+  PAYMENT_HOLD_MINUTES,
+} from "@/lib/paymentStatus";
+import {
   collection, query, where, getDocs, getDoc,
   doc, updateDoc, serverTimestamp,
 } from "firebase/firestore";
@@ -147,9 +152,10 @@ function ConfirmDialog({
 }
 
 // ── Status badge ───────────────────────────────────────────────────────────
-function StatusBadge({ status, cancelledReason }: {
+function StatusBadge({ status, cancelledReason, paymentStatus }: {
   status: Appointment["status"];
   cancelledReason?: string;
+  paymentStatus?: Appointment["paymentStatus"];
 }) {
   const styles: Record<string, { bg: string; color: string; label: string; Icon: any }> = {
     pending:   { bg: "rgba(247,148,29,0.12)",  color: "#C4700A", label: "Pending Review", Icon: Clock },
@@ -157,10 +163,19 @@ function StatusBadge({ status, cancelledReason }: {
     rejected:  { bg: "rgba(247,148,29,0.12)",   color: "#F7941D", label: "Declined",       Icon: XCircle },
     completed: { bg: "rgba(42,74,26,0.08)",    color: "#2A4A1A", label: "Completed",      Icon: CheckCircle },
     cancelled: { bg: "rgba(138,155,168,0.12)", color: "#8A9BA8", label: "Cancelled",      Icon: XCircle },
+    payment_failed: { bg: "rgba(247,148,29,0.12)", color: "#C4700A", label: "Payment failed", Icon: XCircle },
   };
-  const s = status === "cancelled" && cancelledReason === "no_show"
-    ? { bg: "rgba(247,148,29,0.12)", color: "#C4700A", label: "No-show", Icon: Ban }
-    : (styles[status] ?? styles.pending);
+  let s = styles[status] ?? styles.pending;
+  if (status === "pending" && paymentStatus === "unpaid") {
+    s = { bg: "rgba(247,148,29,0.12)", color: "#C4700A", label: "Awaiting payment", Icon: Clock };
+  }
+  if (status === "cancelled" && cancelledReason === "no_show") {
+    s = { bg: "rgba(247,148,29,0.12)", color: "#C4700A", label: "No-show", Icon: Ban };
+  } else if (status === "cancelled" && cancelledReason === "payment_expired") {
+    s = { bg: "rgba(138,155,168,0.12)", color: "#8A9BA8", label: "Hold expired", Icon: XCircle };
+  } else if (status === "cancelled" && cancelledReason === "payment_failed") {
+    s = { bg: "rgba(247,148,29,0.12)", color: "#C4700A", label: "Payment failed", Icon: XCircle };
+  }
   return (
     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium"
       style={{ background: s.bg, color: s.color }}>
@@ -169,21 +184,37 @@ function StatusBadge({ status, cancelledReason }: {
   );
 }
 
+function PaymentBadge({ appt }: { appt: Appointment }) {
+  const ps = resolvePaymentStatus(appt);
+  if (ps === "unknown") return null;
+  const b = PAYMENT_BADGE[ps];
+  return (
+    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
+      style={{ background: b.bg, color: b.color }}>
+      {b.label}
+    </span>
+  );
+}
+
 // ── Appointment card ───────────────────────────────────────────────────────
 // FIX 5: Shows Meet link for approved sessions
 // FIX 6: Cancel button for pending/approved sessions
 function AppointmentCard({
-  appt, onCancel,
+  appt, onCancel, onPay, payingId,
 }: {
   appt: Appointment;
   onCancel?: (appt: Appointment) => void;
+  onPay?: (appt: Appointment) => void;
+  payingId?: string | null;
 }) {
   const canCancel  = ["pending","approved"].includes(appt.status);
   const meetLink   = (appt as any).meetLink as string | undefined;
   // Join whenever a Meet link exists (paid bookings auto-approve + create link)
   const showJoin   = Boolean(meetLink) && ["approved", "pending"].includes(appt.status);
-  const awaitingConfirm = appt.status === "pending" && !meetLink;
+  const needsPay   = appt.status === "pending" && resolvePaymentStatus(appt) === "unpaid";
+  const awaitingConfirm = appt.status === "pending" && !meetLink && !needsPay;
   const awaitingLink    = appt.status === "approved" && !meetLink;
+  const paying = payingId === appt.id;
 
   return (
     <div className="rounded-2xl p-5 transition-all"
@@ -204,7 +235,10 @@ function AppointmentCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
             <p className="font-semibold text-sm" style={{ color: "#2A4A1A" }}>{appt.type}</p>
-            <StatusBadge status={appt.status} cancelledReason={appt.cancelledReason} />
+            <div className="flex flex-col items-end gap-1">
+              <StatusBadge status={appt.status} cancelledReason={appt.cancelledReason} paymentStatus={appt.paymentStatus} />
+              <PaymentBadge appt={appt} />
+            </div>
           </div>
           <p className="text-xs mb-2" style={{ color: "#8A9BA8" }}>{appt.doctorName ?? "Your therapist"}</p>
           <div className="flex items-center gap-3 flex-wrap">
@@ -225,6 +259,11 @@ function AppointmentCard({
           {appt.notes && (
             <p className="text-xs mt-2 italic" style={{ color: "#8A9BA8" }}>{appt.notes}</p>
           )}
+          {needsPay && (
+            <p className="text-xs mt-2" style={{ color: "#C4700A" }}>
+              Pay in full to confirm this session. Unpaid holds expire after {PAYMENT_HOLD_MINUTES} minutes.
+            </p>
+          )}
           {awaitingConfirm && (
             <p className="text-xs mt-2" style={{ color: "#F7941D" }}>
               Awaiting therapist confirmation. Your Join link appears once the session is approved.
@@ -238,9 +277,19 @@ function AppointmentCard({
         </div>
       </div>
 
-      {(showJoin || canCancel) && (
+      {(showJoin || canCancel || needsPay) && (
         <div className="flex items-center gap-2 mt-4 pt-4 border-t"
           style={{ borderColor: "rgba(42,74,26,0.06)" }}>
+          {needsPay && onPay && (
+            <button
+              onClick={() => onPay(appt)}
+              disabled={paying}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-0.5 disabled:opacity-60"
+              style={{ background: "linear-gradient(135deg, #F7941D, #C4700A)" }}>
+              {paying ? <Loader2 size={14} className="animate-spin" /> : null}
+              {paying ? "Opening checkout…" : `Pay $${appt.amount ?? "—"} & confirm`}
+            </button>
+          )}
           {showJoin && (
             <a href={meetLink} target="_blank" rel="noopener noreferrer"
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-0.5"
@@ -408,6 +457,7 @@ function ClientAppointmentsPageInner() {
   const [filter, setFilter]             = useState<FilterTab>("upcoming");
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
   const [cancelling, setCancelling]     = useState(false);
+  const [payingId, setPayingId]         = useState<string | null>(null);
   const [repeatWeekly, setRepeatWeekly] = useState(false);
   const [seriesCount, setSeriesCount]   = useState(SERIES_DEFAULT);
   const [seriesPreview, setSeriesPreview] = useState<SeriesOccurrence[]>([]);
@@ -475,7 +525,7 @@ function ClientAppointmentsPageInner() {
       setToast({
         type: "success",
         msg: free
-          ? `Free consultation booked! ${doctorName} will confirm shortly.`
+          ? "Free consultation confirmed! Check Appointments for your session details."
           : "Payment successful! Your session is confirmed.",
       });
     } else if (err === "payment_failed") {
@@ -616,6 +666,43 @@ function ClientAppointmentsPageInner() {
     }
   }
 
+  async function handleResumePay(appt: Appointment) {
+    if (!user) return;
+    setPayingId(appt.id);
+    try {
+      const res = await authedFetch("/api/payments/initiate", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({
+          appointmentId: appt.id,
+          clientId:      user.uid,
+          clientName:    user.displayName ?? "Client",
+          clientEmail:   user.email ?? "",
+          sessionType:   appt.type,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setToast({ type: "error", msg: data.error ?? "Could not open checkout." });
+        setPayingId(null);
+        return;
+      }
+      if (data.free && data.redirect) {
+        window.location.href = data.redirect;
+        return;
+      }
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl as string;
+        return;
+      }
+      setToast({ type: "error", msg: "Could not open checkout." });
+      setPayingId(null);
+    } catch {
+      setToast({ type: "error", msg: "Could not open checkout." });
+      setPayingId(null);
+    }
+  }
+
   async function handleSubmit() {
     if (!user || !selectedType || !selectedDate || !selectedTime) return;
     if (!doctorId) {
@@ -667,30 +754,7 @@ function ClientAppointmentsPageInner() {
         if (i === 0) appointmentId = id;
       }
 
-      // Notify by email for the first session only (avoid spam)
-      authedFetch("/api/email/appointment", {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ appointmentId, event: "requested" }),
-      }).catch(() => {});
-
-      const seriesNote =
-        toBook.length > 1
-          ? ` ${toBook.length} weekly sessions requested.`
-          : "";
-
-      // Free consultation — skip payment
-      if (selectedPrice === 0) {
-        setSubmitting(false);
-        resetBooking();
-        setToast({
-          type: "success",
-          msg: `Free consultation booked!${seriesNote} ${doctorName} will confirm shortly.`,
-        });
-        return;
-      }
-
-      // Paid session — Stripe Checkout for the FIRST session only
+      // Pay-in-full (or free confirm) via initiate — slot stays held until success.
       setStep(4);
       setSubmitting(false);
       setRedirecting(true);
@@ -703,7 +767,7 @@ function ClientAppointmentsPageInner() {
           clientId:    user.uid,
           clientName:  user.displayName ?? "Client",
           clientEmail: user.email ?? "",
-          sessionType: selectedService?.name,
+          sessionType: selectedService?.name ?? selectedType,
         }),
       });
       const data = await res.json();
@@ -852,6 +916,8 @@ function ClientAppointmentsPageInner() {
               key={a.id}
               appt={a}
               onCancel={["pending","approved"].includes(a.status) ? setCancelTarget : undefined}
+              onPay={handleResumePay}
+              payingId={payingId}
             />
           ))}
         </div>

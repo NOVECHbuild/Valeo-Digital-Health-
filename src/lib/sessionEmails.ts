@@ -254,9 +254,18 @@ export async function processPastNoShows(): Promise<{
   const overdue: Row[] = [];
   for (const d of [...pendingSnap.docs, ...approvedSnap.docs]) {
     const data = d.data() as Record<string, any>;
-    if (typeof data.date === "string" && data.date < today) {
-      overdue.push({ id: d.id, data });
+    if (typeof data.date !== "string" || data.date >= today) continue;
+    // Unpaid holds that never completed checkout — expire, don't treat as no-show.
+    if (data.status === "pending" && data.paymentStatus === "unpaid") {
+      await adminDb.collection("appointments").doc(d.id).update({
+        status:          "cancelled",
+        cancelledBy:     "system",
+        cancelledReason: "payment_expired",
+        updatedAt:       FieldValue.serverTimestamp(),
+      });
+      continue;
     }
+    overdue.push({ id: d.id, data });
   }
 
   if (overdue.length === 0) return { marked: 0, doctorsNotified: 0 };

@@ -22,8 +22,8 @@ export default function PaymentFailedPage() {
           Payment Failed
         </h2>
         <p className="text-sm mb-6" style={{ color: '#8A9BA8' }}>
-          Your payment could not be processed. No charge was made to your card.
-          Please try again or contact support if the issue persists.
+          Your payment could not be completed. No charge was made to your card.
+          Your time slot may still be held briefly — return to Appointments to try again, or book a new time if the hold has expired.
         </p>
 
         {/* Retry */}

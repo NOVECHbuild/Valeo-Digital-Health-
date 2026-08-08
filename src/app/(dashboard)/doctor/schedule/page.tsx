@@ -12,6 +12,7 @@ import {
   type Appointment,
 } from "@/hooks/useAppointments";
 import { type Service, servicesForEditing } from "@/lib/availability";
+import { PAYMENT_BADGE, resolvePaymentStatus } from "@/lib/paymentStatus";
 import { authedFetch } from "@/lib/authedFetch";
 import {
   Calendar, Clock, CheckCircle, XCircle, Loader2, Users,
@@ -124,23 +125,40 @@ const DEFAULT_AVAIL: AvailabilitySchedule = {
 //  APPOINTMENT TAB COMPONENTS (unchanged)
 // ══════════════════════════════════════════════════════════════
 
-function StatusBadge({ status, cancelledReason }: {
+function StatusBadge({ status, cancelledReason, paymentStatus }: {
   status: Appointment["status"];
   cancelledReason?: string;
+  paymentStatus?: Appointment["paymentStatus"];
 }) {
-  const styles = {
+  const styles: Record<string, { bg: string; color: string; label: string }> = {
     pending:   { bg:"rgba(247,148,29,0.12)",  color:"#C4700A", label:"Pending"   },
     approved:  { bg:"rgba(141,198,63,0.12)",  color:"#6BA028", label:"Confirmed" },
     rejected:  { bg:"rgba(247,148,29,0.12)",   color:"#F7941D", label:"Rejected"  },
     completed: { bg:"rgba(42,74,26,0.1)",     color:"#2A4A1A", label:"Completed" },
     cancelled: { bg:"rgba(138,155,168,0.12)", color:"#8A9BA8", label:"Cancelled" },
+    payment_failed: { bg:"rgba(247,148,29,0.12)", color:"#C4700A", label:"Payment failed" },
   };
-  const s = status === "cancelled" && cancelledReason === "no_show"
-    ? { bg: "rgba(247,148,29,0.12)", color: "#C4700A", label: "No-show" }
-    : styles[status];
+  let s = styles[status] ?? styles.pending;
+  if (status === "pending" && paymentStatus === "unpaid") {
+    s = { bg: "rgba(247,148,29,0.12)", color: "#C4700A", label: "Awaiting payment" };
+  } else if (status === "cancelled" && cancelledReason === "no_show") {
+    s = { bg: "rgba(247,148,29,0.12)", color: "#C4700A", label: "No-show" };
+  } else if (status === "cancelled" && (cancelledReason === "payment_expired" || cancelledReason === "payment_failed")) {
+    s = { bg: "rgba(138,155,168,0.12)", color: "#8A9BA8", label: cancelledReason === "payment_expired" ? "Hold expired" : "Payment failed" };
+  }
   return (
     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
       style={{ background:s.bg, color:s.color }}>{s.label}</span>
+  );
+}
+
+function PaymentBadge({ appt }: { appt: Appointment }) {
+  const ps = resolvePaymentStatus(appt);
+  if (ps === "unknown") return null;
+  const b = PAYMENT_BADGE[ps];
+  return (
+    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
+      style={{ background: b.bg, color: b.color }}>{b.label}</span>
   );
 }
 
@@ -230,6 +248,7 @@ function AppointmentCard({ appt, onApprove, onReject, onCreateMeet, loading, has
 }) {
   const isActing = loading === appt.id;
   const meetLink = (appt as any).meetLink as string | undefined;
+  const awaitingPayment = appt.status === "pending" && resolvePaymentStatus(appt) === "unpaid";
   return (
     <div className="rounded-2xl p-5" style={{ background:"white", boxShadow:"0 1px 4px rgba(30,56,16,0.07)" }}>
       <div className="flex items-start justify-between gap-3 mb-4">
@@ -249,7 +268,10 @@ function AppointmentCard({ appt, onApprove, onReject, onCreateMeet, loading, has
             )}
           </div>
         </div>
-        <StatusBadge status={appt.status} cancelledReason={(appt as any).cancelledReason}/>
+        <div className="flex flex-col items-end gap-1">
+          <StatusBadge status={appt.status} cancelledReason={(appt as any).cancelledReason} paymentStatus={appt.paymentStatus}/>
+          <PaymentBadge appt={appt}/>
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-3 mb-4">
         {[
@@ -285,15 +307,22 @@ function AppointmentCard({ appt, onApprove, onReject, onCreateMeet, loading, has
           Create Meet link for client
         </button>
       ) : null}
+      {awaitingPayment && (
+        <p className="text-xs mb-3 rounded-xl px-3 py-2" style={{ background:"rgba(247,148,29,0.1)", color:"#C4700A" }}>
+          Client is completing payment. Slot is held temporarily — no action needed unless you want to reject the hold.
+        </p>
+      )}
       {appt.status === "pending" && (
         <div className="flex gap-2">
-          <button onClick={() => onApprove(appt.id)} disabled={!!isActing}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
-            style={{ background:"linear-gradient(135deg,#1E3810,#3D6B24)" }}>
-            {isActing ? <Loader2 size={14} className="animate-spin"/> : <CheckCircle size={14}/>} Approve
-          </button>
+          {!awaitingPayment && (
+            <button onClick={() => onApprove(appt.id)} disabled={!!isActing}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
+              style={{ background:"linear-gradient(135deg,#1E3810,#3D6B24)" }}>
+              {isActing ? <Loader2 size={14} className="animate-spin"/> : <CheckCircle size={14}/>} Approve
+            </button>
+          )}
           <button onClick={() => onReject(appt.id)} disabled={!!isActing}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-60"
+            className={`${awaitingPayment ? "flex-1" : ""} flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-60`}
             style={{ background:"rgba(247,148,29,0.1)", color:"#F7941D" }}>
             {isActing ? <Loader2 size={14} className="animate-spin"/> : <XCircle size={14}/>} Reject
           </button>

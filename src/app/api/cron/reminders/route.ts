@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { processPastNoShows, sendSessionReminder } from "@/lib/sessionEmails";
 import { todayCaribbean } from "@/lib/resolveDoctorEmail";
+import { expireUnpaidPaymentHolds } from "@/lib/expirePaymentHolds";
 
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
@@ -45,6 +46,7 @@ export async function GET(req: NextRequest) {
       if (result === "sent") sent++; else skipped++;
     }
 
+    const holds = await expireUnpaidPaymentHolds();
     const noShows = await processPastNoShows();
 
     return NextResponse.json({
@@ -56,6 +58,7 @@ export async function GET(req: NextRequest) {
         sent,
         skipped,
       },
+      paymentHolds: holds,
       noShows,
     });
   } catch (err: any) {

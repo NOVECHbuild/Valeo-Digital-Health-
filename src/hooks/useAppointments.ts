@@ -6,8 +6,15 @@ import {
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { labelToMinutes } from "@/lib/availability";
+import { holdExpiresAt, type PaymentStatus } from "@/lib/paymentStatus";
 
-export type AppointmentStatus = "pending" | "approved" | "rejected" | "completed" | "cancelled";
+export type AppointmentStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "completed"
+  | "cancelled"
+  | "payment_failed";
 
 export interface Appointment {
   id: string; clientId: string; clientName: string; clientEmail: string;
@@ -17,6 +24,10 @@ export interface Appointment {
   seriesId?: string; seriesIndex?: number; seriesCount?: number;
   cancelledBy?: string;
   cancelledReason?: string;
+  /** Pay-in-full: unpaid hold until Stripe succeeds or hold expires. */
+  paymentStatus?: PaymentStatus;
+  paymentHoldExpiresAt?: string;
+  paymentId?: string;
 }
 
 /** Sort by session date + time. Default soonest first (asc). */
@@ -114,9 +125,12 @@ export async function bookAppointment(data: {
     ...rest,
     ...(notes ? { notes } : {}),
     ...(seriesId ? { seriesId, seriesIndex, seriesCount } : {}),
-    status:    "pending",
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
+    // Slot held until full payment (or free confirm via /api/payments/initiate).
+    status:               "pending",
+    paymentStatus:        "unpaid",
+    paymentHoldExpiresAt: holdExpiresAt(),
+    createdAt:            serverTimestamp(),
+    updatedAt:            serverTimestamp(),
   });
   return ref.id;
 }

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
-import { FieldValue } from "firebase-admin/firestore";
+import { FieldValue, type DocumentData, type DocumentReference } from "firebase-admin/firestore";
 import { requireAuth } from "@/lib/requireAuth";
 import { dollarsToCents, getStripe } from "@/lib/stripe";
 import { notifySessionConfirmed } from "@/lib/sessionEmails";
+import { expireUnpaidPaymentHolds } from "@/lib/expirePaymentHolds";
+import { holdExpiresAt, PAYMENT_HOLD_MINUTES } from "@/lib/paymentStatus";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.valeoexperience.com";
 
@@ -15,12 +17,30 @@ const SESSION_PRICES: Record<string, number> = {
   "Free Consultation":  0,
 };
 
+type ApptTarget = { id: string; ref: DocumentReference; data: DocumentData };
+
+function priceForSession(
+  sessionType: string,
+  sched: DocumentData | undefined,
+  fallbackAmount?: number,
+): number {
+  if (typeof fallbackAmount === "number" && fallbackAmount >= 0) return fallbackAmount;
+  const svc = (sched?.services as { name?: string; price?: number }[] | undefined)
+    ?.find(s => s?.name === sessionType);
+  if (svc && typeof svc.price === "number") return svc.price;
+  const p = (sched?.sessionPricing as Record<string, number> | undefined)?.[sessionType];
+  if (typeof p === "number") return p;
+  return SESSION_PRICES[sessionType] ?? 400;
+}
+
 // ── POST /api/payments/initiate ───────────────────────────────────────────────
 // Creates a Firestore payment record + Stripe Checkout Session (hosted).
+// Pay-in-full: slot stays pending/unpaid until Checkout succeeds (or free confirm).
 // Returns { checkoutUrl } for a browser redirect. Free sessions skip Stripe.
-// WiPay routes remain in the repo but are unused by the client booking flow.
 export async function POST(req: NextRequest) {
   try {
+    try { await expireUnpaidPaymentHolds(); } catch { /* non-blocking */ }
+
     const body = await req.json();
     const { appointmentId, clientId, clientName, clientEmail, sessionType } = body ?? {};
 
@@ -36,11 +56,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!process.env.STRIPE_SECRET_KEY) {
-      console.error("[Initiate] STRIPE_SECRET_KEY not set");
-      return NextResponse.json({ error: "Payment gateway not configured" }, { status: 503 });
-    }
-
     const gate = await requireAuth(req);
     if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
 
@@ -51,41 +66,90 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Not authorized for this appointment." }, { status: 403 });
     }
 
-    // Server-authoritative price from doctor's services / legacy pricing / static map
-    let amount = SESSION_PRICES[sessionType as string] ?? 400;
+    if (ownerAppt.status === "cancelled" || ownerAppt.status === "rejected") {
+      return NextResponse.json({ error: "This booking is no longer available." }, { status: 409 });
+    }
+    if (ownerAppt.paymentStatus === "paid" || ownerAppt.paymentStatus === "free") {
+      return NextResponse.json({
+        free:     ownerAppt.paymentStatus === "free",
+        redirect: `${APP_URL}/client/appointments?success=true`,
+      });
+    }
+
+    let sched: DocumentData | undefined;
     try {
       const doctorId = ownerAppt.doctorId as string | undefined;
       if (doctorId) {
         const schedSnap = await adminDb.collection("schedules").doc(doctorId).get();
-        const sched     = schedSnap.data();
-        const svc = (sched?.services as { name?: string; price?: number }[] | undefined)
-          ?.find(s => s?.name === sessionType);
-        if (svc && typeof svc.price === "number") {
-          amount = svc.price;
-        } else {
-          const p = (sched?.sessionPricing as Record<string, number> | undefined)?.[sessionType as string];
-          if (typeof p === "number") amount = p;
-        }
+        sched = schedSnap.data();
       }
     } catch (e) {
-      console.error("[Initiate] doctor pricing lookup failed, using default:", e);
+      console.error("[Initiate] doctor pricing lookup failed:", e);
     }
 
-    // Prefer amount already stored on the appointment when present
-    if (typeof ownerAppt.amount === "number" && ownerAppt.amount >= 0) {
-      amount = ownerAppt.amount;
+    const seriesId = ownerAppt.seriesId as string | undefined;
+    let targets: ApptTarget[] = [{
+      id: ownerSnap.id,
+      ref: ownerSnap.ref,
+      data: ownerAppt,
+    }];
+
+    if (seriesId) {
+      const seriesSnap = await adminDb.collection("appointments")
+        .where("seriesId", "==", seriesId)
+        .where("clientId", "==", ownerAppt.clientId)
+        .get();
+      const pending = seriesSnap.docs
+        .filter(d => {
+          const s = d.data().status;
+          return s === "pending" || s === "payment_failed";
+        })
+        .map(d => ({ id: d.id, ref: d.ref, data: d.data() }));
+      if (pending.length > 0) targets = pending;
     }
+
+    let amount = 0;
+    for (const t of targets) {
+      amount += priceForSession(
+        (t.data.type as string) || sessionType,
+        sched,
+        typeof t.data.amount === "number" ? t.data.amount : undefined,
+      );
+    }
+
+    const newExpiry = holdExpiresAt();
+    const batchHold = adminDb.batch();
+    for (const t of targets) {
+      const unit = priceForSession(
+        (t.data.type as string) || sessionType,
+        sched,
+        typeof t.data.amount === "number" ? t.data.amount : undefined,
+      );
+      batchHold.update(t.ref, {
+        paymentStatus:        "unpaid",
+        paymentHoldExpiresAt: newExpiry,
+        amount:               unit,
+        updatedAt:            FieldValue.serverTimestamp(),
+      });
+    }
+    await batchHold.commit();
 
     if (amount === 0) {
-      await adminDb.collection("appointments").doc(appointmentId).update({
-        status:    "approved",
-        updatedAt: FieldValue.serverTimestamp(),
-      });
-      // Free sessions confirm immediately — Meet link + confirmation email (fail-safe).
-      try {
-        await notifySessionConfirmed(appointmentId);
-      } catch (err) {
-        console.error("[Initiate] free confirm notify:", err);
+      const batch = adminDb.batch();
+      for (const t of targets) {
+        batch.update(t.ref, {
+          status:        "approved",
+          paymentStatus: "free",
+          updatedAt:     FieldValue.serverTimestamp(),
+        });
+      }
+      await batch.commit();
+      for (const t of targets) {
+        try {
+          await notifySessionConfirmed(t.id);
+        } catch (err) {
+          console.error("[Initiate] free confirm notify:", err);
+        }
       }
       return NextResponse.json({
         free:     true,
@@ -93,14 +157,20 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    if (!process.env.STRIPE_SECRET_KEY) {
+      console.error("[Initiate] STRIPE_SECRET_KEY not set");
+      return NextResponse.json({ error: "Payment gateway not configured" }, { status: 503 });
+    }
+
     const cents = dollarsToCents(amount);
     if (!Number.isFinite(cents) || cents < 50) {
-      // Stripe minimum is $0.50 USD
       return NextResponse.json({ error: "Invalid session price for checkout." }, { status: 400 });
     }
 
     const paymentRef = await adminDb.collection("payments").add({
       appointmentId,
+      seriesId:             seriesId || null,
+      seriesAppointmentIds: targets.map(t => t.id),
       clientId,
       clientName:  clientName  ?? "Client",
       clientEmail: clientEmail ?? "",
@@ -116,10 +186,13 @@ export async function POST(req: NextRequest) {
     });
 
     const stripe = getStripe();
+    const expiresAt = Math.floor(Date.now() / 1000) + PAYMENT_HOLD_MINUTES * 60;
+    const sessionCount = targets.length;
     const session = await stripe.checkout.sessions.create(
       {
         mode: "payment",
         customer_email: clientEmail || undefined,
+        expires_at: expiresAt,
         line_items: [
           {
             quantity: 1,
@@ -127,7 +200,9 @@ export async function POST(req: NextRequest) {
               currency: "usd",
               unit_amount: cents,
               product_data: {
-                name: sessionType,
+                name: sessionCount > 1
+                  ? `${sessionType} × ${sessionCount} sessions`
+                  : sessionType,
                 description: `Session with ${ownerAppt.doctorName || "your therapist"}`,
               },
             },
@@ -145,6 +220,7 @@ export async function POST(req: NextRequest) {
           paymentId: paymentRef.id,
           clientId,
           sessionType,
+          seriesId: seriesId || "",
         },
       },
       { idempotencyKey: `checkout_${paymentRef.id}` }
@@ -160,16 +236,20 @@ export async function POST(req: NextRequest) {
       updatedAt: FieldValue.serverTimestamp(),
     });
 
-    await adminDb.collection("appointments").doc(appointmentId).update({
-      paymentId: paymentRef.id,
-      amount,
-      updatedAt: FieldValue.serverTimestamp(),
-    });
+    const batchPay = adminDb.batch();
+    for (const t of targets) {
+      batchPay.update(t.ref, {
+        paymentId: paymentRef.id,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    }
+    await batchPay.commit();
 
     return NextResponse.json({
       checkoutUrl: session.url,
       paymentId:   paymentRef.id,
       sessionId:   session.id,
+      holdMinutes: PAYMENT_HOLD_MINUTES,
     });
   } catch (err) {
     console.error("[Initiate] Exception:", err);

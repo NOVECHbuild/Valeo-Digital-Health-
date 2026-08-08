@@ -11,6 +11,7 @@ _Update this when Benny shares a new fact, decision, blocker, or “do not chang
 - **Confirmed working:** Messages, Google Calendar/Meet. Soft-launch ops still open (cron/backups/invites).
 - **Watch:** Doctor Resend emails — code now resolves Auth email + logs; confirm in Resend Logs after next booking.
 - **Next for Benny:** Stripe E2E (Phase D) + finish portal smoke + confirm doctor emails arrive.
+- **Pay model (locked):** pay-in-full at booking (no deposit). Unpaid hold **30 minutes**, then slot released. Badges: Paid / Free / Pay to confirm.
 
 ## Account map (business — confirmed 2026-08-07)
 

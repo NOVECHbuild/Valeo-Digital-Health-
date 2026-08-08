@@ -13,6 +13,18 @@ import type Stripe from "stripe";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+async function appointmentIdsForPayment(
+  paymentId: string,
+  fallbackAppointmentId: string | null | undefined,
+): Promise<string[]> {
+  const paymentSnap = await adminDb.collection("payments").doc(paymentId).get();
+  const data = paymentSnap.data();
+  const fromSeries = data?.seriesAppointmentIds as string[] | undefined;
+  if (Array.isArray(fromSeries) && fromSeries.length > 0) return fromSeries;
+  if (fallbackAppointmentId) return [fallbackAppointmentId];
+  return [];
+}
+
 async function fulfillCheckout(session: Stripe.Checkout.Session) {
   const paymentId     = session.metadata?.paymentId;
   const appointmentId = session.metadata?.appointmentId || session.client_reference_id;
@@ -40,27 +52,29 @@ async function fulfillCheckout(session: Stripe.Checkout.Session) {
       : session.payment_intent?.id ?? "";
 
   await paymentRef.update({
-    status:                 "completed",
-    provider:               "stripe",
-    gateway:                "stripe",
+    status:                  "completed",
+    provider:                "stripe",
+    gateway:                 "stripe",
     stripeCheckoutSessionId: session.id,
-    stripePaymentIntentId:  pi,
-    finalTotal:             (session.amount_total ?? 0) / 100,
-    currency:               (session.currency || "usd").toUpperCase(),
-    updatedAt:              FieldValue.serverTimestamp(),
+    stripePaymentIntentId:   pi,
+    finalTotal:              (session.amount_total ?? 0) / 100,
+    currency:                (session.currency || "usd").toUpperCase(),
+    updatedAt:               FieldValue.serverTimestamp(),
   });
 
-  await adminDb.collection("appointments").doc(appointmentId).update({
-    status:    "approved",
-    paymentId,
-    updatedAt: FieldValue.serverTimestamp(),
-  });
-
-  // Paid bookings skip the doctor's Approve click — create Meet + confirm email.
-  try {
-    await notifySessionConfirmed(appointmentId);
-  } catch (err) {
-    console.error("[Stripe webhook] confirm notify error:", err);
+  const ids = await appointmentIdsForPayment(paymentId, appointmentId);
+  for (const id of ids) {
+    await adminDb.collection("appointments").doc(id).update({
+      status:        "approved",
+      paymentStatus: "paid",
+      paymentId,
+      updatedAt:     FieldValue.serverTimestamp(),
+    });
+    try {
+      await notifySessionConfirmed(id);
+    } catch (err) {
+      console.error("[Stripe webhook] confirm notify error:", err);
+    }
   }
 }
 
@@ -69,16 +83,31 @@ async function markFailed(session: Stripe.Checkout.Session, reason: string) {
   const appointmentId = session.metadata?.appointmentId || session.client_reference_id;
   if (!paymentId) return;
 
+  const paymentSnap = await adminDb.collection("payments").doc(paymentId).get();
+  if (paymentSnap.data()?.status === "completed" || paymentSnap.data()?.status === "success") {
+    return;
+  }
+
   await adminDb.collection("payments").doc(paymentId).update({
-    status:        "failed",
+    status:        reason.includes("expired") ? "expired" : "failed",
     stripeMessage: reason,
     updatedAt:     FieldValue.serverTimestamp(),
   });
 
-  if (appointmentId) {
-    await adminDb.collection("appointments").doc(appointmentId).update({
-      status:    "payment_failed",
-      updatedAt: FieldValue.serverTimestamp(),
+  const ids = await appointmentIdsForPayment(paymentId, appointmentId);
+  const cancelledReason = reason.includes("expired") ? "payment_expired" : "payment_failed";
+  for (const id of ids) {
+    const apptSnap = await adminDb.collection("appointments").doc(id).get();
+    const appt = apptSnap.data();
+    if (!appt) continue;
+    if (appt.paymentStatus === "paid" || appt.paymentStatus === "free") continue;
+    if (appt.status === "approved" || appt.status === "completed") continue;
+    await adminDb.collection("appointments").doc(id).update({
+      status:          "cancelled",
+      cancelledBy:     "system",
+      cancelledReason,
+      paymentStatus:   "unpaid",
+      updatedAt:       FieldValue.serverTimestamp(),
     });
   }
 }
@@ -108,9 +137,6 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        // Fulfill only when funds are settled (or no charge due). Do not use
-        // session.status === "complete" — that only means Checkout was submitted;
-        // payment_status can still be "unpaid" for delayed methods.
         if (
           session.payment_status === "paid" ||
           session.payment_status === "no_payment_required"

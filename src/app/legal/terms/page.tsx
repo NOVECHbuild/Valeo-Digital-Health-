@@ -115,9 +115,9 @@ export default function TermsOfServicePage() {
         <div className="section">
           <h2>6. Payment Terms</h2>
           <h3>Session Fees</h3>
-          <p>Session fees are displayed on our platform and are charged in USD. Payment is processed securely by Stripe, our payment processor. Card details are handled by Stripe; Valeo does not store full card numbers. Fees are due at the time of booking or as otherwise indicated at checkout.</p>
+          <p>Session fees are displayed on our platform and are charged in USD. Payment is processed securely by Stripe, our payment processor. Card details are handled by Stripe; Valeo does not store full card numbers. <strong>Full payment is due at booking</strong> to confirm your session. Completing checkout holds your selected time; if payment is not completed within about 30 minutes, the hold is released and the slot may become available to others.</p>
           <h3>Failed Payments</h3>
-          <p>If a payment is declined, your appointment will not be confirmed. Please contact us to resolve payment issues prior to your scheduled session time.</p>
+          <p>If a payment is declined or abandoned, your appointment will not be confirmed and the time slot will be released. Please book again or contact us if you need help.</p>
           <h3>Fee Changes</h3>
           <p>We reserve the right to modify our fees at any time. Changes will be communicated with reasonable notice prior to taking effect.</p>
         </div>
