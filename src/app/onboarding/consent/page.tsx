@@ -50,10 +50,11 @@ function ConsentInner() {
           setExisting(data);
           if (data.version === CONSENT_VERSION) {
             setAccepted(data.accepted);
-            setTypedName(data.typedSignature || "");
+            // Show prior signature for reference only — re-sign still requires typing
+            setTypedName("");
           }
         }
-        if (!typedName && user.displayName) setTypedName(user.displayName);
+        // Never auto-fill the signature field — client must type their name
       } catch (err) {
         console.error("[consent] load:", err);
       } finally {
@@ -64,13 +65,32 @@ function ConsentInner() {
   }, [user?.uid]);
 
   const isCurrent = existing?.version === CONSENT_VERSION;
+
+  function normalizeName(s: string) {
+    return s.trim().toLowerCase().replace(/\s+/g, " ");
+  }
+
+  const accountName = (user?.displayName || "").trim();
+  const typed = typedName.trim();
+  const nameOk =
+    typed.length >= 3 &&
+    (!accountName || normalizeName(typed) === normalizeName(accountName));
+
   const canSign =
     allAccepted(accepted) &&
-    typedName.trim().length >= 2 &&
+    nameOk &&
     !saving;
 
   async function handleSign() {
     if (!user || !canSign) return;
+    if (!nameOk) {
+      setError(
+        accountName
+          ? `Please type your full name exactly as on your account: ${accountName}`
+          : "Please type your full legal name to sign.",
+      );
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -256,15 +276,26 @@ function ConsentInner() {
             <input
               type="text"
               value={typedName}
-              onChange={e => setTypedName(e.target.value)}
-              placeholder="Full legal name"
-              className="w-full px-4 py-3 rounded-xl text-sm border focus:outline-none"
+              onChange={e => { setTypedName(e.target.value); setError(null); }}
+              placeholder={accountName ? `Type: ${accountName}` : "Full legal name"}
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              className="w-full px-4 py-3 rounded-xl text-sm border focus:outline-none min-h-[48px]"
               style={{ borderColor: "rgba(42,74,26,0.15)", background: "#FAFAFA", color: "#2A4A1A" }}
             />
             <p className="text-xs" style={{ color: "#8A9BA8" }}>
-              By typing your name and clicking Sign, you create an electronic consent record for Valeo Experience
+              {accountName
+                ? <>You must type your name exactly as on your account (<strong style={{ color: "#2A4A1A" }}>{accountName}</strong>). It is not filled in for you.</>
+                : <>Type your full legal name (at least 3 characters). The field is not filled in for you.</>}
+              {" "}By clicking Sign, you create an electronic consent record for Valeo Experience
               (version {CONSENT_VERSION}).
             </p>
+            {typed.length > 0 && accountName && !nameOk && (
+              <p className="text-xs font-medium" style={{ color: "#F7941D" }}>
+                Name does not match your account name yet.
+              </p>
+            )}
           </div>
         )}
 

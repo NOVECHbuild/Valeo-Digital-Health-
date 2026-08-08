@@ -24,18 +24,24 @@ export async function sendEmail({ to, subject, html }: SendArgs): Promise<{ ok: 
     console.log(`[email] RESEND_API_KEY not set — skipping "${subject}"`);
     return { ok: false, skipped: true };
   }
+  const recipients = (Array.isArray(to) ? to : [to]).map(t => (t || "").trim()).filter(Boolean);
+  if (recipients.length === 0) {
+    console.warn(`[email] empty "to" — skipping "${subject}"`);
+    return { ok: false, skipped: true, error: "empty recipient" };
+  }
   const from = process.env.EMAIL_FROM || "Valeo Experience <noreply@valeoexperience.com>";
   try {
     const res = await fetch(RESEND_ENDPOINT, {
       method:  "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body:    JSON.stringify({ from, to, subject, html }),
+      body:    JSON.stringify({ from, to: recipients.length === 1 ? recipients[0] : recipients, subject, html }),
     });
     if (!res.ok) {
       const txt = await res.text();
-      console.error("[email] send failed", res.status, txt);
+      console.error("[email] send failed", res.status, txt, { to: recipients, subject });
       return { ok: false, error: txt };
     }
+    console.log(`[email] sent "${subject}" → ${recipients.join(", ")}`);
     return { ok: true };
   } catch (err: any) {
     console.error("[email] send error", err?.message ?? err);

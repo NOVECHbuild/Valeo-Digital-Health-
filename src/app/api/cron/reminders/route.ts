@@ -1,9 +1,9 @@
-// Daily job (Vercel Cron): session reminders for today + tomorrow.
-// Ensures Meet link exists, emails client + doctor with Join CTA.
+// Daily job (Vercel Cron): session reminders + past no-show cleanup.
 // Guarded by CRON_SECRET when set. Fail-safe per recipient.
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
-import { sendSessionReminder } from "@/lib/sessionEmails";
+import { processPastNoShows, sendSessionReminder } from "@/lib/sessionEmails";
+import { todayCaribbean } from "@/lib/resolveDoctorEmail";
 
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
@@ -15,8 +15,13 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const today = new Date().toISOString().split("T")[0];
-    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    const today = todayCaribbean();
+    const tomorrowDate = new Date();
+    // Advance one calendar day in Barbados for "tomorrow"
+    const parts = today.split("-").map(Number);
+    const base = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+    base.setUTCDate(base.getUTCDate() + 1);
+    const tomorrow = base.toISOString().split("T")[0];
 
     const [todaySnap, tomorrowSnap] = await Promise.all([
       adminDb.collection("appointments")
@@ -40,13 +45,18 @@ export async function GET(req: NextRequest) {
       if (result === "sent") sent++; else skipped++;
     }
 
+    const noShows = await processPastNoShows();
+
     return NextResponse.json({
       ok: true,
       today,
       tomorrow,
-      total: todaySnap.size + tomorrowSnap.size,
-      sent,
-      skipped,
+      reminders: {
+        total: todaySnap.size + tomorrowSnap.size,
+        sent,
+        skipped,
+      },
+      noShows,
     });
   } catch (err: any) {
     console.error("[cron/reminders]", err?.message ?? err);

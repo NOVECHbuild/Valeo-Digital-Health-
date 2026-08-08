@@ -11,14 +11,14 @@ _Living checklist. Mark `[x]` when done. Owner: **You** (Benny) · **Me** (Curso
 | # | Phase | What | Status |
 |---|--------|------|--------|
 | **1** | **A** | Commit + deploy QA + legal batch → smoke | `[x]` sidebar fixed (`b94a5d8e`); finish A.13–A.14 if not done |
-| **2** | **C** | Portal smoke (invite → match → message → assessment) | `[ ]` after deploy |
-| **3** | **D** | Stripe test card + webhook + Resend Logs | `[ ]` |
-| **4** | **E** | Google Calendar connect → Meet on approve | `[ ]` |
-| **5** | **F** | Soft-launch ops (cron, backups, real invites) | `[ ]` |
-| **6** | **G** | Product upgrades (pick later) | `[ ]` |
+| **2** | **C** | Portal smoke (invite → match → message → assessment) | `[~]` messages OK |
+| **3** | **D** | Stripe test card + webhook + Resend Logs | `[ ]` you — doctor emails still need verify |
+| **4** | **E** | Google Calendar connect → Meet on approve | `[x]` Benny confirmed |
+| **5** | **F** | Soft-launch ops (cron, backups, real invites) | `[~]` VAPID done; cron/backups/invites open |
+| **6** | **G** | Product upgrades | `[x]` G.1–G.4 + G.6–G.8 done; SMS later |
 | **7** | **H** | Public self-register + off Calendly | `[ ]` later |
 
-**You are here:** Step **1** — say **commit** (and push) so Vercel builds. Vercel Cursor plugin is on for this project.
+**You are here:** Step **2** — Phase **C** portal smoke on live. Code side also shipped PWA/mobile + G.6–G.8.
 
 ---
 
@@ -48,7 +48,7 @@ _Living checklist. Mark `[x]` when done. Owner: **You** (Benny) · **Me** (Curso
 | A.10 | Me | Disclaimer Last Updated bump | `[x]` |
 | A.11 | You | Commit + push QA + legal | `[x]` `d671f0ad` → main |
 | A.12 | You | Smoke: sidebar after login (no refresh) | `[x]` Benny confirmed |
-| A.13 | You | Smoke: phone hamburger menu | `[ ]` |
+| A.13 | You | Smoke: phone hamburger menu | `[~]` burger fix shipped `124f938b` — confirm on phone |
 | A.14 | You | Smoke: `/legal/*` say Stripe, not WiPay | `[ ]` |
 | A.15 | You | Optional: OG / social debugger refresh | `[ ]` |
 
@@ -74,7 +74,7 @@ _Mechanical Stripe swap done. Optional lawyer review stays in Phase H._
 | C.3 | You | Assignments → match ↔ Dr. Miller | `[ ]` |
 | C.4 | You | Client: login → appointments loads | `[ ]` |
 | C.5 | You | Doctor: schedule + Services/prices set | `[ ]` |
-| C.6 | You | Message both ways | `[ ]` |
+| C.6 | You | Message both ways | `[x]` Benny confirmed |
 | C.7 | You | Assessment assign → submit → review | `[ ]` |
 | C.8 | You | Resource upload → client sees it | `[ ]` |
 | C.9 | You | Announcement → client/doctor banner | `[ ]` |
@@ -106,9 +106,9 @@ _Mechanical Stripe swap done. Optional lawyer review stays in Phase H._
 | E.1 | You | OAuth env on Vercel (business GCP) | `[ ]` |
 | E.2 | You | `GOOGLE_REDIRECT_URI` matches Console | `[ ]` |
 | E.3 | You | `TOKEN_ENCRYPTION_KEY` set | `[ ]` |
-| E.4 | You | Doctor → Connect Google Calendar | `[ ]` |
-| E.5 | You | Approve session → Meet link | `[ ]` |
-| E.6 | You | Busy slots grey out (or fail-safe) | `[ ]` |
+| E.4 | You | Doctor → Connect Google Calendar | `[x]` Benny confirmed |
+| E.5 | You | Approve session → Meet link | `[x]` (with Calendar working) |
+| E.6 | You | Busy slots grey out (or fail-safe) | `[ ]` spot-check |
 
 ---
 
@@ -132,9 +132,9 @@ _Mechanical Stripe swap done. Optional lawyer review stays in Phase H._
 | G.3 | Mark complete → Add note prompt | Med | `[x]` |
 | G.4 | Recurring appointments (weekly series) | Med | `[x]` |
 | G.5 | SMS (Twilio) — ask first | Later | `[ ]` |
-| G.6 | Wire/hide platform toggles | Low | `[~]` labeled not enforced |
-| G.7 | Role middleware harden | Low | `[ ]` |
-| G.8 | Session cookie refresh | Low | `[ ]` |
+| G.6 | Wire/hide platform toggles | Low | `[x]` maintenance enforced; beta flag wired on /register |
+| G.7 | Role middleware harden | Low | `[x]` role cookie + JWT claim gate |
+| G.8 | Session cookie refresh | Low | `[x]` `onIdTokenChanged` refreshes `__session` |
 
 ---
 
@@ -204,3 +204,5 @@ _Mechanical Stripe swap done. Optional lawyer review stays in Phase H._
 |------|------|
 | 2026-08-07 | Stripe 3B; Resend; full audit; QA batch coded |
 | 2026-08-07 | Legal WiPay→Stripe; checklist + portal-audit refreshed; Vercel plugin noted |
+| 2026-08-08 | PWA + mobile + push + version guard; marketing burger; G.6–G.8 platform/middleware/session |
+| 2026-08-08 | Consent typed-name required; doctor email resolve; no-show cron + digest; client upcoming sort |

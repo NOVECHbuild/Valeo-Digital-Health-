@@ -15,6 +15,8 @@ export interface Appointment {
   duration: number; amount?: number; status: AppointmentStatus; notes?: string;
   createdAt: any; updatedAt: any; meetLink?: string;
   seriesId?: string; seriesIndex?: number; seriesCount?: number;
+  cancelledBy?: string;
+  cancelledReason?: string;
 }
 
 /** Sort by session date + time. Default soonest first (asc). */
@@ -24,10 +26,38 @@ export function sortAppointmentsBySession(
 ): Appointment[] {
   const mul = direction === "asc" ? 1 : -1;
   return [...list].sort((a, b) => {
-    const byDate = a.date.localeCompare(b.date);
+    const byDate = (a.date || "").localeCompare(b.date || "");
     if (byDate !== 0) return byDate * mul;
     return (labelToMinutes(a.time || "") - labelToMinutes(b.time || "")) * mul;
   });
+}
+
+const ACTIVE = new Set<AppointmentStatus>(["pending", "approved"]);
+
+/** Today as YYYY-MM-DD in the browser (or UTC fallback for SSR). */
+export function localTodayStr(): string {
+  if (typeof window === "undefined") return new Date().toISOString().split("T")[0];
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/**
+ * Client list order: live sessions on/after today (closest first),
+ * then everything else (most recent first). Keeps upcoming at the top.
+ */
+export function sortClientAppointmentFeed(list: Appointment[], today = localTodayStr()): Appointment[] {
+  const upcoming = sortAppointmentsBySession(
+    list.filter(a => ACTIVE.has(a.status) && (a.date || "") >= today),
+    "asc",
+  );
+  const rest = sortAppointmentsBySession(
+    list.filter(a => !(ACTIVE.has(a.status) && (a.date || "") >= today)),
+    "desc",
+  );
+  return [...upcoming, ...rest];
 }
 
 export function useClientAppointments() {

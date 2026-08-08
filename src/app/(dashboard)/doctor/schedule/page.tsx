@@ -124,7 +124,10 @@ const DEFAULT_AVAIL: AvailabilitySchedule = {
 //  APPOINTMENT TAB COMPONENTS (unchanged)
 // ══════════════════════════════════════════════════════════════
 
-function StatusBadge({ status }: { status: Appointment["status"] }) {
+function StatusBadge({ status, cancelledReason }: {
+  status: Appointment["status"];
+  cancelledReason?: string;
+}) {
   const styles = {
     pending:   { bg:"rgba(247,148,29,0.12)",  color:"#C4700A", label:"Pending"   },
     approved:  { bg:"rgba(141,198,63,0.12)",  color:"#6BA028", label:"Confirmed" },
@@ -132,7 +135,9 @@ function StatusBadge({ status }: { status: Appointment["status"] }) {
     completed: { bg:"rgba(42,74,26,0.1)",     color:"#2A4A1A", label:"Completed" },
     cancelled: { bg:"rgba(138,155,168,0.12)", color:"#8A9BA8", label:"Cancelled" },
   };
-  const s = styles[status];
+  const s = status === "cancelled" && cancelledReason === "no_show"
+    ? { bg: "rgba(247,148,29,0.12)", color: "#C4700A", label: "No-show" }
+    : styles[status];
   return (
     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
       style={{ background:s.bg, color:s.color }}>{s.label}</span>
@@ -244,7 +249,7 @@ function AppointmentCard({ appt, onApprove, onReject, onCreateMeet, loading, has
             )}
           </div>
         </div>
-        <StatusBadge status={appt.status}/>
+        <StatusBadge status={appt.status} cancelledReason={(appt as any).cancelledReason}/>
       </div>
       <div className="grid grid-cols-2 gap-3 mb-4">
         {[
@@ -505,7 +510,7 @@ function CalendarTab({ appointments }: { appointments: Appointment[] }) {
                         : ""}
                     </p>
                   </div>
-                  <StatusBadge status={a.status}/>
+                  <StatusBadge status={a.status} cancelledReason={(a as any).cancelledReason}/>
                 </div>
               ))}
             </div>

@@ -1,15 +1,36 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Shield, Mail, ArrowLeft } from 'lucide-react';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export default function RegisterPage() {
+  // betaRegistration true (default) = closed invite-only. false = flag ready for Phase H form (still no public form yet).
+  const [betaRegistration, setBetaRegistration] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const snap = await getDoc(doc(db, 'settings', 'platform'));
+        if (snap.exists() && typeof snap.data()?.betaRegistration === 'boolean') {
+          setBetaRegistration(snap.data()!.betaRegistration);
+        }
+      } catch { /* fail closed — invite-only */ }
+    })();
+  }, []);
+
+  const title = betaRegistration ? 'Private Beta' : 'Registration by invitation';
+  const body = betaRegistration
+    ? 'The Valeo Experience platform is currently in a closed beta. New accounts are created by our team only.'
+    : 'Self-serve registration is not open to the public yet. New accounts are still created by invitation from the Valeo team.';
+
   return (
     <div
       className="min-h-screen flex items-center justify-center p-4"
       style={{ background: 'linear-gradient(135deg, #2A4A1A 0%, #3D6B24 100%)' }}
     >
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div style={{
           position: 'absolute', top: '-10%', right: '-10%',
@@ -24,16 +45,13 @@ export default function RegisterPage() {
       </div>
 
       <div className="relative w-full max-w-md">
-        {/* Card */}
         <div className="rounded-2xl overflow-hidden" style={{
           background: 'rgba(255,255,255,0.97)',
           boxShadow: '0 32px 80px rgba(0,0,0,0.3)'
         }}>
-          {/* Top accent */}
           <div style={{ height: '4px', background: 'linear-gradient(90deg, #8DC63F, #F7941D)' }} />
 
           <div className="p-10">
-            {/* Logo */}
             <div className="text-center mb-8">
               <p style={{
                 fontFamily: 'var(--font-dm-serif)',
@@ -48,7 +66,6 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            {/* Icon */}
             <div className="flex justify-center mb-6">
               <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{
                 background: 'linear-gradient(135deg, rgba(42,74,26,0.08), rgba(141,198,63,0.12))',
@@ -58,7 +75,6 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Heading */}
             <div className="text-center mb-8">
               <h1 style={{
                 fontFamily: 'var(--font-dm-serif)',
@@ -67,14 +83,13 @@ export default function RegisterPage() {
                 marginBottom: '12px',
                 lineHeight: 1.2
               }}>
-                Private Beta
+                {title}
               </h1>
               <p style={{ fontSize: '15px', color: '#4A5568', lineHeight: 1.7 }}>
-                The Valeo Experience platform is currently in a closed beta. New accounts are created by our team only.
+                {body}
               </p>
             </div>
 
-            {/* Info box */}
             <div className="rounded-xl p-4 mb-8" style={{
               background: 'rgba(141,198,63,0.06)',
               border: '1px solid rgba(141,198,63,0.2)'
@@ -87,7 +102,6 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            {/* Contact box */}
             <div className="rounded-xl p-4 mb-8" style={{
               background: 'rgba(247,148,29,0.05)',
               border: '1px solid rgba(247,148,29,0.15)'
@@ -112,7 +126,6 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="space-y-3">
               <Link
                 href="/login"

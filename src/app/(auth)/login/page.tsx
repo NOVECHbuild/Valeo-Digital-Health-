@@ -42,7 +42,8 @@ export default function LoginPage() {
 
       // 2. Set session cookie so middleware allows access to protected routes
       const idToken = await user.getIdToken();
-      document.cookie = `__session=${idToken}; path=/; max-age=3600; SameSite=Strict`;
+      const { setSessionCookie } = await import("@/lib/sessionCookie");
+      setSessionCookie(idToken);
 
       // 3. Read role from Firestore (not custom claims)
       const userDoc = await getDoc(doc(db, "users", user.uid));

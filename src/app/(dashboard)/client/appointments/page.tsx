@@ -10,6 +10,8 @@ import {
   useClientAppointments,
   bookAppointment,
   sortAppointmentsBySession,
+  sortClientAppointmentFeed,
+  localTodayStr,
   type Appointment,
 } from "@/hooks/useAppointments";
 import {
@@ -145,7 +147,10 @@ function ConfirmDialog({
 }
 
 // ── Status badge ───────────────────────────────────────────────────────────
-function StatusBadge({ status }: { status: Appointment["status"] }) {
+function StatusBadge({ status, cancelledReason }: {
+  status: Appointment["status"];
+  cancelledReason?: string;
+}) {
   const styles: Record<string, { bg: string; color: string; label: string; Icon: any }> = {
     pending:   { bg: "rgba(247,148,29,0.12)",  color: "#C4700A", label: "Pending Review", Icon: Clock },
     approved:  { bg: "rgba(141,198,63,0.12)",  color: "#6BA028", label: "Confirmed",      Icon: CheckCircle },
@@ -153,7 +158,9 @@ function StatusBadge({ status }: { status: Appointment["status"] }) {
     completed: { bg: "rgba(42,74,26,0.08)",    color: "#2A4A1A", label: "Completed",      Icon: CheckCircle },
     cancelled: { bg: "rgba(138,155,168,0.12)", color: "#8A9BA8", label: "Cancelled",      Icon: XCircle },
   };
-  const s = styles[status] ?? styles.pending;
+  const s = status === "cancelled" && cancelledReason === "no_show"
+    ? { bg: "rgba(247,148,29,0.12)", color: "#C4700A", label: "No-show", Icon: Ban }
+    : (styles[status] ?? styles.pending);
   return (
     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium"
       style={{ background: s.bg, color: s.color }}>
@@ -197,7 +204,7 @@ function AppointmentCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
             <p className="font-semibold text-sm" style={{ color: "#2A4A1A" }}>{appt.type}</p>
-            <StatusBadge status={appt.status} />
+            <StatusBadge status={appt.status} cancelledReason={appt.cancelledReason} />
           </div>
           <p className="text-xs mb-2" style={{ color: "#8A9BA8" }}>{appt.doctorName ?? "Your therapist"}</p>
           <div className="flex items-center gap-3 flex-wrap">
@@ -398,7 +405,7 @@ function ClientAppointmentsPageInner() {
   const [redirecting, setRedirecting]   = useState(false);
   const [error, setError]               = useState<string | null>(null);
   const [toast, setToast]               = useState<{ type: "success"|"error"; msg: string } | null>(null);
-  const [filter, setFilter]             = useState<FilterTab>("all");
+  const [filter, setFilter]             = useState<FilterTab>("upcoming");
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
   const [cancelling, setCancelling]     = useState(false);
   const [repeatWeekly, setRepeatWeekly] = useState(false);
@@ -729,36 +736,38 @@ function ClientAppointmentsPageInner() {
   }
 
   // ── Filtered appointments ─────────────────────────────────────────────
-  const todayStr = typeof window !== "undefined" ? new Date().toISOString().split("T")[0] : "";
+  // Local calendar day (not UTC) so Caribbean evenings don't shift "today"
+  const todayStr = localTodayStr();
 
   const filteredRaw = appointments.filter(a => {
-    if (filter === "upcoming")  return ["pending","approved"].includes(a.status);
-    if (filter === "past")      return ["completed","rejected"].includes(a.status);
+    if (filter === "upcoming") {
+      // Live sessions from today forward — closest first after sort
+      return ["pending", "approved"].includes(a.status) && (a.date || "") >= todayStr;
+    }
+    if (filter === "past")      return ["completed", "rejected"].includes(a.status) ||
+      (["pending", "approved"].includes(a.status) && (a.date || "") < todayStr);
     if (filter === "cancelled") return a.status === "cancelled";
     return true;
   });
-  // Soonest on top for upcoming/all; past & cancelled newest-first
-  const filtered = sortAppointmentsBySession(
-    filteredRaw,
-    filter === "past" || filter === "cancelled" ? "desc" : "asc",
-  );
+
+  // All: upcoming (soonest) then history. Upcoming: soonest. Past/cancelled: newest first.
+  const filtered =
+    filter === "all"
+      ? sortClientAppointmentFeed(filteredRaw, todayStr)
+      : sortAppointmentsBySession(
+          filteredRaw,
+          filter === "past" || filter === "cancelled" ? "desc" : "asc",
+        );
 
   const counts: Record<FilterTab, number> = {
     all:       appointments.length,
-    upcoming:  appointments.filter(a => ["pending","approved"].includes(a.status)).length,
-    past:      appointments.filter(a => ["completed","rejected"].includes(a.status)).length,
+    upcoming:  appointments.filter(a =>
+      ["pending", "approved"].includes(a.status) && (a.date || "") >= todayStr).length,
+    past:      appointments.filter(a =>
+      ["completed", "rejected"].includes(a.status) ||
+      (["pending", "approved"].includes(a.status) && (a.date || "") < todayStr)).length,
     cancelled: appointments.filter(a => a.status === "cancelled").length,
   };
-
-  // ── Upcoming for the top section ──────────────────────────────────────
-  const upcoming = sortAppointmentsBySession(
-    appointments.filter(a => ["pending","approved"].includes(a.status)),
-    "asc",
-  );
-  const past     = sortAppointmentsBySession(
-    appointments.filter(a => ["completed","rejected","cancelled"].includes(a.status)),
-    "desc",
-  );
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">

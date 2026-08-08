@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import AppVersionGuard from "@/components/AppVersionGuard";
+import MaintenanceGate from "@/components/MaintenanceGate";
 
 const dmSans = DM_Sans({
   subsets:  ["latin"],
@@ -76,7 +77,9 @@ export default function RootLayout({
       <body className={`${dmSans.variable} ${dmSerif.variable} font-sans antialiased`}>
         <GoogleAnalytics />
         <AuthProvider>
-          {children}
+          <MaintenanceGate>
+            {children}
+          </MaintenanceGate>
           <AppVersionGuard />
         </AuthProvider>
       </body>

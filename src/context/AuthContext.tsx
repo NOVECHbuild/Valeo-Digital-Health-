@@ -1,10 +1,11 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, onIdTokenChanged, User } from "firebase/auth";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { Role } from "@/types/user";
+import { clearSessionCookie, setRoleCookie, setSessionCookie } from "@/lib/sessionCookie";
 
 interface AuthContextValue {
   user:        User | null;
@@ -27,6 +28,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading,     setLoading]     = useState(true);
   const [displayName, setDisplayName] = useState<string | null>(null);
 
+  // Keep __session in sync whenever Firebase refreshes the ID token (G.8)
+  useEffect(() => {
+    const unsub = onIdTokenChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        clearSessionCookie();
+        return;
+      }
+      try {
+        const idToken = await firebaseUser.getIdToken();
+        setSessionCookie(idToken);
+      } catch {
+        /* ignore — next auth event will retry */
+      }
+    });
+    return () => unsub();
+  }, []);
+
   useEffect(() => {
     let profileUnsub: (() => void) | undefined;
 
@@ -42,7 +60,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         profileUnsub = onSnapshot(doc(db, "users", firebaseUser.uid), (snap) => {
           if (!snap.exists()) return;
           const data = snap.data();
-          if (data.role) setRole(data.role as Role);
+          if (data.role) {
+            setRole(data.role as Role);
+            setRoleCookie(data.role as string);
+          }
           if (typeof data.displayName === "string" && data.displayName.trim()) {
             setDisplayName(data.displayName.trim());
           }
@@ -54,6 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const data = userDoc.data();
           const userRole = data.role as Role;
           setRole(userRole);
+          setRoleCookie(userRole);
           if (typeof data.displayName === "string" && data.displayName.trim()) {
             setDisplayName(data.displayName.trim());
           }
@@ -73,14 +95,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        const idToken = await firebaseUser.getIdToken();
-        document.cookie = `__session=${idToken}; path=/; max-age=3600; SameSite=Strict`;
+        try {
+          const idToken = await firebaseUser.getIdToken();
+          setSessionCookie(idToken);
+        } catch { /* ignore */ }
 
       } else {
         setUser(null);
         setRole(null);
         setDisplayName(null);
-        document.cookie = "__session=; path=/; max-age=0";
+        clearSessionCookie();
       }
 
       setLoading(false);

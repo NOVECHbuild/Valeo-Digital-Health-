@@ -7,6 +7,7 @@ import { sendEmail, renderEmail, prefAllows, formatDoctorName, esc } from "@/lib
 import { requireAuth } from "@/lib/requireAuth";
 import { rateLimit } from "@/lib/rateLimit";
 import { sendPushToUser } from "@/lib/pushServer";
+import { resolveDoctorEmail } from "@/lib/resolveDoctorEmail";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.valeoexperience.com";
 
@@ -44,16 +45,14 @@ export async function POST(req: NextRequest) {
     const clientEmail = client.email || appt.clientEmail;
     const clientFirst = (client.displayName || appt.clientName || "there").split(" ")[0];
 
-    // Resolve the appointment's actual doctor (multi-doctor aware), with env fallback.
-    let doctorName = "your therapist";
-    let doctorEmail = process.env.DOCTOR_EMAIL;
-    if (appt.doctorId) {
-      const docSnap = await adminDb.collection("users").doc(appt.doctorId).get();
-      const docData = docSnap.data();
-      if (docData) {
-        doctorName  = formatDoctorName(docData.displayName);
-        doctorEmail = docData.email || doctorEmail;
-      }
+    // Resolve doctor email: Firestore → Auth → DOCTOR_EMAIL (fixes silent skips)
+    const doctorResolved = await resolveDoctorEmail(appt.doctorId);
+    const doctorName = formatDoctorName(doctorResolved.displayName || appt.doctorName) || "your therapist";
+    const doctorEmail = doctorResolved.email;
+    if (!doctorEmail) {
+      console.warn("[email/appointment] no doctor email", {
+        appointmentId, doctorId: appt.doctorId, event,
+      });
     }
 
     const when = `${prettyDate(appt.date)} at ${appt.time}`;
@@ -100,8 +99,8 @@ export async function POST(req: NextRequest) {
     }
 
     else if (event === "approved") {
+      const hasMeet = !!appt.meetLink;
       if (clientEmail && clientAllows) {
-        const hasMeet = !!appt.meetLink;
         results.push(await sendEmail({
           to: clientEmail,
           subject: "Your session is confirmed — Valeo Experience",
@@ -116,6 +115,23 @@ export async function POST(req: NextRequest) {
             ],
             details,
             cta: hasMeet ? { label: "Join Session", url: appt.meetLink } : { label: "View my appointments", url: apptLink },
+          }),
+        }));
+      }
+      if (doctorEmail) {
+        results.push(await sendEmail({
+          to: doctorEmail,
+          subject: `Session confirmed — ${appt.clientName || "Client"}`,
+          html: renderEmail({
+            heading: "Session confirmed",
+            paragraphs: [
+              `You confirmed a session with ${esc(appt.clientName || "your client")}.`,
+              hasMeet
+                ? "The Meet link is ready for both of you."
+                : "Manage the Meet link from your schedule if needed.",
+            ],
+            details,
+            cta: { label: "Open schedule", url: `${APP_URL}/doctor/schedule` },
           }),
         }));
       }

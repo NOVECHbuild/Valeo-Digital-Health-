@@ -7,7 +7,10 @@ _Update this when Benny shares a new fact, decision, blocker, or “do not chang
 - Build sequence: **1 recurring** → **2 portal polish** → **3 stale-data** (done). Soft-launch ops next when ready.
 - Meet/Calendar working. Stay invite-only + Calendly homepage until public launch.
 - **Clinical file (Phase 1 shipped):** Doctor Clients → Clinical file tab; manual Meet audio/transcript upload → AI SOAP → `sessionReports` + linked `notes`. Doctor-owned forever (not client-visible; not transferred on reassignment). In-app Meet/Workspace guide. Auto-Meet transcription deferred until revenue. Consent v`2026-08-08` includes recording/AI ack.
-- **PWA Phase 1 (in progress / nearly done):** Installable PWA + mobile consoles + FCM web push + **deploy version guard** (always load latest — SW update + `/version.json`). Ops: add `NEXT_PUBLIC_FIREBASE_VAPID_KEY` on Vercel after Firebase Console Web Push certificates.
+- **PWA Phase 1 shipped:** Installable PWA + mobile consoles + FCM web push + deploy version guard. VAPID key set (Benny).
+- **Confirmed working:** Messages, Google Calendar/Meet. Soft-launch ops still open (cron/backups/invites).
+- **Watch:** Doctor Resend emails — code now resolves Auth email + logs; confirm in Resend Logs after next booking.
+- **Next for Benny:** Stripe E2E (Phase D) + finish portal smoke + confirm doctor emails arrive.
 
 ## Account map (business — confirmed 2026-08-07)
 

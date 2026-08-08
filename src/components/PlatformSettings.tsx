@@ -13,8 +13,8 @@ import {
 //  PlatformSettings
 //  Admin-only platform-level configuration, stored in settings/platform.
 //  Pricing / fee / currency / settlement fields for billing + Valeo payouts.
-//  Maintenance mode + beta registration are stored now; enforcement wiring
-//  (middleware / register page) is a separate, flagged follow-up.
+//  Maintenance mode is enforced (non-admins see maintenance screen).
+//  Beta registration keeps /register invite-only while true; public form is Phase H.
 // ════════════════════════════════════════════════════════════════════════════
 
 interface PlatformConfig {
@@ -206,9 +206,9 @@ export default function PlatformSettings() {
 
               {/* Toggles */}
               {([
-                { key: "maintenanceMode", icon: Wrench,   label: "Maintenance Mode",     sub: "Not enforced yet — saved for a future lock-out. Toggle has no effect on the live site today." },
-                { key: "betaRegistration", icon: UserPlus, label: "Beta Registration",   sub: "Not enforced yet — invite-only stays until public registration is wired to this flag." },
-              ] as { key: "maintenanceMode" | "betaRegistration"; icon: any; label: string; sub: string }[]).map(({ key, icon: Icon, label, sub }) => (
+                { key: "maintenanceMode", icon: Wrench,   label: "Maintenance Mode",     sub: "When on, clients and doctors see a maintenance screen. Admins keep full access.", badge: "Live", badgeBg: "rgba(141,198,63,0.15)", badgeColor: "#2A4A1A" },
+                { key: "betaRegistration", icon: UserPlus, label: "Beta Registration",   sub: "When on, /register stays invite-only. Turn off only when you are ready for Phase H public self-registration.", badge: "Wired", badgeBg: "rgba(141,198,63,0.15)", badgeColor: "#2A4A1A" },
+              ] as { key: "maintenanceMode" | "betaRegistration"; icon: any; label: string; sub: string; badge: string; badgeBg: string; badgeColor: string }[]).map(({ key, icon: Icon, label, sub, badge, badgeBg, badgeColor }) => (
                 <div key={key} className="flex items-center justify-between gap-4">
                   <div className="flex items-start gap-3">
                     <Icon size={16} style={{ color: "#F7941D", marginTop: "2px" }} />
@@ -216,8 +216,8 @@ export default function PlatformSettings() {
                       <p className="text-sm font-medium" style={{ color: "#2A4A1A" }}>
                         {label}{" "}
                         <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded"
-                          style={{ background: "rgba(247,148,29,0.12)", color: "#C4700A" }}>
-                          Not enforced yet
+                          style={{ background: badgeBg, color: badgeColor }}>
+                          {badge}
                         </span>
                       </p>
                       <p className="text-xs" style={{ color: "#8A9BA8" }}>{sub}</p>
