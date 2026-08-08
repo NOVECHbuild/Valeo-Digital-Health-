@@ -66,8 +66,8 @@ export default function HomePage() {
           --leaf: #F2F8EA; --cream: #F6FAF0; --ivory: #FAFCF7;
           --charcoal: #22272B; --slate: #4A5568; --mist: #8A9BA8; --gray: #58595B;
         }
-        html { scroll-behavior: smooth; }
-        body { font-family: 'DM Sans', sans-serif; color: var(--charcoal); background: var(--ivory); overflow-x: hidden; }
+        html { scroll-behavior: smooth; overflow-x: hidden; max-width: 100%; }
+        body { font-family: 'DM Sans', sans-serif; color: var(--charcoal); background: var(--ivory); overflow-x: hidden; max-width: 100%; }
         h1, h2, h3 { font-family: 'DM Serif Display', serif; font-weight: 400; line-height: 1.1; }
         h4 { font-family: 'DM Sans', sans-serif; font-weight: 600; }
 
@@ -78,18 +78,25 @@ export default function HomePage() {
         .reveal-delay-3 { transition-delay: 0.3s; }
         .reveal-delay-4 { transition-delay: 0.4s; }
 
-        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; height: 72px; background: rgba(255,253,249,0.92); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(42,74,26,0.08); transition: background 0.3s, box-shadow 0.3s; }
+        nav {
+          position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+          width: 100%; max-width: 100vw; box-sizing: border-box;
+          padding: 0 40px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+          height: 72px; background: rgba(255,253,249,0.92); backdrop-filter: blur(16px);
+          border-bottom: 1px solid rgba(42,74,26,0.08); transition: background 0.3s, box-shadow 0.3s;
+          overflow: hidden;
+        }
         nav.scrolled { box-shadow: 0 2px 24px rgba(42,74,26,0.1); }
-        .nav-logo { display: flex; align-items: center; text-decoration: none; }
-        .nav-logo img { height: 48px; width: auto; display: block; }
-        .nav-links { display: flex; gap: 36px; list-style: none; }
+        .nav-logo { display: flex; align-items: center; text-decoration: none; min-width: 0; flex-shrink: 1; }
+        .nav-logo img { height: 48px; width: auto; max-width: 180px; display: block; object-fit: contain; }
+        .nav-links { display: flex; gap: 36px; list-style: none; flex-shrink: 0; }
         .nav-links a { text-decoration: none; color: var(--slate); font-size: 14px; font-weight: 500; letter-spacing: 0.2px; transition: color 0.2s; }
         .nav-links a:hover { color: var(--forest); }
-        .nav-actions { display: flex; gap: 12px; align-items: center; }
+        .nav-actions { display: flex; gap: 12px; align-items: center; flex-shrink: 0; margin-left: auto; }
         .nav-burger {
-          display: none; width: 40px; height: 40px; border: none; background: transparent;
+          display: none; width: 44px; height: 44px; border: none; background: transparent;
           border-radius: 10px; cursor: pointer; align-items: center; justify-content: center;
-          color: var(--forest);
+          color: var(--forest); flex-shrink: 0; margin-left: auto;
         }
         .nav-burger:hover { background: rgba(42,74,26,0.06); }
         .mobile-menu {
@@ -259,7 +266,31 @@ export default function HomePage() {
         @keyframes fadeDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: none; } }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
 
+        /* Tablet + phone: logo + burger only (desktop links/CTAs overflow otherwise) */
         @media (max-width: 1024px) {
+          nav {
+            padding: 0 16px;
+            padding-top: env(safe-area-inset-top, 0px);
+            height: calc(64px + env(safe-area-inset-top, 0px));
+            gap: 12px;
+          }
+          .nav-logo { flex: 1 1 auto; max-width: calc(100% - 56px); }
+          .nav-logo img { height: 36px !important; width: auto !important; max-width: 100% !important; }
+          .nav-links,
+          .nav-actions { display: none !important; }
+          .nav-burger { display: inline-flex !important; }
+          .mobile-menu {
+            inset: calc(64px + env(safe-area-inset-top, 0px)) 0 0 0;
+            padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+          }
+          .mobile-menu a, .mobile-menu .btn-cta, .mobile-menu .btn-ghost {
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
           .hero, section, .stats-band, .cta-section, footer { padding-left: 40px; padding-right: 40px; }
           .hero { grid-template-columns: 1fr; }
           .hero-right { display: none; }
@@ -275,36 +306,8 @@ export default function HomePage() {
           .cta-actions { align-items: flex-start; }
         }
         @media (max-width: 640px) {
-          nav {
-            padding: 0 16px;
-            padding-top: env(safe-area-inset-top, 0px);
-            height: calc(64px + env(safe-area-inset-top, 0px));
-            gap: 12px;
-          }
-          .nav-logo { min-width: 0; flex: 1; }
-          .nav-logo img { height: 36px !important; max-width: 160px; object-fit: contain; }
-          .nav-links { display: none; }
-          /* Keep header to logo + menu only — CTAs live in the drawer (prevents overflow) */
-          .nav-actions .btn-ghost,
-          .nav-actions .btn-cta { display: none !important; }
-          .nav-actions { flex-shrink: 0; }
-          .nav-burger {
-            display: flex;
-            min-width: 44px;
-            min-height: 44px;
-            align-items: center;
-            justify-content: center;
-          }
-          .mobile-menu {
-            inset: calc(64px + env(safe-area-inset-top, 0px)) 0 0 0;
-            padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
-            overflow-y: auto;
-          }
-          .mobile-menu a, .mobile-menu .btn-cta {
-            min-height: 48px;
-            display: flex;
-            align-items: center;
-          }
+          nav { padding-left: 12px; padding-right: 12px; }
+          .nav-logo img { height: 32px !important; }
           .hero, section, .stats-band, .cta-section, footer {
             padding-left: 16px;
             padding-right: 16px;
@@ -318,10 +321,12 @@ export default function HomePage() {
           .hero-title { font-size: clamp(32px, 9vw, 42px); line-height: 1.15; }
           .hero-body { font-size: 16px; margin-bottom: 28px; }
           .hero-actions { flex-direction: column; align-items: stretch; gap: 12px; }
-          .hero-actions .btn-cta, .hero-actions .btn-ghost {
+          .hero-actions .btn-cta, .hero-actions .btn-ghost,
+          .hero-actions .btn-hero-primary, .hero-actions .btn-hero-secondary {
             width: 100%;
             justify-content: center;
             min-height: 48px;
+            text-align: center;
           }
           .section-title { font-size: clamp(28px, 7vw, 36px); }
           .section-desc { font-size: 16px; }
@@ -340,10 +345,18 @@ export default function HomePage() {
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300&display=swap" rel="stylesheet" />
 
-      {/* NAV */}
+      {/* NAV — burger is a sibling (not inside nav-actions) so it stays on-screen when CTAs hide */}
       <nav ref={navRef} id="main-nav">
         <Link href="/" className="nav-logo">
-          <Image src="/images/logo.png" alt="The Valeo Experience" width={140} height={48} style={{ height: '48px', width: 'auto' }} priority />
+          <Image
+            src="/images/logo.png"
+            alt="The Valeo Experience"
+            width={180}
+            height={48}
+            className="nav-logo-img"
+            style={{ height: 'auto', width: 'auto', maxHeight: 48, maxWidth: '100%' }}
+            priority
+          />
         </Link>
         <ul className="nav-links">
           {NAV_SECTIONS.map((s) => (
@@ -353,24 +366,24 @@ export default function HomePage() {
         <div className="nav-actions">
           <Link href="/login" className="btn-ghost">Sign In</Link>
           <a href={CALENDLY} target="_blank" rel="noopener noreferrer" className="btn-cta">Get Started</a>
-          <button
-            type="button"
-            className="nav-burger"
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((o) => !o)}
-          >
-            {menuOpen ? (
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                <path d="M18 6L6 18M6 6l12 12" />
-              </svg>
-            ) : (
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                <path d="M4 7h16M4 12h16M4 17h16" />
-              </svg>
-            )}
-          </button>
         </div>
+        <button
+          type="button"
+          className="nav-burger"
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((o) => !o)}
+        >
+          {menuOpen ? (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          ) : (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          )}
+        </button>
       </nav>
 
       <div className={`mobile-menu${menuOpen ? ' open' : ''}`} id="mobile-nav">
