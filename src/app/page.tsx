@@ -275,14 +275,58 @@ export default function HomePage() {
           .cta-actions { align-items: flex-start; }
         }
         @media (max-width: 640px) {
-          nav { padding: 0 20px; }
+          nav {
+            padding: 0 16px;
+            padding-top: env(safe-area-inset-top, 0px);
+            height: calc(64px + env(safe-area-inset-top, 0px));
+          }
+          .nav-logo img { height: 40px !important; }
           .nav-links { display: none; }
           .nav-actions .btn-ghost { display: none; }
-          .nav-burger { display: flex; }
-          .hero, section, .stats-band, .cta-section, footer { padding-left: 20px; padding-right: 20px; }
+          .nav-burger {
+            display: flex;
+            min-width: 44px;
+            min-height: 44px;
+            align-items: center;
+            justify-content: center;
+          }
+          .nav-actions .btn-cta {
+            padding: 10px 14px;
+            font-size: 13px;
+            min-height: 44px;
+          }
+          .mobile-menu { inset: calc(64px + env(safe-area-inset-top, 0px)) 0 0 0; }
+          .mobile-menu a, .mobile-menu .btn-cta {
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+          }
+          .hero, section, .stats-band, .cta-section, footer {
+            padding-left: 16px;
+            padding-right: 16px;
+          }
+          .hero {
+            min-height: auto;
+            padding-top: calc(96px + env(safe-area-inset-top, 0px));
+            padding-bottom: 48px;
+            gap: 28px;
+          }
+          .hero-title { font-size: clamp(32px, 9vw, 42px); line-height: 1.15; }
+          .hero-body { font-size: 16px; margin-bottom: 28px; }
+          .hero-actions { flex-direction: column; align-items: stretch; gap: 12px; }
+          .hero-actions .btn-cta, .hero-actions .btn-ghost {
+            width: 100%;
+            justify-content: center;
+            min-height: 48px;
+          }
+          .section-title { font-size: clamp(28px, 7vw, 36px); }
+          .section-desc { font-size: 16px; }
+          .service-card { padding: 28px 22px; }
           .services-grid, .testimonials-grid, .process-grid { grid-template-columns: 1fr; }
-          .stats-band { grid-template-columns: 1fr 1fr; }
+          .stats-band { grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 40px; padding-bottom: 40px; }
+          .cta-section { padding-top: 56px; padding-bottom: 56px; }
           .footer-top { grid-template-columns: 1fr; }
+          footer { padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
         }
       `}</style>
 

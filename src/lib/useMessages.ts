@@ -127,6 +127,16 @@ export async function sendMessage(
       ? { unreadDoctor: increment(1) }
       : { unreadClient: increment(1) }),
   });
+
+  // Web push to the other participant (non-PHI). Fire-and-forget.
+  try {
+    const { authedFetch } = await import("@/lib/authedFetch");
+    void authedFetch("/api/push/message", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ conversationId }),
+    }).catch(() => {});
+  } catch { /* ignore */ }
 }
 
 // ── Mark conversation as read for a role ──────────────────────────────────

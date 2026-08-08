@@ -30,6 +30,11 @@ interface NotifPrefs {
   emailAppointments: boolean;
   emailMessages:     boolean;
   emailAssessments:  boolean;
+  pushEnabled:       boolean;
+  pushAppointments:  boolean;
+  pushMessages:      boolean;
+  pushAssessments:   boolean;
+  pushReminders:     boolean;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -58,8 +63,14 @@ export default function AccountSettingsPage({ role, accent, accentLight }: Setti
     emailAppointments: true,
     emailMessages:     true,
     emailAssessments:  true,
+    pushEnabled:       false,
+    pushAppointments:  true,
+    pushMessages:      true,
+    pushAssessments:   true,
+    pushReminders:     true,
   });
   const [notifsDirty, setNotifsDirty] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
 
   // ── Status ────────────────────────────────────────────────────────────────
   const [profileStatus,  setProfileStatus]  = useState<'idle'|'saving'|'success'|'error'>('idle');
@@ -100,7 +111,7 @@ export default function AccountSettingsPage({ role, accent, accentLight }: Setti
 
         // Load notification prefs if stored
         if (data.notifPrefs) {
-          setNotifs({ ...notifs, ...data.notifPrefs });
+          setNotifs(prev => ({ ...prev, ...data.notifPrefs }));
         }
       } finally {
         setLoadingProfile(false);
@@ -222,6 +233,25 @@ export default function AccountSettingsPage({ role, accent, accentLight }: Setti
     if (!user) return;
     setNotifStatus('saving');
     try {
+      if (notifs.pushEnabled) {
+        setPushBusy(true);
+        const { enablePush } = await import('@/lib/push');
+        const res = await enablePush(user.uid);
+        setPushBusy(false);
+        if (!res.ok) {
+          setNotifs(p => ({ ...p, pushEnabled: false }));
+          showToast(res.error || 'Could not enable push notifications.', 'error');
+          setNotifStatus('error');
+          setTimeout(() => setNotifStatus('idle'), 4000);
+          return;
+        }
+      } else {
+        setPushBusy(true);
+        const { disablePush } = await import('@/lib/push');
+        await disablePush(user.uid);
+        setPushBusy(false);
+      }
+
       await updateDoc(doc(db, 'users', user.uid), {
         notifPrefs: notifs,
         updatedAt: serverTimestamp(),
@@ -231,6 +261,7 @@ export default function AccountSettingsPage({ role, accent, accentLight }: Setti
       showToast('Notification preferences saved.');
       setTimeout(() => setNotifStatus('idle'), 3000);
     } catch {
+      setPushBusy(false);
       setNotifStatus('error');
       setTimeout(() => setNotifStatus('idle'), 4000);
     }
@@ -552,6 +583,7 @@ export default function AccountSettingsPage({ role, accent, accentLight }: Setti
           </div>
 
           <div className="space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#8A9BA8' }}>Email</p>
             {([
               { key: 'emailAppointments', label: 'Appointment updates',    sub: 'Confirmations, reminders, and cancellations' },
               { key: 'emailMessages',     label: 'New messages',           sub: 'When you receive a new chat message'         },
@@ -562,31 +594,69 @@ export default function AccountSettingsPage({ role, accent, accentLight }: Setti
                   <p className="text-sm font-medium" style={{ color: '#2A4A1A' }}>{label}</p>
                   <p className="text-xs" style={{ color: '#8A9BA8' }}>{sub}</p>
                 </div>
-                {/* Toggle switch */}
                 <button
                   onClick={() => toggleNotif(key)}
-                  className="relative flex-shrink-0 w-11 h-6 rounded-full transition-all"
-                  style={{ background: notifs[key] ? accent : 'rgba(42,74,26,0.12)' }}>
-                  <span
-                    className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all"
-                    style={{ left: notifs[key] ? '24px' : '4px' }}
-                  />
+                  className="relative flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  aria-pressed={notifs[key]}
+                >
+                  <span className="relative w-11 h-6 rounded-full block" style={{ background: notifs[key] ? accent : 'rgba(42,74,26,0.12)' }}>
+                    <span
+                      className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all"
+                      style={{ left: notifs[key] ? '24px' : '4px' }}
+                    />
+                  </span>
+                </button>
+              </div>
+            ))}
+
+            <div className="pt-2 border-t" style={{ borderColor: 'rgba(42,74,26,0.06)' }}>
+              <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: '#8A9BA8' }}>Push (phone / PWA)</p>
+              <p className="text-xs mb-3" style={{ color: '#8A9BA8' }}>
+                On iPhone, install Valeo to your Home Screen for push to work. Android Chrome can prompt after you enable.
+              </p>
+            </div>
+            {([
+              { key: 'pushEnabled',      label: 'Enable push notifications', sub: 'Allow Valeo to send alerts to this device' },
+              { key: 'pushAppointments', label: 'Appointment push',          sub: 'Confirmations and cancellations' },
+              { key: 'pushReminders',    label: 'Session reminders',         sub: 'Push reminder for sessions today / tomorrow' },
+              { key: 'pushMessages',     label: 'Message push',              sub: 'When you receive a new chat message' },
+              ...(role === 'doctor' || role === 'admin'
+                ? [] as { key: keyof NotifPrefs; label: string; sub: string }[]
+                : [{ key: 'pushAssessments' as const, label: 'Assessment push', sub: 'When an assessment is assigned' }]),
+            ] as { key: keyof NotifPrefs; label: string; sub: string }[]).map(({ key, label, sub }) => (
+              <div key={key} className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium" style={{ color: '#2A4A1A' }}>{label}</p>
+                  <p className="text-xs" style={{ color: '#8A9BA8' }}>{sub}</p>
+                </div>
+                <button
+                  onClick={() => toggleNotif(key)}
+                  disabled={key !== 'pushEnabled' && !notifs.pushEnabled}
+                  className="relative flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center disabled:opacity-40"
+                  aria-pressed={notifs[key]}
+                >
+                  <span className="relative w-11 h-6 rounded-full block" style={{ background: notifs[key] ? accent : 'rgba(42,74,26,0.12)' }}>
+                    <span
+                      className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all"
+                      style={{ left: notifs[key] ? '24px' : '4px' }}
+                    />
+                  </span>
                 </button>
               </div>
             ))}
 
             <button
               onClick={handleSaveNotifs}
-              disabled={notifStatus === 'saving' || !notifsDirty}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
+              disabled={notifStatus === 'saving' || pushBusy || !notifsDirty}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 min-h-[44px]"
               style={{
                 background: notifStatus === 'success'
                   ? 'rgba(141,198,63,0.1)'
                   : `linear-gradient(135deg, #8DC63F, #2A4A1A)`,
                 color: notifStatus === 'success' ? '#8DC63F' : 'white',
-                cursor: (notifStatus === 'saving' || !notifsDirty) ? 'not-allowed' : 'pointer',
+                cursor: (notifStatus === 'saving' || pushBusy || !notifsDirty) ? 'not-allowed' : 'pointer',
               }}>
-              {notifStatus === 'saving'  ? <><Loader2 size={14} className="animate-spin" />Saving…</>
+              {notifStatus === 'saving' || pushBusy ? <><Loader2 size={14} className="animate-spin" />Saving…</>
              : notifStatus === 'success' ? <><Check size={14} />Saved!</>
              : 'Save Preferences'}
             </button>

@@ -12,9 +12,9 @@ import { CheckCircle, Calendar, Video, ArrowRight, Loader2, AlertCircle, Refresh
 // ── Shared loading card ───────────────────────────────────────────────────────
 function LoadingCard() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4"
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 safe-pb"
       style={{ background: 'linear-gradient(135deg, #2A4A1A 0%, #3D6B24 100%)' }}>
-      <div className="rounded-3xl p-10 text-center max-w-sm w-full"
+      <div className="rounded-3xl p-8 sm:p-10 text-center max-w-sm w-full"
         style={{ background: 'white', boxShadow: '0 20px 60px rgba(42,74,26,0.25)' }}>
         <Loader2 size={36} className="animate-spin mx-auto" style={{ color: '#8DC63F' }} />
       </div>
@@ -86,9 +86,9 @@ function SuccessContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4"
+      <div className="min-h-screen flex items-center justify-center px-4 py-8 safe-pb"
         style={{ background: 'linear-gradient(135deg, #2A4A1A 0%, #3D6B24 100%)' }}>
-        <div className="rounded-3xl p-10 text-center max-w-sm w-full"
+        <div className="rounded-3xl p-8 sm:p-10 text-center max-w-sm w-full"
           style={{ background: 'white', boxShadow: '0 20px 60px rgba(42,74,26,0.25)' }}>
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
             style={{ background: 'rgba(247,148,29,0.1)' }}>
@@ -102,13 +102,13 @@ function SuccessContent() {
           <button
             type="button"
             onClick={() => setRetryKey(k => k + 1)}
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-semibold text-white mb-3 transition-all hover:-translate-y-0.5"
+            className="flex items-center justify-center gap-2 w-full py-3 min-h-[48px] rounded-2xl text-sm font-semibold text-white mb-3 transition-all hover:-translate-y-0.5"
             style={{ background: 'linear-gradient(135deg, #2A4A1A, #3D6B24)' }}
           >
             <RefreshCw size={15} /> Retry loading details
           </button>
           <Link href="/client/appointments"
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-semibold mb-3 transition-all hover:-translate-y-0.5"
+            className="flex items-center justify-center gap-2 w-full py-3 min-h-[48px] rounded-2xl text-sm font-semibold mb-3 transition-all hover:-translate-y-0.5"
             style={{ background: 'rgba(42,74,26,0.06)', color: '#2A4A1A' }}>
             <Calendar size={15} /> View My Appointments <ArrowRight size={13} />
           </Link>
@@ -121,9 +121,9 @@ function SuccessContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4"
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 safe-pb"
       style={{ background: 'linear-gradient(135deg, #2A4A1A 0%, #3D6B24 100%)' }}>
-      <div className="rounded-3xl p-10 text-center max-w-sm w-full"
+      <div className="rounded-3xl p-8 sm:p-10 text-center max-w-sm w-full"
         style={{ background: 'white', boxShadow: '0 20px 60px rgba(42,74,26,0.25)' }}>
 
         {/* Success icon */}
@@ -144,7 +144,7 @@ function SuccessContent() {
         {/* Meet link if already generated */}
         {meetLink && (
           <a href={meetLink} target="_blank" rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-semibold text-white mb-3 transition-all hover:-translate-y-0.5"
+            className="flex items-center justify-center gap-2 w-full py-3 min-h-[48px] rounded-2xl text-sm font-semibold text-white mb-3 transition-all hover:-translate-y-0.5"
             style={{ background: 'linear-gradient(135deg, #8DC63F, #6BA028)' }}>
             <Video size={15} /> Join Session
           </a>
@@ -152,7 +152,7 @@ function SuccessContent() {
 
         {/* View appointments */}
         <Link href="/client/appointments"
-          className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-semibold mb-3 transition-all hover:-translate-y-0.5"
+          className="flex items-center justify-center gap-2 w-full py-3 min-h-[48px] rounded-2xl text-sm font-semibold mb-3 transition-all hover:-translate-y-0.5"
           style={{ background: 'rgba(42,74,26,0.06)', color: '#2A4A1A' }}>
           <Calendar size={15} /> View My Appointments <ArrowRight size={13} />
         </Link>

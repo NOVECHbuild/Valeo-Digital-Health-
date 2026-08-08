@@ -4,6 +4,7 @@ import { adminDb } from "@/lib/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { sendEmail, renderEmail, prefAllows, formatDoctorName, esc } from "@/lib/email";
 import { createMeetForAppointment } from "@/lib/meet";
+import { sendPushToUser } from "@/lib/pushServer";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.valeoexperience.com";
 
@@ -163,6 +164,32 @@ export async function sendSessionReminder(
       }),
     });
     if (r.ok) any = true;
+  }
+
+  // Web push reminders (non-PHI) — fail-safe alongside email
+  const whenShort = `${appt.time || ""}`.trim();
+  const pushBody =
+    kind === "tomorrow"
+      ? `Reminder: session tomorrow${whenShort ? ` at ${whenShort}` : ""}`
+      : `Reminder: session today${whenShort ? ` at ${whenShort}` : ""}`;
+
+  if (appt.clientId) {
+    const pr = await sendPushToUser(appt.clientId, {
+      title: "Session reminder",
+      body: pushBody,
+      url: `${APP_URL}/client/appointments`,
+      prefKey: "pushReminders",
+    });
+    if (pr.ok && pr.sent) any = true;
+  }
+  if (appt.doctorId) {
+    const pr = await sendPushToUser(appt.doctorId, {
+      title: "Session reminder",
+      body: `${pushBody} · ${party.clientName}`,
+      url: `${APP_URL}/doctor/schedule`,
+      prefKey: "pushReminders",
+    });
+    if (pr.ok && pr.sent) any = true;
   }
 
   await adminDb.collection("appointments").doc(appointmentId).update({

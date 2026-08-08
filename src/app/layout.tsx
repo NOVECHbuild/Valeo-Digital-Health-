@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans, DM_Serif_Display } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import AppVersionGuard from "@/components/AppVersionGuard";
 
 const dmSans = DM_Sans({
   subsets:  ["latin"],
@@ -20,6 +21,21 @@ export const metadata: Metadata = {
   title:       "The Valeo Experience | Caribbean Mental Health Platform",
   description: "Expert psychological support rooted in Caribbean understanding. Individual therapy, resilience coaching, and workplace wellness with Dr. Jozelle Miller, PhD.",
   metadataBase: new URL("https://www.valeoexperience.com"),
+  manifest: "/manifest.webmanifest",
+  applicationName: "Valeo Experience",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Valeo",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   openGraph: {
     type:        "website",
     url:         "https://www.valeoexperience.com",
@@ -43,6 +59,13 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: "#2A4A1A",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -54,6 +77,7 @@ export default function RootLayout({
         <GoogleAnalytics />
         <AuthProvider>
           {children}
+          <AppVersionGuard />
         </AuthProvider>
       </body>
     </html>

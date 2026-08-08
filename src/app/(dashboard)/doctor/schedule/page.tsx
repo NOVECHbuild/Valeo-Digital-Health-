@@ -415,15 +415,16 @@ function CalendarTab({ appointments }: { appointments: Appointment[] }) {
           </button>
         </div>
 
+        <div className="scroll-x-touch -mx-1 px-1">
         {/* Day headers */}
-        <div className="grid grid-cols-7 mb-1">
+        <div className="grid grid-cols-7 mb-1 min-w-[280px]">
           {dayNames.map(d => (
             <div key={d} className="text-center text-xs font-semibold py-1" style={{ color:"#8A9BA8" }}>{d}</div>
           ))}
         </div>
 
         {/* Day cells */}
-        <div className="grid grid-cols-7 gap-0.5">
+        <div className="grid grid-cols-7 gap-0.5 min-w-[280px]">
           {cells.map((day, i) => {
             if (day === null) return <div key={`e-${i}`}/>;
             const dateStr = `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
@@ -433,7 +434,7 @@ function CalendarTab({ appointments }: { appointments: Appointment[] }) {
 
             return (
               <button key={dateStr} onClick={() => setSelected(isSelected ? null : dateStr)}
-                className="relative rounded-xl p-1.5 min-h-[56px] flex flex-col items-center transition-all hover:scale-105"
+                className="relative rounded-xl p-1.5 min-h-[48px] sm:min-h-[56px] flex flex-col items-center transition-all hover:scale-105"
                 style={{
                   background: isSelected ? "#1E3810" : isToday ? "rgba(141,198,63,0.12)" : dayAppts.length>0 ? "rgba(30,56,16,0.02)" : "transparent",
                   border: isToday && !isSelected ? "1.5px solid #8DC63F" : isSelected ? "none" : "1.5px solid transparent",
@@ -459,6 +460,7 @@ function CalendarTab({ appointments }: { appointments: Appointment[] }) {
               </button>
             );
           })}
+        </div>
         </div>
 
         {/* Legend */}

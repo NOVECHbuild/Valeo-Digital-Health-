@@ -36,6 +36,12 @@ body {
   background: var(--ivory);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Touch / PWA helpers */
+button, a, [role="button"] {
+  touch-action: manipulation;
 }
 
 h1, h2, h3 {
@@ -52,4 +58,8 @@ h1, h2, h3 {
   .text-orange { color: var(--orange); }
   .ring-green  { --tw-ring-color: var(--green); }
   .border-green { border-color: var(--green); }
+  .safe-pb { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .safe-pt { padding-top: env(safe-area-inset-top, 0px); }
+  .tap-target { min-height: 44px; min-width: 44px; }
+  .scroll-x-touch { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }

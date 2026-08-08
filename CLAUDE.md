@@ -59,7 +59,10 @@ EMAIL_FROM                # e.g. "Valeo Experience <noreply@valeoexperience.com>
 CRON_SECRET               # authorises the Vercel Cron reminder job
 NEXT_PUBLIC_GA_ID         # Google Analytics 4 id (e.g. G-WL3LSG0D7Q); GA no-ops if unset
 TOKEN_ENCRYPTION_KEY      # 64-hex (32-byte) key; encrypts OAuth refresh tokens at rest (plaintext if unset)
+NEXT_PUBLIC_FIREBASE_VAPID_KEY  # Web Push cert key from Firebase Console → Project settings → Cloud Messaging; required for FCM push (no-ops if unset)
 ```
+
+**PWA / latest-version:** Production service worker (`next-pwa`) + `AppVersionGuard` (SW `controllerchange` reload + `/version.json` poll written at `prebuild`). Users get a soft “Update” prompt so installed PWAs load the newest deploy.
 
 Sandbox-to-live WiPay switch: change `WIPAY_ENVIRONMENT`, `WIPAY_ACCOUNT_NUMBER`, `WIPAY_API_KEY` only. No code changes needed.
 

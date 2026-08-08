@@ -5,6 +5,7 @@ import { adminDb } from "@/lib/firebase-admin";
 import { sendEmail, renderEmail, prefAllows, formatDoctorName, esc } from "@/lib/email";
 import { requireAuth } from "@/lib/requireAuth";
 import { rateLimit } from "@/lib/rateLimit";
+import { sendPushToUser } from "@/lib/pushServer";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.valeoexperience.com";
 
@@ -28,10 +29,6 @@ export async function POST(req: NextRequest) {
     const email  = client.email;
     const first  = (client.displayName || "there").split(" ")[0];
 
-    if (!email || !prefAllows(client.notifPrefs, "emailAssessments")) {
-      return NextResponse.json({ ok: true, skipped: true });
-    }
-
     // Resolve the assigning doctor (multi-doctor aware)
     let doctorName = "Your therapist";
     if (doctorId) {
@@ -45,22 +42,32 @@ export async function POST(req: NextRequest) {
       catch { due = dueDate; }
     }
 
-    const result = await sendEmail({
-      to: email,
-      subject: "A new assessment is waiting for you — Valeo Experience",
-      html: renderEmail({
-        heading: "New assessment assigned",
-        greeting: `Hi ${first},`,
-        paragraphs: [
-          `${esc(doctorName)} has assigned you a new assessment${title ? `: <strong>${esc(title)}</strong>` : ""}.`,
-          "Completing it helps your therapist understand how you're doing and tailor your care.",
-        ],
-        details: due ? [{ label: "Please complete by", value: due }] : undefined,
-        cta: { label: "Complete assessment", url: `${APP_URL}/client/assessments` },
-      }),
+    let result: any = { skipped: true };
+    if (email && prefAllows(client.notifPrefs, "emailAssessments")) {
+      result = await sendEmail({
+        to: email,
+        subject: "A new assessment is waiting for you — Valeo Experience",
+        html: renderEmail({
+          heading: "New assessment assigned",
+          greeting: `Hi ${first},`,
+          paragraphs: [
+            `${esc(doctorName)} has assigned you a new assessment${title ? `: <strong>${esc(title)}</strong>` : ""}.`,
+            "Completing it helps your therapist understand how you're doing and tailor your care.",
+          ],
+          details: due ? [{ label: "Please complete by", value: due }] : undefined,
+          cta: { label: "Complete assessment", url: `${APP_URL}/client/assessments` },
+        }),
+      });
+    }
+
+    const push = await sendPushToUser(clientId, {
+      title: "New assessment",
+      body: title ? `A new assessment is waiting: ${title}` : "A new assessment is waiting for you.",
+      url: `${APP_URL}/client/assessments`,
+      prefKey: "pushAssessments",
     });
 
-    return NextResponse.json({ ok: true, result });
+    return NextResponse.json({ ok: true, result, push });
   } catch (err: any) {
     console.error("[email/assessment]", err?.message ?? err);
     return NextResponse.json({ ok: false, error: err?.message ?? "error" }, { status: 500 });

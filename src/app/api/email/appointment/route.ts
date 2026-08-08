@@ -6,6 +6,7 @@ import { adminDb } from "@/lib/firebase-admin";
 import { sendEmail, renderEmail, prefAllows, formatDoctorName, esc } from "@/lib/email";
 import { requireAuth } from "@/lib/requireAuth";
 import { rateLimit } from "@/lib/rateLimit";
+import { sendPushToUser } from "@/lib/pushServer";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://www.valeoexperience.com";
 
@@ -118,6 +119,14 @@ export async function POST(req: NextRequest) {
           }),
         }));
       }
+      if (appt.clientId) {
+        results.push(await sendPushToUser(appt.clientId, {
+          title: "Session confirmed",
+          body: `Your session on ${appt.date} at ${appt.time} is confirmed.`,
+          url: apptLink,
+          prefKey: "pushAppointments",
+        }));
+      }
     }
 
     else if (event === "cancelled") {
@@ -134,6 +143,14 @@ export async function POST(req: NextRequest) {
             cta: { label: "Open schedule", url: `${APP_URL}/doctor/schedule` },
           }),
         }));
+        if (appt.doctorId) {
+          results.push(await sendPushToUser(appt.doctorId, {
+            title: "Session cancelled",
+            body: "A client cancelled a session.",
+            url: `${APP_URL}/doctor/schedule`,
+            prefKey: "pushAppointments",
+          }));
+        }
       } else if (clientEmail && clientAllows) {
         // Doctor cancelled/rejected → notify client
         results.push(await sendEmail({
@@ -150,6 +167,14 @@ export async function POST(req: NextRequest) {
             cta: { label: "Book another session", url: apptLink },
           }),
         }));
+        if (appt.clientId) {
+          results.push(await sendPushToUser(appt.clientId, {
+            title: "Session cancelled",
+            body: "Your session was cancelled. Open Appointments to rebook.",
+            url: apptLink,
+            prefKey: "pushAppointments",
+          }));
+        }
       }
     }
 

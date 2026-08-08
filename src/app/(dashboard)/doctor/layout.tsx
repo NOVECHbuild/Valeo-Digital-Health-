@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import NotificationBell from "@/components/NotificationBell";
+import MobileBottomNav from "@/components/MobileBottomNav";
+import PwaInstallHint from "@/components/PwaInstallHint";
 
 // ── Nav items ────────────────────────────────────────────────────────────────
 // NOTE: Settings is listed here — if it doesn't appear, run:
@@ -204,33 +206,32 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
 
         {/* Top bar */}
         <header
-          className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b"
+          className="sticky top-0 z-10 flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b"
           style={{
             background: "rgba(240,244,244,0.92)",
             backdropFilter: "blur(12px)",
             borderColor: "rgba(30,56,16,0.08)",
+            paddingTop: "max(0.75rem, env(safe-area-inset-top))",
           }}>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-lg hover:bg-black/5"
+              className="lg:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-black/5"
               style={{ color: "#1E3810" }}
               aria-label="Open sidebar">
               <Menu size={20} />
             </button>
-            {/* FIX 6: Header title uses startsWith-aware activeItem */}
             <h1
-              className="text-lg font-medium"
+              className="text-lg font-medium truncate"
               style={{ fontFamily: "var(--font-dm-serif)", color: "#1E3810" }}>
               {pageTitle}
             </h1>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
             <NotificationBell role="doctor" unreadCount={unreadMessages} />
 
-            {/* Doctor badge in header */}
             <div
               className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium"
               style={{ background: "rgba(141,198,63,0.12)", color: "#1E3810" }}>
@@ -240,10 +241,23 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main
+          className="flex-1 p-4 sm:p-6 overflow-y-auto overflow-x-hidden"
+          style={{ paddingBottom: "calc(5.5rem + env(safe-area-inset-bottom, 0px))" }}
+        >
           {children}
         </main>
+
+        <MobileBottomNav
+          tabs={[
+            { href: "/doctor", label: "Home", icon: LayoutDashboard, exact: true },
+            { href: "/doctor/schedule", label: "Schedule", icon: Calendar },
+            { href: "/doctor/clients", label: "Clients", icon: Users },
+            { href: "/doctor/messages", label: "Messages", icon: MessageCircle },
+          ]}
+          onMore={() => setSidebarOpen(true)}
+        />
+        <PwaInstallHint />
       </div>
     </div>
   );

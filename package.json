@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/clean-nul.js",
+    "prebuild": "node scripts/clean-nul.js && node scripts/write-version.js",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

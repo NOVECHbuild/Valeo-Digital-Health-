@@ -142,7 +142,7 @@ export default function ClientPayPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto space-y-4">
+    <div className="max-w-md mx-auto space-y-4 pb-8" style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}>
       <div>
         <h2 className="text-2xl" style={{ fontFamily: 'var(--font-dm-serif)', color: '#2A4A1A' }}>
           Complete Payment
@@ -222,7 +222,7 @@ export default function ClientPayPage() {
         <button
           onClick={handlePay}
           disabled={paying || !appt}
-          className="w-full py-3.5 rounded-2xl text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60 transition-all hover:-translate-y-0.5"
+          className="w-full py-3.5 min-h-[48px] rounded-2xl text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60 transition-all hover:-translate-y-0.5"
           style={{ background: 'linear-gradient(135deg, #2A4A1A, #3D6B24)' }}
         >
           {paying ? (

@@ -255,7 +255,7 @@ function PaymentCard({ payment }: { payment: Payment }) {
           {/* Pending — complete payment CTA (S2) */}
           {payment.status === "pending" && (
             <div
-              className="mt-3 px-3 py-3 rounded-xl flex items-center justify-between gap-3"
+              className="mt-3 px-3 py-3 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
               style={{ background: "rgba(247,148,29,0.06)", border: "1px solid rgba(247,148,29,0.2)" }}
             >
               <div className="flex items-center gap-2">
@@ -264,11 +264,10 @@ function PaymentCard({ payment }: { payment: Payment }) {
                   Awaiting payment confirmation
                 </p>
               </div>
-              {/* S2: Link to appointments to complete/view */}
               <Link
                 href="/client/appointments"
-                className="flex items-center gap-1 text-xs font-semibold flex-shrink-0"
-                style={{ color: "#2A4A1A" }}
+                className="inline-flex items-center justify-center gap-1 text-xs font-semibold flex-shrink-0 min-h-[44px] px-3 rounded-lg"
+                style={{ color: "#2A4A1A", background: "rgba(42,74,26,0.06)" }}
               >
                 View Booking <ArrowUpRight size={11} />
               </Link>
@@ -343,7 +342,7 @@ export default function ClientPaymentsPage() {
 
       {/* Summary cards */}
       {/* FIX 3: Use ACCENT_RGBA map instead of string-concatenated hex alpha */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
           { label: "Total Spent",   value: fmtCurrency(totalSpent), accent: "#2A4A1A", Icon: DollarSign },
           { label: "Sessions Paid", value: totalSessions,           accent: "#8DC63F", Icon: Calendar   },
@@ -386,7 +385,7 @@ export default function ClientPaymentsPage() {
 
       {/* FIX 5+10: Filter tabs — hidden when count is 0, includes "cancelled" */}
       {!loading && payments.length > 0 && (
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap scroll-x-touch">
           {visibleTabs.map(f => {
             const count = f === "all" ? payments.length : payments.filter(p => p.status === f).length;
             const isActive = filter === f;
@@ -394,7 +393,7 @@ export default function ClientPaymentsPage() {
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className="px-3 py-2 rounded-xl text-xs font-semibold capitalize transition-all"
+                className="px-3 py-2.5 min-h-[44px] rounded-xl text-xs font-semibold capitalize transition-all"
                 style={{
                   background: isActive ? "#2A4A1A" : "white",
                   color:      isActive ? "white"   : "#4A5568",
