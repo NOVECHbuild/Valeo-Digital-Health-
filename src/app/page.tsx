@@ -279,10 +279,15 @@ export default function HomePage() {
             padding: 0 16px;
             padding-top: env(safe-area-inset-top, 0px);
             height: calc(64px + env(safe-area-inset-top, 0px));
+            gap: 12px;
           }
-          .nav-logo img { height: 40px !important; }
+          .nav-logo { min-width: 0; flex: 1; }
+          .nav-logo img { height: 36px !important; max-width: 160px; object-fit: contain; }
           .nav-links { display: none; }
-          .nav-actions .btn-ghost { display: none; }
+          /* Keep header to logo + menu only — CTAs live in the drawer (prevents overflow) */
+          .nav-actions .btn-ghost,
+          .nav-actions .btn-cta { display: none !important; }
+          .nav-actions { flex-shrink: 0; }
           .nav-burger {
             display: flex;
             min-width: 44px;
@@ -290,12 +295,11 @@ export default function HomePage() {
             align-items: center;
             justify-content: center;
           }
-          .nav-actions .btn-cta {
-            padding: 10px 14px;
-            font-size: 13px;
-            min-height: 44px;
+          .mobile-menu {
+            inset: calc(64px + env(safe-area-inset-top, 0px)) 0 0 0;
+            padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+            overflow-y: auto;
           }
-          .mobile-menu { inset: calc(64px + env(safe-area-inset-top, 0px)) 0 0 0; }
           .mobile-menu a, .mobile-menu .btn-cta {
             min-height: 48px;
             display: flex;

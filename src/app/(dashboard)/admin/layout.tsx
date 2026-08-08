@@ -69,7 +69,7 @@ export default function AdminLayout({
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black/40 lg:hidden"
+          className="fixed inset-0 z-50 bg-black/40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -77,7 +77,7 @@ export default function AdminLayout({
       {/* ── Sidebar ── */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-30 flex h-dvh max-h-dvh w-64 flex-shrink-0 flex-col overflow-hidden",
+          "fixed inset-y-0 left-0 z-[60] flex h-dvh max-h-dvh w-64 flex-shrink-0 flex-col overflow-hidden",
           "transition-transform duration-300 ease-out lg:transition-none",
           "lg:static lg:z-auto lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
@@ -155,12 +155,15 @@ export default function AdminLayout({
           })}
         </nav>
 
-        {/* Sign out */}
-        <div className="flex-shrink-0 border-t border-white/10 p-3">
+        {/* Sign out — clear of home-indicator; sits above bottom nav when drawer open */}
+        <div
+          className="flex-shrink-0 border-t border-white/10 p-3"
+          style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))" }}
+        >
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
-                       text-white/40 hover:text-white hover:bg-white/5 transition-all"
+            className="w-full flex items-center gap-3 px-3 py-3 min-h-[48px] rounded-lg text-sm font-medium
+                       text-white/70 hover:text-white hover:bg-white/5 transition-all"
           >
             <LogOut size={16} />
             Sign Out

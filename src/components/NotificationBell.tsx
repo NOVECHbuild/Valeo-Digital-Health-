@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   Bell, MessageSquare, ClipboardList, Calendar, Megaphone, X,
@@ -21,7 +22,8 @@ type FeedItem = {
 };
 
 /**
- * Header notification bell — mobile bottom sheet + role-aware live feed.
+ * Header notification bell — mobile bottom sheet (ported to body) + role-aware live feed.
+ * Portal avoids header backdrop-filter trapping position:fixed.
  */
 export default function NotificationBell({
   role,
@@ -36,15 +38,22 @@ export default function NotificationBell({
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const href =
     messagesHref ??
     (role === "client" ? "/client/messages" : role === "doctor" ? "/doctor/messages" : undefined);
 
+  useEffect(() => { setMounted(true); }, []);
+
   useEffect(() => {
     if (!open) return;
     function onDoc(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (ref.current?.contains(t)) return;
+      // Sheet is portaled outside ref — ignore closes when clicking inside sheet
+      if ((t as HTMLElement)?.closest?.("[data-notif-sheet]")) return;
+      setOpen(false);
     }
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") setOpen(false);
@@ -156,10 +165,11 @@ export default function NotificationBell({
         }
       } catch (e) {
         console.warn("[NotificationBell] feed", e);
-      }
-      if (!cancelled) {
-        setItems(next);
-        setLoading(false);
+      } finally {
+        if (!cancelled) {
+          setItems(next);
+          setLoading(false);
+        }
       }
     })();
     return () => { cancelled = true; };
@@ -171,12 +181,12 @@ export default function NotificationBell({
     <>
       <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: "rgba(42,74,26,0.06)" }}>
         <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>Notifications</p>
-        <button type="button" className="sm:hidden p-2 rounded-lg hover:bg-black/5" onClick={() => setOpen(false)} aria-label="Close">
+        <button type="button" className="sm:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-black/5" onClick={() => setOpen(false)} aria-label="Close">
           <X size={16} style={{ color: "#8A9BA8" }} />
         </button>
       </div>
 
-      <div className="max-h-[60vh] overflow-y-auto">
+      <div className="max-h-[55vh] overflow-y-auto">
         {loading ? (
           <p className="px-4 py-6 text-center text-xs" style={{ color: "#8A9BA8" }}>Loading…</p>
         ) : items.length === 0 ? (
@@ -186,7 +196,7 @@ export default function NotificationBell({
               {role === "admin" ? "Use Announcements to broadcast updates." : "New alerts will show up here."}
             </p>
             {href && role !== "admin" && (
-              <Link href={href} onClick={() => setOpen(false)} className="inline-flex mt-3 text-xs font-semibold" style={{ color: "#6BA028" }}>
+              <Link href={href} onClick={() => setOpen(false)} className="inline-flex mt-3 text-xs font-semibold min-h-[44px] items-center" style={{ color: "#6BA028" }}>
                 Go to Messages
               </Link>
             )}
@@ -219,6 +229,34 @@ export default function NotificationBell({
       </div>
     </>
   );
+
+  const mobileSheet = open && mounted
+    ? createPortal(
+        <div
+          className="sm:hidden fixed inset-0 z-[100]"
+          style={{ background: "rgba(0,0,0,0.45)" }}
+          onClick={() => setOpen(false)}
+          data-notif-sheet
+        >
+          <div
+            className="absolute inset-x-0 bottom-0 rounded-t-3xl overflow-hidden shadow-2xl"
+            style={{
+              background: "white",
+              paddingBottom: "env(safe-area-inset-bottom, 0px)",
+              maxHeight: "80vh",
+            }}
+            onClick={e => e.stopPropagation()}
+            data-notif-sheet
+          >
+            <div className="flex justify-center pt-2 pb-1">
+              <span className="w-10 h-1 rounded-full" style={{ background: "rgba(42,74,26,0.15)" }} />
+            </div>
+            {panel}
+          </div>
+        </div>,
+        document.body,
+      )
+    : null;
 
   return (
     <div className="relative" ref={ref}>
@@ -253,25 +291,7 @@ export default function NotificationBell({
         </div>
       )}
 
-      {/* Mobile bottom sheet */}
-      {open && (
-        <div className="sm:hidden fixed inset-0 z-50" style={{ background: "rgba(0,0,0,0.4)" }} onClick={() => setOpen(false)}>
-          <div
-            className="absolute inset-x-0 bottom-0 rounded-t-3xl overflow-hidden"
-            style={{
-              background: "white",
-              paddingBottom: "env(safe-area-inset-bottom, 0px)",
-              maxHeight: "75vh",
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex justify-center pt-2 pb-1">
-              <span className="w-10 h-1 rounded-full" style={{ background: "rgba(42,74,26,0.15)" }} />
-            </div>
-            {panel}
-          </div>
-        </div>
-      )}
+      {mobileSheet}
     </div>
   );
 }
