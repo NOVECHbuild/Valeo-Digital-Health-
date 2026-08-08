@@ -64,7 +64,8 @@ export default function AdminLayout({
   const pageTitle = navItems.find(i => isActive(i.href))?.label ?? "Admin Console";
 
   return (
-    <div className="flex h-dvh max-h-dvh overflow-hidden" style={{ background: "#F4F4F6" }}>
+    // One page scroll: sidebar + main move together (no nested sidebar scrollbar).
+    <div className="flex min-h-dvh" style={{ background: "#F4F4F6" }}>
 
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -77,9 +78,11 @@ export default function AdminLayout({
       {/* ── Sidebar ── */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-[60] flex h-dvh max-h-dvh w-64 flex-shrink-0 flex-col overflow-hidden",
+          "z-[60] flex w-64 flex-shrink-0 flex-col",
+          "fixed inset-y-0 left-0 h-dvh overflow-y-auto overflow-x-hidden",
+          "[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
           "transition-transform duration-300 ease-out lg:transition-none",
-          "lg:static lg:z-auto lg:translate-x-0",
+          "lg:static lg:z-auto lg:h-auto lg:min-h-dvh lg:overflow-visible lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
         style={{ background: "#1E3810" }}
@@ -126,8 +129,8 @@ export default function AdminLayout({
           </div>
         </div>
 
-        {/* Nav */}
-        <nav className="min-h-0 flex-1 space-y-0.5 overflow-x-hidden overflow-y-auto px-3 py-2">
+        {/* Nav — no internal scroll on desktop; grows with the column */}
+        <nav className="flex-1 space-y-0.5 px-3 py-2">
           <p
             className="text-xs font-semibold tracking-widest uppercase px-3 py-2"
             style={{ color: "rgba(255,255,255,0.25)" }}
@@ -157,7 +160,7 @@ export default function AdminLayout({
 
         {/* Sign out — clear of home-indicator; sits above bottom nav when drawer open */}
         <div
-          className="flex-shrink-0 border-t border-white/10 p-3"
+          className="mt-auto flex-shrink-0 border-t border-white/10 p-3"
           style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))" }}
         >
           <button
@@ -172,7 +175,7 @@ export default function AdminLayout({
       </aside>
 
       {/* ── Main content ── */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex min-h-dvh flex-1 flex-col min-w-0">
 
         {/* Top bar */}
         <header
@@ -217,7 +220,7 @@ export default function AdminLayout({
         </header>
 
         <main
-          className="flex-1 p-4 sm:p-6 overflow-y-auto overflow-x-hidden"
+          className="flex-1 p-4 sm:p-6"
           style={{ paddingBottom: "calc(5.5rem + env(safe-area-inset-bottom, 0px))" }}
         >
           {children}
