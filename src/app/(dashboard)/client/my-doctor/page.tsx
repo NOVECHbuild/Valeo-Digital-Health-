@@ -103,48 +103,67 @@ export default function MyDoctorPage() {
         const assign = assignSnap.data() as Assignment;
         setAssignment(assign);
 
-        // FIX 1: Merge `doctors/{uid}` (clinical data) + `users/{uid}` (auth data)
-        // The original code only read from `users` — bio, specializations, approaches
-        // etc. would always be undefined because they live in the `doctors` collection.
-        const [doctorSnap, userSnap] = await Promise.all([
-          getDoc(doc(db, "doctors", assign.doctorId)),
-          getDoc(doc(db, "users",   assign.doctorId)),
-        ]);
-
-        if (!doctorSnap.exists() && !userSnap.exists()) {
-          setDoctorMissing(true); // S3
-          setLoading(false);
-          return;
+        // Merge `doctors/{uid}` (clinical) + `users/{uid}` (auth). Load independently
+        // so a missing/denied doctors doc does not blank the whole page.
+        let doctorData: Record<string, unknown> = {};
+        let userData: Record<string, unknown> = {};
+        try {
+          const userSnap = await getDoc(doc(db, "users", assign.doctorId));
+          if (userSnap.exists()) userData = userSnap.data() as Record<string, unknown>;
+        } catch (err) {
+          console.error("[MyDoctorPage] users read failed", err);
+        }
+        try {
+          const doctorSnap = await getDoc(doc(db, "doctors", assign.doctorId));
+          if (doctorSnap.exists()) doctorData = doctorSnap.data() as Record<string, unknown>;
+        } catch (err) {
+          console.error("[MyDoctorPage] doctors read failed", err);
         }
 
-        const doctorData = doctorSnap.exists() ? doctorSnap.data() : {};
-        const userData   = userSnap.exists()   ? userSnap.data()   : {};
-        // doctors doc wins on overlap — it holds the authoritative clinical profile
-        setDoctor({ uid: assign.doctorId, ...userData, ...doctorData } as DoctorProfile);
-
-        // S1: Fetch next upcoming session with this doctor
-        const todayStr = new Date().toISOString().split("T")[0];
-        const apptSnap = await getDocs(
-          query(
-            collection(db, "appointments"),
-            where("clientId", "==", user.uid),
-            where("doctorId", "==", assign.doctorId),
-            where("status",   "in", ["pending", "approved"]),
-            orderBy("date", "asc"),
-            limit(1),
-          )
-        );
-        if (!apptSnap.empty) {
-          const a = apptSnap.docs[0].data() as any;
-          if (a.date >= todayStr) {
-            setNextSession({
-              id:       apptSnap.docs[0].id,
-              date:     a.date,
-              time:     a.time,
-              type:     a.type,
-              meetLink: a.meetLink,
-            });
+        if (!Object.keys(userData).length && !Object.keys(doctorData).length) {
+          // Fall back to assignment denormalized name so the page still renders
+          if (assign.doctorName) {
+            setDoctor({
+              uid: assign.doctorId,
+              displayName: assign.doctorName.replace(/^Dr\.?\s*/i, "").trim() || assign.doctorName,
+            } as DoctorProfile);
+          } else {
+            setDoctorMissing(true);
+            setLoading(false);
+            return;
           }
+        } else {
+          // doctors doc wins on overlap — authoritative clinical profile
+          setDoctor({ uid: assign.doctorId, ...userData, ...doctorData } as DoctorProfile);
+        }
+
+        // Next session is best-effort (composite index / query may fail)
+        try {
+          const todayStr = new Date().toISOString().split("T")[0];
+          const apptSnap = await getDocs(
+            query(
+              collection(db, "appointments"),
+              where("clientId", "==", user.uid),
+              where("doctorId", "==", assign.doctorId),
+              where("status",   "in", ["pending", "approved"]),
+              orderBy("date", "asc"),
+              limit(1),
+            )
+          );
+          if (!apptSnap.empty) {
+            const a = apptSnap.docs[0].data() as any;
+            if (a.date >= todayStr) {
+              setNextSession({
+                id:       apptSnap.docs[0].id,
+                date:     a.date,
+                time:     a.time,
+                type:     a.type,
+                meetLink: a.meetLink,
+              });
+            }
+          }
+        } catch (err) {
+          console.warn("[MyDoctorPage] next-session query skipped", err);
         }
       } catch (err: any) {
         console.error("[MyDoctorPage]", err);

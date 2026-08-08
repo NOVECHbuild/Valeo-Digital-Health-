@@ -40,6 +40,15 @@ service cloud.firestore {
         || isAdmin();
       allow delete: if isAdmin();
     }
+    // ── Doctor clinical profiles (bio, specializations, etc.) ─────────────────
+    // Separate from users/{uid}. Clients need read for My Therapist / match.
+    match /doctors/{doctorId} {
+      allow read: if isAuth();
+      allow create, update: if isAuth() && (
+        request.auth.uid == doctorId || isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
     // ── Appointments ──────────────────────────────────────────────────────────
     match /appointments/{appointmentId} {
       // Single document read — strict ownership check
