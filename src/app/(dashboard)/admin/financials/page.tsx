@@ -3,17 +3,19 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   collection, getDocs, addDoc, orderBy, query,
-  serverTimestamp,
+  doc, getDoc, serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
+import { authedFetch } from "@/lib/authedFetch";
+import { computeSettlement } from "@/lib/settlement";
 import {
-  DollarSign, TrendingUp, TrendingDown, Users,
+  DollarSign, TrendingUp, TrendingDown,
   Search, X, Loader2, CheckCircle, Clock,
   XCircle, ArrowUpRight, Filter, Download,
-  CreditCard, BarChart2, Plus, ChevronDown,
+  CreditCard, Plus, ChevronDown,
   FileText, User, Calendar, Receipt, Banknote,
-  Globe, AlertCircle,
+  Globe, AlertCircle, Send, Mail,
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -39,7 +41,35 @@ interface Transaction {
 
 interface UserDoc { uid: string; displayName: string; email: string; role: string; }
 
+interface Payout {
+  id: string;
+  amount: number;
+  currency: string;
+  periodLabel: string;
+  reference: string;
+  notes: string;
+  status: "sent";
+  feePercentApplied: number;
+  receiptSent: boolean;
+  receiptSkipped?: boolean;
+  receiptError?: string | null;
+  receiptTo?: string;
+  recordedBy: string;
+  createdAt: any;
+}
+
+interface PlatformSettlementCfg {
+  platformFeePercent: number;
+  minPayoutUsd: number;
+  payoutReceiptEmail: string;
+}
+
 const PAYMENT_METHODS = ["Cash", "Bank Transfer", "Zelle", "PayPal", "Cheque", "Other"];
+const SETTLEMENT_DEFAULTS: PlatformSettlementCfg = {
+  platformFeePercent: 10,
+  minPayoutUsd: 100,
+  payoutReceiptEmail: "",
+};
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 const STATUS_CONFIG: Record<PaymentStatus, { label: string; bg: string; color: string; Icon: any }> = {
@@ -306,6 +336,180 @@ function ManualPaymentDrawer({ clients, onClose, onSave }: {
   );
 }
 
+// ── Record Valeo payout drawer ─────────────────────────────────────────────
+function RecordPayoutDrawer({
+  suggestedAmount,
+  feePercent,
+  receiptEmail,
+  onClose,
+  onSaved,
+}: {
+  suggestedAmount: number;
+  feePercent: number;
+  receiptEmail: string;
+  onClose: () => void;
+  onSaved: (p: Payout) => void;
+}) {
+  const { user } = useAuth();
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [sendReceipt, setSendReceipt] = useState(true);
+  const [form, setForm] = useState({
+    amount: suggestedAmount > 0 ? String(suggestedAmount) : "",
+    periodLabel: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+    reference: "",
+    notes: "",
+  });
+
+  async function handleSave() {
+    setError("");
+    const amount = Number(form.amount);
+    if (!amount || amount <= 0) return setError("Enter a valid transfer amount.");
+    if (!form.periodLabel.trim()) return setError("Period label is required (e.g. August 2026).");
+    if (sendReceipt && !receiptEmail.includes("@")) {
+      return setError("Set Valeo payout receipt email in Platform Settings first, or uncheck Send receipt.");
+    }
+    setSaving(true);
+    try {
+      const payload = {
+        amount,
+        currency: "USD",
+        periodLabel: form.periodLabel.trim(),
+        reference: form.reference.trim(),
+        notes: form.notes.trim(),
+        status: "sent" as const,
+        feePercentApplied: feePercent,
+        receiptSent: false,
+        recordedBy: user?.displayName ?? user?.email ?? "Admin",
+        createdAt: serverTimestamp(),
+      };
+      const docRef = await addDoc(collection(db, "payouts"), payload);
+      let receiptSent = false;
+      let receiptSkipped = false;
+      let receiptError: string | null = null;
+      let receiptTo = "";
+
+      if (sendReceipt) {
+        const res = await authedFetch("/api/email/payout-receipt", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            payoutId: docRef.id,
+            amount,
+            currency: "USD",
+            periodLabel: payload.periodLabel,
+            reference: payload.reference,
+            notes: payload.notes,
+            feePercentApplied: feePercent,
+            sentAt: new Date().toISOString(),
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          receiptError = data.error || "Receipt email failed";
+        } else {
+          receiptSent = !!data.ok && !data.skipped;
+          receiptSkipped = !!data.skipped;
+          receiptTo = data.to || receiptEmail;
+        }
+      }
+
+      const saved: Payout = {
+        id: docRef.id,
+        ...payload,
+        receiptSent,
+        receiptSkipped,
+        receiptError,
+        receiptTo,
+        createdAt: new Date(),
+      };
+      onSaved(saved);
+      onClose();
+    } catch {
+      setError("Failed to record payout.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const inputCls = "w-full px-4 py-3 rounded-xl text-sm outline-none";
+  const inputStyle = { background: "#F8F9FA", border: "1px solid rgba(30,56,16,0.1)", color: "#1E3810" };
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative w-full max-w-md h-full flex flex-col"
+        style={{ background: "white", boxShadow: "-8px 0 32px rgba(0,0,0,0.15)" }}>
+        <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: "rgba(30,56,16,0.08)" }}>
+          <div>
+            <h3 style={{ fontFamily: "var(--font-dm-serif)", fontSize: "20px", color: "#1E3810" }}>Record Valeo payout</h3>
+            <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>Log a Mercury transfer to Valeo Experience Ltd.</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-black/5"><X size={18} style={{ color: "#8A9BA8" }} /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          {error && (
+            <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-medium"
+              style={{ background: "rgba(247,148,29,0.08)", color: "#F7941D", border: "1px solid rgba(247,148,29,0.2)" }}>
+              <AlertCircle size={13} /> {error}
+            </div>
+          )}
+          <p className="text-xs" style={{ color: "#8A9BA8" }}>
+            Suggested Valeo share (before Stripe fees): <strong style={{ color: "#1E3810" }}>{fmtFull(suggestedAmount)}</strong>.
+            Enter the amount you actually transferred from Mercury.
+          </p>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#8A9BA8" }}>Amount (USD) *</p>
+            <div className="relative">
+              <DollarSign size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "#8A9BA8" }} />
+              <input type="number" min="0" step="0.01" value={form.amount}
+                onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
+                className={inputCls} style={{ ...inputStyle, paddingLeft: "40px" }} />
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#8A9BA8" }}>Period *</p>
+            <input type="text" value={form.periodLabel}
+              onChange={e => setForm(f => ({ ...f, periodLabel: e.target.value }))}
+              placeholder="e.g. August 2026" className={inputCls} style={inputStyle} />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#8A9BA8" }}>Bank / Mercury reference</p>
+            <input type="text" value={form.reference}
+              onChange={e => setForm(f => ({ ...f, reference: e.target.value }))}
+              placeholder="Transfer ID or memo" className={inputCls} style={inputStyle} />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#8A9BA8" }}>Notes</p>
+            <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+              rows={3} placeholder="Optional note for the receipt" className={inputCls + " resize-none"} style={inputStyle} />
+          </div>
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input type="checkbox" checked={sendReceipt} onChange={e => setSendReceipt(e.target.checked)}
+              className="mt-1" />
+            <span className="text-sm" style={{ color: "#1E3810" }}>
+              Send settlement receipt email
+              <span className="block text-xs mt-0.5" style={{ color: "#8A9BA8" }}>
+                {receiptEmail ? `To ${receiptEmail}` : "Set receipt email in Platform Settings first"}
+              </span>
+            </span>
+          </label>
+        </div>
+        <div className="px-6 py-4 border-t flex gap-3" style={{ borderColor: "rgba(30,56,16,0.08)" }}>
+          <button onClick={onClose} className="flex-1 py-3 rounded-xl text-sm font-semibold"
+            style={{ background: "rgba(30,56,16,0.05)", color: "#4A5568" }}>Cancel</button>
+          <button onClick={handleSave} disabled={saving}
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white"
+            style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)", opacity: saving ? 0.7 : 1 }}>
+            {saving ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
+            {saving ? "Saving…" : "Record payout"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── CSV Export ─────────────────────────────────────────────────────────────
 function exportCSV(transactions: Transaction[]) {
   const headers = ["Date","Client","Email","Session Type","Description","Amount (USD)","Method","Source","Status","Reference"];
@@ -328,6 +532,8 @@ function exportCSV(transactions: Transaction[]) {
 // ── Main Page ──────────────────────────────────────────────────────────────
 export default function AdminFinancialsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [payouts,      setPayouts]      = useState<Payout[]>([]);
+  const [settlementCfg, setSettlementCfg] = useState<PlatformSettlementCfg>(SETTLEMENT_DEFAULTS);
   const [clients,      setClients]      = useState<UserDoc[]>([]);
   const [users,        setUsers]        = useState<Record<string, UserDoc>>({});
   const [loading,      setLoading]      = useState(true);
@@ -338,15 +544,51 @@ export default function AdminFinancialsPage() {
   const [dateTo,       setDateTo]       = useState("");
   const [showFilters,  setShowFilters]  = useState(false);
   const [showDrawer,   setShowDrawer]   = useState(false);
+  const [showPayoutDrawer, setShowPayoutDrawer] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
-        const [paySnap, manualSnap, userSnap] = await Promise.all([
+        const [paySnap, manualSnap, userSnap, settingsSnap] = await Promise.all([
           getDocs(query(collection(db, "payments"),       orderBy("createdAt", "desc"))),
           getDocs(query(collection(db, "manualPayments"), orderBy("createdAt", "desc"))),
           getDocs(collection(db, "users")),
+          getDoc(doc(db, "settings", "platform")),
         ]);
+
+        if (settingsSnap.exists()) {
+          const s = settingsSnap.data() as any;
+          setSettlementCfg({
+            platformFeePercent: Number(s.platformFeePercent) || SETTLEMENT_DEFAULTS.platformFeePercent,
+            minPayoutUsd: Number(s.minPayoutUsd) || SETTLEMENT_DEFAULTS.minPayoutUsd,
+            payoutReceiptEmail: String(s.payoutReceiptEmail || ""),
+          });
+        }
+
+        try {
+          const payoutSnap = await getDocs(query(collection(db, "payouts"), orderBy("createdAt", "desc")));
+          setPayouts(payoutSnap.docs.map(d => {
+            const data = d.data() as any;
+            return {
+              id: d.id,
+              amount: data.amount ?? 0,
+              currency: data.currency ?? "USD",
+              periodLabel: data.periodLabel ?? "",
+              reference: data.reference ?? "",
+              notes: data.notes ?? "",
+              status: "sent",
+              feePercentApplied: data.feePercentApplied ?? 10,
+              receiptSent: !!data.receiptSent,
+              receiptSkipped: !!data.receiptSkipped,
+              receiptError: data.receiptError ?? null,
+              receiptTo: data.receiptTo ?? "",
+              recordedBy: data.recordedBy ?? "Admin",
+              createdAt: data.createdAt,
+            } as Payout;
+          }));
+        } catch {
+          setPayouts([]);
+        }
 
         const userMap: Record<string, UserDoc> = {};
         userSnap.docs.forEach(d => { userMap[d.id] = { uid: d.id, ...d.data() } as UserDoc; });
@@ -411,6 +653,16 @@ export default function AdminFinancialsPage() {
   const filteredRevenue = filtered.filter(t => t.status === "completed").reduce((s, t) => s + t.amount, 0);
   const hasFilters = filter !== "all" || sourceFilter !== "all" || !!search || !!dateFrom || !!dateTo;
 
+  const settlement = useMemo(
+    () => computeSettlement(
+      transactions,
+      payouts,
+      settlementCfg.platformFeePercent,
+      settlementCfg.minPayoutUsd,
+    ),
+    [transactions, payouts, settlementCfg],
+  );
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
 
@@ -418,18 +670,32 @@ export default function AdminFinancialsPage() {
         <ManualPaymentDrawer clients={clients} onClose={() => setShowDrawer(false)}
           onSave={tx => setTransactions(prev => [tx, ...prev])} />
       )}
+      {showPayoutDrawer && (
+        <RecordPayoutDrawer
+          suggestedAmount={settlement.outstanding}
+          feePercent={settlement.feePercent}
+          receiptEmail={settlementCfg.payoutReceiptEmail}
+          onClose={() => setShowPayoutDrawer(false)}
+          onSaved={p => setPayouts(prev => [p, ...prev])}
+        />
+      )}
 
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#1E3810" }}>Financials</h2>
-          <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>Platform revenue, transactions, and billing overview</p>
+          <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>Platform revenue, Valeo settlement, and billing overview</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => exportCSV(filtered)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border hover:-translate-y-0.5 transition-all"
             style={{ borderColor: "rgba(30,56,16,0.15)", color: "#1E3810", background: "white" }}>
             <Download size={14} /> Export CSV
+          </button>
+          <button onClick={() => setShowPayoutDrawer(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border hover:-translate-y-0.5 transition-all"
+            style={{ borderColor: "rgba(247,148,29,0.4)", color: "#C4700A", background: "rgba(247,148,29,0.08)" }}>
+            <Send size={14} /> Record Valeo payout
           </button>
           <button onClick={() => setShowDrawer(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white hover:-translate-y-0.5 transition-all"
@@ -463,6 +729,78 @@ export default function AdminFinancialsPage() {
             <p className="text-xs mt-1" style={{ color: "#C4C4C4" }}>{sub}</p>
           </div>
         ))}
+      </div>
+
+      {/* Valeo settlement */}
+      <div className="rounded-2xl p-5 space-y-4" style={{ background: "white", boxShadow: "0 1px 4px rgba(30,56,16,0.07)" }}>
+        <div className="flex items-start justify-between flex-wrap gap-3">
+          <div>
+            <p className="text-sm font-semibold" style={{ color: "#2A4A1A" }}>Valeo settlement</p>
+            <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>
+              Online completed payments only · NOVECH fee {settlement.feePercent}% · Min transfer {fmtFull(settlement.minPayoutUsd)}
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+            style={{
+              background: settlement.canPayout ? "rgba(141,198,63,0.12)" : "rgba(247,148,29,0.12)",
+              color: settlement.canPayout ? "#6BA028" : "#C4700A",
+            }}>
+            {settlement.canPayout ? "Ready to pay (≥ minimum)" : "Hold — under minimum or zero"}
+          </span>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          {[
+            { label: "Gross online", value: fmtFull(settlement.grossOnline) },
+            { label: "NOVECH fee", value: fmtFull(settlement.platformFee) },
+            { label: "Suggested Valeo", value: fmtFull(settlement.suggestedValeo) },
+            { label: "Paid out", value: fmtFull(settlement.totalPaidOut) },
+            { label: "Outstanding", value: fmtFull(settlement.outstanding) },
+          ].map(row => (
+            <div key={row.label} className="rounded-xl px-3 py-3" style={{ background: "rgba(42,74,26,0.04)" }}>
+              <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: "#8A9BA8" }}>{row.label}</p>
+              <p className="text-base font-bold" style={{ color: "#1E3810" }}>{row.value}</p>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs flex items-start gap-1.5" style={{ color: "#8A9BA8" }}>
+          <AlertCircle size={12} style={{ marginTop: 1, flexShrink: 0 }} />
+          Suggested share is gross × (1 − fee%). Stripe fees are Valeo&apos;s and already reduce what lands in Mercury — enter the real transfer amount when you record a payout.
+          {!settlementCfg.payoutReceiptEmail && " Set a receipt email in Platform Settings to email Valeo when you pay."}
+        </p>
+
+        {payouts.length > 0 && (
+          <div className="pt-2" style={{ borderTop: "1px solid rgba(30,56,16,0.06)" }}>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "#8A9BA8" }}>Payout history</p>
+            <div className="space-y-2">
+              {payouts.map(p => {
+                const d = p.createdAt?.toDate ? p.createdAt.toDate() : (p.createdAt ? new Date(p.createdAt) : null);
+                return (
+                  <div key={p.id} className="flex items-center justify-between gap-3 flex-wrap px-3 py-2.5 rounded-xl"
+                    style={{ background: "#FAFAFA" }}>
+                    <div>
+                      <p className="text-sm font-semibold" style={{ color: "#1E3810" }}>{fmtFull(p.amount)}
+                        <span className="font-normal text-xs ml-2" style={{ color: "#8A9BA8" }}>{p.periodLabel || "—"}</span>
+                      </p>
+                      <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>
+                        {d ? d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                        {p.reference ? ` · Ref ${p.reference}` : ""}
+                        {` · Fee snapshot ${p.feePercentApplied}%`}
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full"
+                      style={{
+                        background: p.receiptSent ? "rgba(141,198,63,0.12)" : "rgba(138,155,168,0.12)",
+                        color: p.receiptSent ? "#6BA028" : "#8A9BA8",
+                      }}>
+                      <Mail size={11} />
+                      {p.receiptSent ? "Receipt sent" : p.receiptSkipped ? "Receipt skipped (no Resend)" : p.receiptError ? "Receipt failed" : "No receipt"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Chart */}

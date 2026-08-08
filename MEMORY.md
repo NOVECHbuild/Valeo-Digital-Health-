@@ -38,3 +38,15 @@ _Update this when Benny shares a new fact, decision, blocker, or “do not chang
 ## Client notes
 - Client: Dr. Jozelle Miller. Domain registrar login is hers (GoDaddy).
 - Brand: forest / lime / orange. Admin: Eben (`ewilkins25@gmail.com`).
+- **Ownership:** Valeo Experience (brand, practice, clients) = Dr. Miller / **Valeo Experience Ltd.** (St. Vincent and the Grenadines). NOVECH = builder + payment facilitator.
+- **Contracting entity (NOVECH side):** **NOVECH LLC (Barbados)** — not Wyoming — for the Valeo deal.
+- Heads of terms (discussion draft, Word): `E:\NOVECH Projects\NOVECH Business Development\01_Company_Foundations\contracts\NOVECH_Valeo_Experience_Heads_of_Terms.docx` (HTML twin also available)
+- Letterhead (Word): `E:\NOVECH Projects\NOVECH Business Development\01_Company_Foundations\letterhead\NOVECH_LLC_Barbados_Letterhead.docx`
+
+## Commercial terms (locked with Benny 2026-08-07 — for contract; not yet in product payouts)
+- Model **A:** % of paid session gross (not flat SaaS).
+- **NOVECH fee: 10%** of paid session amount.
+- **Stripe processing fees:** borne by Valeo Experience Ltd.
+- **Settlement:** monthly from NOVECH Mercury → Valeo bank.
+- **Minimum transfer balance: $100 USD** — if owed balance is under $100, roll to next month.
+- Admin settlement UI shipped: Platform Settings (`platformFeePercent` default 10, `minPayoutUsd` 100, `payoutReceiptEmail`) + Financials settlement panel + `payouts` collection + receipt email `/api/email/payout-receipt`. Still **manual** Mercury transfer (no Stripe Connect auto-split).

@@ -5,14 +5,14 @@ import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import {
-  SlidersHorizontal, DollarSign, Percent, Coins,
+  SlidersHorizontal, DollarSign, Percent, Coins, Mail,
   Wrench, UserPlus, Check, Loader2, AlertCircle, CheckCircle, Info,
 } from "lucide-react";
 
 // ════════════════════════════════════════════════════════════════════════════
 //  PlatformSettings
 //  Admin-only platform-level configuration, stored in settings/platform.
-//  Pricing / fee / currency are available for the billing flow to consume.
+//  Pricing / fee / currency / settlement fields for billing + Valeo payouts.
 //  Maintenance mode + beta registration are stored now; enforcement wiring
 //  (middleware / register page) is a separate, flagged follow-up.
 // ════════════════════════════════════════════════════════════════════════════
@@ -20,6 +20,8 @@ import {
 interface PlatformConfig {
   defaultSessionPrice: number;
   platformFeePercent:  number;
+  minPayoutUsd:        number;
+  payoutReceiptEmail:  string;
   currency:            string;
   maintenanceMode:     boolean;
   betaRegistration:    boolean;
@@ -27,7 +29,9 @@ interface PlatformConfig {
 
 const DEFAULTS: PlatformConfig = {
   defaultSessionPrice: 75,
-  platformFeePercent:  0,
+  platformFeePercent:  10,
+  minPayoutUsd:        100,
+  payoutReceiptEmail:  "",
   currency:            "USD",
   maintenanceMode:     false,
   betaRegistration:    true,
@@ -72,6 +76,8 @@ export default function PlatformSettings() {
           ...cfg,
           defaultSessionPrice: Number(cfg.defaultSessionPrice) || 0,
           platformFeePercent:  Number(cfg.platformFeePercent)  || 0,
+          minPayoutUsd:        Number(cfg.minPayoutUsd)        || 0,
+          payoutReceiptEmail:  String(cfg.payoutReceiptEmail || "").trim(),
           updatedAt:           serverTimestamp(),
           updatedBy:           user?.displayName ?? user?.email ?? "Admin",
         },
@@ -139,18 +145,6 @@ export default function PlatformSettings() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#8A9BA8" }}>
-                    Platform Fee
-                  </label>
-                  <div className="relative">
-                    <Percent size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "#8A9BA8" }} />
-                    <input type="number" min={0} max={100} value={cfg.platformFeePercent}
-                      onChange={e => setCfg(c => ({ ...c, platformFeePercent: e.target.value === "" ? 0 : Number(e.target.value) }))}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none"
-                      style={{ background: "#F8F9FA", border: "1px solid rgba(42,74,26,0.1)", color: "#2A4A1A" }} />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#8A9BA8" }}>
                     Currency
                   </label>
                   <div className="relative">
@@ -165,9 +159,56 @@ export default function PlatformSettings() {
                 </div>
               </div>
 
+              <div style={{ borderTop: "1px solid rgba(42,74,26,0.06)" }} />
+
+              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#8A9BA8" }}>
+                Valeo settlement (NOVECH fee)
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#8A9BA8" }}>
+                    NOVECH platform fee (%)
+                  </label>
+                  <div className="relative">
+                    <Percent size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "#8A9BA8" }} />
+                    <input type="number" min={0} max={100} value={cfg.platformFeePercent}
+                      onChange={e => setCfg(c => ({ ...c, platformFeePercent: e.target.value === "" ? 0 : Number(e.target.value) }))}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none"
+                      style={{ background: "#F8F9FA", border: "1px solid rgba(42,74,26,0.1)", color: "#2A4A1A" }} />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#8A9BA8" }}>
+                    Minimum payout (USD)
+                  </label>
+                  <div className="relative">
+                    <DollarSign size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "#8A9BA8" }} />
+                    <input type="number" min={0} value={cfg.minPayoutUsd}
+                      onChange={e => setCfg(c => ({ ...c, minPayoutUsd: e.target.value === "" ? 0 : Number(e.target.value) }))}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none"
+                      style={{ background: "#F8F9FA", border: "1px solid rgba(42,74,26,0.1)", color: "#2A4A1A" }} />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#8A9BA8" }}>
+                  Valeo payout receipt email
+                </label>
+                <div className="relative">
+                  <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "#8A9BA8" }} />
+                  <input type="email" value={cfg.payoutReceiptEmail}
+                    onChange={e => setCfg(c => ({ ...c, payoutReceiptEmail: e.target.value }))}
+                    placeholder="e.g. jozellemiller@gmail.com"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none"
+                    style={{ background: "#F8F9FA", border: "1px solid rgba(42,74,26,0.1)", color: "#2A4A1A" }} />
+                </div>
+              </div>
+
               <p className="text-xs flex items-start gap-1.5" style={{ color: "#8A9BA8" }}>
                 <Info size={12} style={{ marginTop: "1px", flexShrink: 0 }} />
-                Pricing and fee are stored centrally for the billing flow. Live WiPay amounts remain controlled by the payment routes until the checkout is pointed at these values.
+                Fee % and minimum drive the Admin → Financials settlement panel. Receipt email is used when you record a Mercury payout to Valeo. Stripe is not auto-split yet — you transfer manually and log it.
               </p>
 
               <div style={{ borderTop: "1px solid rgba(42,74,26,0.06)" }} />
@@ -176,7 +217,7 @@ export default function PlatformSettings() {
               {([
                 { key: "maintenanceMode", icon: Wrench,   label: "Maintenance Mode",     sub: "Not enforced yet — saved for a future lock-out. Toggle has no effect on the live site today." },
                 { key: "betaRegistration", icon: UserPlus, label: "Beta Registration",   sub: "Not enforced yet — invite-only stays until public registration is wired to this flag." },
-              ] as { key: keyof PlatformConfig; icon: any; label: string; sub: string }[]).map(({ key, icon: Icon, label, sub }) => (
+              ] as { key: "maintenanceMode" | "betaRegistration"; icon: any; label: string; sub: string }[]).map(({ key, icon: Icon, label, sub }) => (
                 <div key={key} className="flex items-center justify-between gap-4">
                   <div className="flex items-start gap-3">
                     <Icon size={16} style={{ color: "#F7941D", marginTop: "2px" }} />
