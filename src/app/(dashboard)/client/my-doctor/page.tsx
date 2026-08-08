@@ -16,6 +16,7 @@ import {
   Heart, Award, ExternalLink, AlertTriangle, UserX,
 } from "lucide-react";
 import JoinSessionLink from "@/components/JoinSessionLink";
+import { JOIN_EARLY_MINUTES, useCanJoinSession } from "@/lib/joinWindow";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface Assignment {
@@ -36,6 +37,8 @@ interface UpcomingSession {
   date:      string;
   time:      string;
   type:      string;
+  duration?: number;
+  status?:   string;
   meetLink?: string;
 }
 
@@ -85,6 +88,7 @@ export default function MyDoctorPage() {
   const [assignment,    setAssignment]    = useState<Assignment | null>(null);
   const [doctor,        setDoctor]        = useState<DoctorProfile | null>(null);
   const [nextSession,   setNextSession]   = useState<UpcomingSession | null>(null); // S1
+  const canJoinNext = useCanJoinSession(nextSession);
   const [loading,       setLoading]       = useState(true);
   const [fetchError,    setFetchError]    = useState<string | null>(null);           // FIX 7
   const [doctorMissing, setDoctorMissing] = useState(false);                        // S3
@@ -159,6 +163,8 @@ export default function MyDoctorPage() {
                 date:     a.date,
                 time:     a.time,
                 type:     a.type,
+                duration: typeof a.duration === "number" ? a.duration : 60,
+                status:   a.status,
                 meetLink: a.meetLink,
               });
             }
@@ -315,7 +321,7 @@ export default function MyDoctorPage() {
                   {fmtSessionTime(nextSession.date, nextSession.time)}
                 </p>
               </div>
-              {nextSession.meetLink ? (
+              {nextSession.meetLink && canJoinNext ? (
                 <JoinSessionLink
                   href={nextSession.meetLink}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white flex-shrink-0 transition-all hover:-translate-y-0.5"
@@ -325,13 +331,20 @@ export default function MyDoctorPage() {
                   <ExternalLink size={14} /> Join Meet
                 </JoinSessionLink>
               ) : (
-                <Link
-                  href="/client/appointments"
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border flex-shrink-0"
-                  style={{ borderColor: "rgba(42,74,26,0.15)", color: "#2A4A1A" }}
-                >
-                  View Details
-                </Link>
+                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                  <Link
+                    href="/client/appointments"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border"
+                    style={{ borderColor: "rgba(42,74,26,0.15)", color: "#2A4A1A" }}
+                  >
+                    View Details
+                  </Link>
+                  {nextSession.meetLink && !canJoinNext && (
+                    <p className="text-[10px] text-right max-w-[140px]" style={{ color: "#8A9BA8" }}>
+                      Join opens {JOIN_EARLY_MINUTES} min before
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           )}

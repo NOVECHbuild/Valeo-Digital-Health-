@@ -9,6 +9,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { CheckCircle, Calendar, Video, ArrowRight, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import JoinSessionLink from '@/components/JoinSessionLink';
+import { JOIN_EARLY_MINUTES, useCanJoinSession } from '@/lib/joinWindow';
 
 // ── Shared loading card ───────────────────────────────────────────────────────
 function LoadingCard() {
@@ -31,10 +32,19 @@ function SuccessContent() {
 
   const [meetLink,    setMeetLink]    = useState<string | null>(null);
   const [sessionDate, setSessionDate] = useState<string>('');
+  const [sessionTime, setSessionTime] = useState<string>('');
+  const [sessionDuration, setSessionDuration] = useState<number>(60);
   const [sessionType, setSessionType] = useState<string>('Therapy Session');
   const [loading,     setLoading]     = useState(true);
   const [error,       setError]       = useState<string | null>(null);
   const [retryKey,    setRetryKey]    = useState(0);
+  const canJoin = useCanJoinSession({
+    date: sessionDate,
+    time: sessionTime,
+    duration: sessionDuration,
+    meetLink,
+    status: 'approved',
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -61,7 +71,10 @@ function SuccessContent() {
             const a = apptSnap.data();
             setMeetLink(a.meetLink ?? null);
             setSessionDate(a.date  ?? '');
+            setSessionTime(a.time ?? '');
+            setSessionDuration(typeof a.duration === 'number' ? a.duration : 60);
             if (a.sessionType) setSessionType(a.sessionType);
+            else if (a.type) setSessionType(a.type);
           }
         }
       } catch (err) {
@@ -142,8 +155,8 @@ function SuccessContent() {
           {sessionDate && ` We'll see you on ${fmtDate(sessionDate)}.`}
         </p>
 
-        {/* Meet link if already generated */}
-        {meetLink && (
+        {/* Meet link — only in the pre-session join window */}
+        {meetLink && canJoin && (
           <JoinSessionLink
             href={meetLink}
             className="flex items-center justify-center gap-2 w-full py-3 min-h-[48px] rounded-2xl text-sm font-semibold text-white mb-3 transition-all hover:-translate-y-0.5"
@@ -151,6 +164,11 @@ function SuccessContent() {
           >
             <Video size={15} /> Join Session
           </JoinSessionLink>
+        )}
+        {meetLink && !canJoin && (
+          <p className="text-xs mb-4" style={{ color: '#8A9BA8' }}>
+            Join Session opens {JOIN_EARLY_MINUTES} minutes before your appointment.
+          </p>
         )}
 
         {/* View appointments */}

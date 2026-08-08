@@ -18,6 +18,7 @@ import JoinSessionLink from "@/components/JoinSessionLink";
 import { useUnreadCount } from "@/lib/useMessages";
 import { isConsentCurrent } from "@/lib/consent";
 import { useAssignedDoctor } from "@/hooks/useAssignedDoctor";
+import { JOIN_EARLY_MINUTES, useCanJoinSession } from "@/lib/joinWindow";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 interface ActivityItem {
@@ -33,6 +34,8 @@ interface UpcomingSession {
   date:     string;
   time:     string;
   type:     string;
+  duration?: number;
+  status?:  string;
   meetLink?: string;
 }
 
@@ -146,6 +149,7 @@ export default function ClientDashboard() {
   const [pendingAssess,   setPendingAssess]   = useState(0);
   const [activity,        setActivity]        = useState<ActivityItem[]>([]);
   const [nextSession,     setNextSession]     = useState<UpcomingSession | null>(null);
+  const canJoinNext = useCanJoinSession(nextSession);
   const [needsConsent,    setNeedsConsent]    = useState(false);
 
   const firstName = (profileName ?? user?.displayName)?.split(" ")[0] ?? "there";
@@ -260,6 +264,8 @@ export default function ClientDashboard() {
             date: next.date,
             time: next.time,
             type: next.type,
+            duration: typeof next.duration === "number" ? next.duration : 60,
+            status: next.status,
             meetLink: next.meetLink,
           });
         } else {
@@ -367,7 +373,7 @@ export default function ClientDashboard() {
                 <Calendar size={12} />
                 {fmtNextSession()}
               </div>
-              {nextSession.meetLink && (
+              {nextSession.meetLink && canJoinNext && (
                 <JoinSessionLink
                   href={nextSession.meetLink}
                   className="inline-flex items-center gap-2 mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
@@ -375,6 +381,11 @@ export default function ClientDashboard() {
                 >
                   <Video size={15} /> Join Session
                 </JoinSessionLink>
+              )}
+              {nextSession.meetLink && !canJoinNext && (
+                <p className="text-xs mt-3" style={{ color: "rgba(255,255,255,0.55)" }}>
+                  Join opens {JOIN_EARLY_MINUTES} minutes before your session.
+                </p>
               )}
             </div>
           ) : (
@@ -567,7 +578,7 @@ export default function ClientDashboard() {
               {fmtNextSession()}
             </p>
           </div>
-          {nextSession.meetLink ? (
+          {nextSession.meetLink && canJoinNext ? (
             <JoinSessionLink
               href={nextSession.meetLink}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white"

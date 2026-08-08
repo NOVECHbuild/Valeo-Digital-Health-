@@ -41,6 +41,7 @@ import {
 } from "@/lib/series";
 import { isConsentCurrent } from "@/lib/consent";
 import JoinSessionLink from "@/components/JoinSessionLink";
+import { JOIN_EARLY_MINUTES, useCanJoinSession } from "@/lib/joinWindow";
 import {
   Calendar, Clock, Plus, X, CheckCircle, AlertCircle,
   XCircle, Loader2, ChevronLeft, ChevronRight, Video,
@@ -210,8 +211,10 @@ function AppointmentCard({
 }) {
   const canCancel  = ["pending","approved"].includes(appt.status);
   const meetLink   = (appt as any).meetLink as string | undefined;
-  // Join whenever a Meet link exists (paid bookings auto-approve + create link)
-  const showJoin   = Boolean(meetLink) && ["approved", "pending"].includes(appt.status);
+  const hasMeet    = Boolean(meetLink) && ["approved", "pending"].includes(appt.status);
+  // Clients may join only in the pre-session window (not days early).
+  const showJoin   = useCanJoinSession(appt) && hasMeet;
+  const joinTooEarly = hasMeet && !showJoin;
   const needsPay   = appt.status === "pending" && resolvePaymentStatus(appt) === "unpaid";
   const awaitingConfirm = appt.status === "pending" && !meetLink && !needsPay;
   const awaitingLink    = appt.status === "approved" && !meetLink;
@@ -223,11 +226,11 @@ function AppointmentCard({
       <div className="flex items-start gap-4">
         {/* Date badge */}
         <div className="w-12 h-12 rounded-xl flex flex-col items-center justify-center flex-shrink-0"
-          style={{ background: showJoin ? "rgba(141,198,63,0.12)" : "rgba(42,74,26,0.06)" }}>
-          <span className="text-xs font-bold" style={{ color: showJoin ? "#6BA028" : "#2A4A1A" }}>
+          style={{ background: (showJoin || hasMeet) ? "rgba(141,198,63,0.12)" : "rgba(42,74,26,0.06)" }}>
+          <span className="text-xs font-bold" style={{ color: (showJoin || hasMeet) ? "#6BA028" : "#2A4A1A" }}>
             {new Date(appt.date + "T12:00:00").toLocaleDateString("en-US", { month: "short" })}
           </span>
-          <span className="text-lg font-bold leading-none" style={{ color: showJoin ? "#6BA028" : "#2A4A1A" }}>
+          <span className="text-lg font-bold leading-none" style={{ color: (showJoin || hasMeet) ? "#6BA028" : "#2A4A1A" }}>
             {new Date(appt.date + "T12:00:00").getDate()}
           </span>
         </div>
@@ -273,6 +276,11 @@ function AppointmentCard({
           {awaitingLink && (
             <p className="text-xs mt-2" style={{ color: "#F7941D" }}>
               Session confirmed — video link is being prepared. Refresh in a moment, or message your therapist.
+            </p>
+          )}
+          {joinTooEarly && (
+            <p className="text-xs mt-2" style={{ color: "#8A9BA8" }}>
+              Join Session opens {JOIN_EARLY_MINUTES} minutes before your appointment.
             </p>
           )}
         </div>
