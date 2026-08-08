@@ -1,6 +1,6 @@
 {
   "crons": [
     { "path": "/api/cron/reminders", "schedule": "0 13 * * *" },
-    { "path": "/api/cron/expire-holds", "schedule": "*/15 * * * *" }
+    { "path": "/api/cron/expire-holds", "schedule": "15 13 * * *" }
   ]
 }
