@@ -17,7 +17,9 @@ import {
 import {
   PAYMENT_BADGE,
   resolvePaymentStatus,
-  PAYMENT_HOLD_MINUTES,
+  isDoctorApproved,
+  REVIEW_HOLD_HOURS,
+  PAYMENT_HOLD_HOURS,
 } from "@/lib/paymentStatus";
 import {
   collection, query, where, getDocs, getDoc, onSnapshot,
@@ -153,10 +155,11 @@ function ConfirmDialog({
 }
 
 // ── Status badge ───────────────────────────────────────────────────────────
-function StatusBadge({ status, cancelledReason, paymentStatus }: {
+function StatusBadge({ status, cancelledReason, paymentStatus, doctorApproved }: {
   status: Appointment["status"];
   cancelledReason?: string;
   paymentStatus?: Appointment["paymentStatus"];
+  doctorApproved?: boolean;
 }) {
   const styles: Record<string, { bg: string; color: string; label: string; Icon: any }> = {
     pending:   { bg: "rgba(247,148,29,0.12)",  color: "#C4700A", label: "Pending Review", Icon: Clock },
@@ -167,12 +170,14 @@ function StatusBadge({ status, cancelledReason, paymentStatus }: {
     payment_failed: { bg: "rgba(247,148,29,0.12)", color: "#C4700A", label: "Payment failed", Icon: XCircle },
   };
   let s = styles[status] ?? styles.pending;
-  if (status === "pending" && paymentStatus === "unpaid") {
+  if (status === "pending" && paymentStatus === "unpaid" && doctorApproved) {
     s = { bg: "rgba(247,148,29,0.12)", color: "#C4700A", label: "Awaiting payment", Icon: Clock };
+  } else if (status === "pending" && paymentStatus === "unpaid" && !doctorApproved) {
+    s = { bg: "rgba(247,148,29,0.12)", color: "#C4700A", label: "Awaiting approval", Icon: Clock };
   }
   if (status === "cancelled" && cancelledReason === "no_show") {
     s = { bg: "rgba(247,148,29,0.12)", color: "#C4700A", label: "No-show", Icon: Ban };
-  } else if (status === "cancelled" && cancelledReason === "payment_expired") {
+  } else if (status === "cancelled" && (cancelledReason === "payment_expired" || cancelledReason === "review_expired")) {
     s = { bg: "rgba(138,155,168,0.12)", color: "#8A9BA8", label: "Hold expired", Icon: XCircle };
   } else if (status === "cancelled" && cancelledReason === "payment_failed") {
     s = { bg: "rgba(247,148,29,0.12)", color: "#C4700A", label: "Payment failed", Icon: XCircle };
@@ -188,6 +193,8 @@ function StatusBadge({ status, cancelledReason, paymentStatus }: {
 function PaymentBadge({ appt }: { appt: Appointment }) {
   const ps = resolvePaymentStatus(appt);
   if (ps === "unknown") return null;
+  // Don't show "Pay to confirm" until the therapist has accepted the time
+  if (ps === "unpaid" && !isDoctorApproved(appt)) return null;
   const b = PAYMENT_BADGE[ps];
   return (
     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
@@ -210,13 +217,13 @@ function AppointmentCard({
 }) {
   const canCancel  = ["pending","approved"].includes(appt.status);
   const meetLink   = (appt as any).meetLink as string | undefined;
-  const hasMeet    = Boolean(meetLink) && ["approved", "pending"].includes(appt.status);
+  const hasMeet    = Boolean(meetLink) && appt.status === "approved";
   // Clients may join in the session window (not days early / long after).
   const joinPhase  = useJoinPhase(appt);
   const showJoin   = useCanJoinSession(appt) && hasMeet;
   const joinHint   = hasMeet && !showJoin ? joinPhaseMessage(joinPhase) : null;
-  const needsPay   = appt.status === "pending" && resolvePaymentStatus(appt) === "unpaid";
-  const awaitingConfirm = appt.status === "pending" && !meetLink && !needsPay;
+  const needsPay   = appt.status === "pending" && resolvePaymentStatus(appt) === "unpaid" && isDoctorApproved(appt);
+  const awaitingTherapist = appt.status === "pending" && resolvePaymentStatus(appt) === "unpaid" && !isDoctorApproved(appt);
   const awaitingLink    = appt.status === "approved" && !meetLink;
   const paying = payingId === appt.id;
 
@@ -240,7 +247,12 @@ function AppointmentCard({
           <div className="flex items-start justify-between gap-2 mb-1">
             <p className="font-semibold text-sm" style={{ color: "#2A4A1A" }}>{appt.type}</p>
             <div className="flex flex-col items-end gap-1">
-              <StatusBadge status={appt.status} cancelledReason={appt.cancelledReason} paymentStatus={appt.paymentStatus} />
+              <StatusBadge
+                status={appt.status}
+                cancelledReason={appt.cancelledReason}
+                paymentStatus={appt.paymentStatus}
+                doctorApproved={isDoctorApproved(appt)}
+              />
               <PaymentBadge appt={appt} />
             </div>
           </div>
@@ -265,12 +277,14 @@ function AppointmentCard({
           )}
           {needsPay && (
             <p className="text-xs mt-2" style={{ color: "#C4700A" }}>
-              Pay in full to confirm this session. Unpaid holds expire after {PAYMENT_HOLD_MINUTES} minutes.
+              {appt.initiatedBy === "doctor"
+                ? `Your therapist scheduled this session. Pay within ${PAYMENT_HOLD_HOURS} hours (and before it starts) to confirm — then you can join.`
+                : `Your therapist approved this time. Pay within ${PAYMENT_HOLD_HOURS} hours (and before the session) to confirm.`}
             </p>
           )}
-          {awaitingConfirm && (
+          {awaitingTherapist && (
             <p className="text-xs mt-2" style={{ color: "#F7941D" }}>
-              Awaiting therapist confirmation. Your Join link appears once the session is approved.
+              Awaiting therapist approval (within {REVIEW_HOLD_HOURS} hours). You&apos;ll pay after they accept this time.
             </p>
           )}
           {awaitingLink && (
@@ -353,9 +367,9 @@ function MiniCalendar({ selected, onSelect, schedule }: {
 
   const hint = schedule
     ? (Number(schedule.maxAdvanceDays) > 0
-      ? `Based on your therapist's schedule · up to ${schedule.maxAdvanceDays} days ahead`
-      : "Based on your therapist's schedule")
-    : "Mon – Fri · schedule not set yet";
+      ? `Tomorrow onward · up to ${schedule.maxAdvanceDays} days ahead`
+      : "Tomorrow onward · based on your therapist's schedule")
+    : "Tomorrow onward · Mon–Fri if schedule not set";
 
   return (
     <div className="rounded-2xl p-4"
@@ -784,42 +798,19 @@ function ClientAppointmentsPageInner() {
         if (i === 0) appointmentId = id;
       }
 
-      // Pay-in-full (or free confirm) via initiate — slot stays held until success.
-      setStep(4);
-      setSubmitting(false);
-      setRedirecting(true);
-
-      const res  = await authedFetch("/api/payments/initiate", {
+      // Notify doctor — payment happens only after they approve the time.
+      authedFetch("/api/email/appointment", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({
-          appointmentId,
-          clientId:    user.uid,
-          clientName:  user.displayName ?? "Client",
-          clientEmail: user.email ?? "",
-          sessionType: selectedService?.name ?? selectedType,
-        }),
+        body:    JSON.stringify({ appointmentId, event: "requested" }),
+      }).catch(() => {});
+
+      setStep(4);
+      setSubmitting(false);
+      setToast({
+        type: "success",
+        msg: "Request sent. Your therapist has 12 hours to approve — then you'll pay to confirm.",
       });
-      const data = await res.json();
-
-      if (!res.ok || data.error) {
-        setError(data.error ?? "Could not initiate payment. Please try again.");
-        setRedirecting(false);
-        return;
-      }
-
-      if (data.free && data.redirect) {
-        window.location.href = data.redirect;
-        return;
-      }
-
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl as string;
-        return;
-      }
-
-      setError("Could not initiate payment. Please try again.");
-      setRedirecting(false);
 
     } catch (err) {
       console.error("Booking error:", err);
@@ -965,7 +956,7 @@ function ClientAppointmentsPageInner() {
               style={{ borderColor: "rgba(42,74,26,0.08)" }}>
               <div>
                 <h3 className="text-xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
-                  {step === 4 ? "Processing Payment…" : "Book a Session"}
+                  {step === 4 ? "Request sent" : "Book a Session"}
                 </h3>
                 {step !== 4 && (
                   <div className="flex items-center gap-2 mt-2">
@@ -999,32 +990,28 @@ function ClientAppointmentsPageInner() {
 
             <div className="p-6">
 
-              {/* Step 4 — Payment redirect */}
+              {/* Step 4 — Request submitted (awaiting therapist) */}
               {step === 4 && (
                 <div className="text-center py-10">
                   <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-                    style={{ background: "rgba(42,74,26,0.06)" }}>
-                    {redirecting
-                      ? <Loader2 size={28} className="animate-spin" style={{ color: "#2A4A1A" }} />
-                      : <CreditCard size={28} style={{ color: "#2A4A1A" }} />}
+                    style={{ background: "rgba(141,198,63,0.12)" }}>
+                    <CheckCircle size={28} style={{ color: "#6BA028" }} />
                   </div>
                   <h4 className="text-xl mb-2" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
-                    {redirecting ? "Redirecting to payment…" : "Ready to pay"}
+                    Request sent
                   </h4>
-                  <p className="text-sm mb-1" style={{ color: "#4A5568" }}>
-                    You will be securely redirected to Stripe to complete payment of{" "}
-                    <strong>USD ${selectedPrice}</strong>.
+                  <p className="text-sm mb-2 px-2" style={{ color: "#4A5568" }}>
+                    {doctorName} has <strong>{REVIEW_HOLD_HOURS} hours</strong> to approve this time.
+                    After they approve, you&apos;ll pay to confirm (within {PAYMENT_HOLD_HOURS} hours, before the session).
                   </p>
-                  <p className="text-xs flex items-center justify-center gap-1 mt-4"
-                    style={{ color: "#8A9BA8" }}>
-                    <Lock size={11} /> Secured by Stripe · SSL encrypted
-                  </p>
-                  {error && (
-                    <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm mt-4"
-                      style={{ background: "rgba(247,148,29,0.08)", color: "#F7941D" }}>
-                      <AlertCircle size={15} />{error}
-                    </div>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => { resetBooking(); }}
+                    className="mt-6 px-6 py-3 rounded-xl text-sm font-semibold text-white"
+                    style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
+                  >
+                    Done
+                  </button>
                 </div>
               )}
 
@@ -1206,9 +1193,7 @@ function ClientAppointmentsPageInner() {
                     {/* FIX 4: USD currency — pay first session only when series */}
                     <div className="flex items-center justify-between pt-2">
                       <span className="text-sm font-bold" style={{ color: "#2A4A1A" }}>
-                        {repeatWeekly && selectedService && selectedService.price > 0
-                          ? "Pay now (1st session)"
-                          : "Total"}
+                        Session fee
                       </span>
                       <span className="text-lg font-bold" style={{ color: "#2A4A1A" }}>
                         {selectedService?.price === 0 ? "Free" : `USD $${selectedService?.price}`}
@@ -1258,31 +1243,16 @@ function ClientAppointmentsPageInner() {
                     className="w-full px-4 py-3 rounded-xl text-sm border resize-none focus:outline-none"
                     style={{ borderColor: "rgba(42,74,26,0.15)", background: "white" }} />
 
-                  {/* FIX 3 + 4: Payment notice only shown for paid sessions */}
-                  {selectedService && selectedService.price > 0 && (
-                    <div className="flex items-start gap-3 p-4 rounded-xl"
-                      style={{ background: "rgba(141,198,63,0.06)", border: "1px solid rgba(141,198,63,0.2)" }}>
-                      <Lock size={14} className="flex-shrink-0 mt-0.5" style={{ color: "#8DC63F" }} />
-                      <p className="text-xs" style={{ color: "#4A5568" }}>
-                        You will be redirected to <strong>Stripe</strong> to securely complete payment of{" "}
-                        <strong>USD ${selectedService.price}</strong>
-                        {repeatWeekly
-                          ? " for the first session. Later sessions in the series are requested without payment for now."
-                          : ". Your session will be confirmed upon payment."}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Free session info box */}
-                  {selectedService?.price === 0 && (
-                    <div className="flex items-start gap-3 p-4 rounded-xl"
-                      style={{ background: "rgba(141,198,63,0.06)", border: "1px solid rgba(141,198,63,0.2)" }}>
-                      <CheckCircle size={14} className="flex-shrink-0 mt-0.5" style={{ color: "#8DC63F" }} />
-                      <p className="text-xs" style={{ color: "#4A5568" }}>
-                        No payment required. {doctorName} will review and confirm your free consultation shortly.
-                      </p>
-                    </div>
-                  )}
+                  <div className="flex items-start gap-3 p-4 rounded-xl"
+                    style={{ background: "rgba(141,198,63,0.06)", border: "1px solid rgba(141,198,63,0.2)" }}>
+                    <Clock size={14} className="flex-shrink-0 mt-0.5" style={{ color: "#8DC63F" }} />
+                    <p className="text-xs" style={{ color: "#4A5568" }}>
+                      {doctorName} will review this request within <strong>{REVIEW_HOLD_HOURS} hours</strong>.
+                      {selectedService && selectedService.price > 0
+                        ? ` After approval, you'll pay USD $${selectedService.price} to confirm (within ${PAYMENT_HOLD_HOURS} hours, before the session).`
+                        : " Free sessions are confirmed when they approve — no payment needed."}
+                    </p>
+                  </div>
 
                   {error && (
                     <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm"
@@ -1307,10 +1277,8 @@ function ClientAppointmentsPageInner() {
                       className="flex-1 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-60 flex items-center justify-center gap-2"
                       style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
                       {submitting
-                        ? <><Loader2 size={15} className="animate-spin" /> Processing…</>
-                        : selectedService?.price === 0
-                          ? <><CheckCircle size={15} /> Confirm Booking</>
-                          : <><CreditCard size={15} /> Pay USD ${selectedService?.price}</>}
+                        ? <><Loader2 size={15} className="animate-spin" /> Sending request…</>
+                        : <><CheckCircle size={15} /> Request session</>}
                     </button>
                   </div>
                 </div>

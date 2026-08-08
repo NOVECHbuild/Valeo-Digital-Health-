@@ -112,6 +112,84 @@ export async function notifySessionConfirmed(appointmentId: string): Promise<voi
   }
 }
 
+/** Ask the client to pay after doctor approved the time (or doctor booked for them). */
+export async function sendAwaitingPaymentEmails(
+  appointmentId: string,
+  opts?: { doctorInitiated?: boolean },
+): Promise<void> {
+  const snap = await adminDb.collection("appointments").doc(appointmentId).get();
+  if (!snap.exists) return;
+  const appt = snap.data()!;
+  const party = await loadParty(appt);
+  const when = `${prettyDate(appt.date)} at ${appt.time}`;
+  const sessionLabel = appt.type || "Therapy session";
+  const amount =
+    typeof appt.amount === "number" ? `$${Number(appt.amount).toFixed(0)}` : "the session fee";
+  const doctorInitiated =
+    opts?.doctorInitiated === true ||
+    appt.initiatedBy === "doctor" ||
+    appt.urgent === true;
+
+  if (party.clientEmail && prefAllows(party.client.notifPrefs, "emailAppointments")) {
+    await sendEmail({
+      to: party.clientEmail,
+      subject: doctorInitiated
+        ? "Session scheduled — pay to confirm"
+        : "Time approved — pay to confirm your session",
+      html: renderEmail({
+        heading: "Pay to confirm",
+        greeting: `Hi ${party.clientFirst},`,
+        paragraphs: doctorInitiated
+          ? [
+              `${esc(party.doctorName)} has scheduled a session for you.`,
+              `Please pay ${esc(amount)} to confirm. Payment must be completed within 24 hours, and before your session starts, or the slot may be released.`,
+            ]
+          : [
+              `Good news — ${esc(party.doctorName)} has approved your requested time.`,
+              `Please pay ${esc(amount)} to confirm your session. Payment must be completed within 24 hours, and before your session starts, or the slot may be released.`,
+            ],
+        details: [
+          { label: "Session", value: sessionLabel },
+          { label: "When", value: when },
+          { label: "With", value: party.doctorName },
+        ],
+        cta: { label: "Pay & confirm", url: `${APP_URL}/client/appointments` },
+      }),
+    });
+  }
+
+  if (party.doctorEmail) {
+    await sendEmail({
+      to: party.doctorEmail,
+      subject: `Awaiting payment — ${party.clientName}`,
+      html: renderEmail({
+        heading: "Waiting for client payment",
+        greeting: `Hi ${(party.doctor.displayName || "Doctor").replace(/^Dr\.?\s*/i, "").split(" ")[0] || "Doctor"},`,
+        paragraphs: [
+          doctorInitiated
+            ? `You scheduled a session for ${esc(party.clientName)}. We'll confirm once they complete payment.`
+            : `You approved ${esc(party.clientName)}'s session time. We'll confirm the booking once they complete payment.`,
+        ],
+        details: [
+          { label: "Client", value: party.clientName },
+          { label: "Session", value: sessionLabel },
+          { label: "When", value: when },
+        ],
+        cta: { label: "Open schedule", url: `${APP_URL}/doctor/schedule` },
+      }),
+    });
+  }
+
+  if (appt.clientId) {
+    await sendPushToUser(appt.clientId, {
+      title: doctorInitiated ? "Session scheduled — pay to confirm" : "Time approved — pay to confirm",
+      body: `Pay to confirm your session on ${appt.date} at ${appt.time}.`,
+      url: `${APP_URL}/client/appointments`,
+      prefKey: "pushAppointments",
+    });
+  }
+}
+
 type ReminderKind = "tomorrow" | "today";
 
 /**

@@ -130,7 +130,10 @@ export function isDateBookable(
 
   const start = today ? new Date(today) : new Date();
   start.setHours(0, 0, 0, 0);
-  if (d < start) return false;
+  // No same-day booking — earliest selectable day is tomorrow.
+  const tomorrow = new Date(start);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  if (d < tomorrow) return false;
 
   if (!schedule || !isUsableSchedule(schedule)) {
     const day = d.getDay();

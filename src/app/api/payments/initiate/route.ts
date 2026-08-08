@@ -5,7 +5,12 @@ import { requireAuth } from "@/lib/requireAuth";
 import { dollarsToCents, getStripe } from "@/lib/stripe";
 import { notifySessionConfirmed } from "@/lib/sessionEmails";
 import { expireUnpaidPaymentHolds } from "@/lib/expirePaymentHolds";
-import { holdExpiresAt, PAYMENT_HOLD_MINUTES } from "@/lib/paymentStatus";
+import {
+  isDoctorApproved,
+  paymentHoldExpiresAt,
+  PAYMENT_HOLD_HOURS,
+} from "@/lib/paymentStatus";
+import { sessionStartAt } from "@/lib/sessionTime";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.valeoexperience.com";
 
@@ -76,6 +81,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    if (!isDoctorApproved(ownerAppt) && gate.role !== "admin") {
+      return NextResponse.json({
+        error: "Your therapist must approve this time before you can pay.",
+      }, { status: 409 });
+    }
+
     let sched: DocumentData | undefined;
     try {
       const doctorId = ownerAppt.doctorId as string | undefined;
@@ -101,8 +112,11 @@ export async function POST(req: NextRequest) {
         .get();
       const pending = seriesSnap.docs
         .filter(d => {
-          const s = d.data().status;
-          return s === "pending" || s === "payment_failed";
+          const data = d.data();
+          const s = data.status;
+          if (!(s === "pending" || s === "payment_failed")) return false;
+          // Only charge occurrences the doctor has already accepted
+          return isDoctorApproved(data) || d.id === appointmentId;
         })
         .map(d => ({ id: d.id, ref: d.ref, data: d.data() }));
       if (pending.length > 0) targets = pending;
@@ -117,7 +131,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const newExpiry = holdExpiresAt();
+    // Keep existing pay deadline from doctor approval when still valid
+    const existingExp = ownerAppt.paymentHoldExpiresAt as string | undefined;
+    const start = sessionStartAt(String(ownerAppt.date || ""), String(ownerAppt.time || ""));
+    const newExpiry =
+      existingExp && !Number.isNaN(Date.parse(existingExp)) && Date.parse(existingExp) > Date.now()
+        ? existingExp
+        : paymentHoldExpiresAt(new Date(), start);
+
     const batchHold = adminDb.batch();
     for (const t of targets) {
       const unit = priceForSession(
@@ -186,7 +207,9 @@ export async function POST(req: NextRequest) {
     });
 
     const stripe = getStripe();
-    const expiresAt = Math.floor(Date.now() / 1000) + PAYMENT_HOLD_MINUTES * 60;
+    // Stripe requires checkout expiry between 30 minutes and 24 hours from now
+    const holdSec = Math.max(0, Math.floor((Date.parse(newExpiry) - Date.now()) / 1000));
+    const expiresAt = Math.floor(Date.now() / 1000) + Math.min(24 * 3600, Math.max(30 * 60, holdSec || 30 * 60));
     const sessionCount = targets.length;
     const session = await stripe.checkout.sessions.create(
       {
@@ -249,7 +272,7 @@ export async function POST(req: NextRequest) {
       checkoutUrl: session.url,
       paymentId:   paymentRef.id,
       sessionId:   session.id,
-      holdMinutes: PAYMENT_HOLD_MINUTES,
+      holdHours: PAYMENT_HOLD_HOURS,
     });
   } catch (err) {
     console.error("[Initiate] Exception:", err);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, getDocs, setDoc, serverTimestamp, collection, query, where, onSnapshot } from "firebase/firestore";
 import Link from "next/link";
 import { db, auth } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -11,8 +11,8 @@ import {
   sortAppointmentsBySession,
   type Appointment,
 } from "@/hooks/useAppointments";
-import { type Service, servicesForEditing } from "@/lib/availability";
-import { PAYMENT_BADGE, resolvePaymentStatus } from "@/lib/paymentStatus";
+import { type Service, servicesForEditing, bookableServices } from "@/lib/availability";
+import { isDoctorApproved, PAYMENT_BADGE, resolvePaymentStatus } from "@/lib/paymentStatus";
 import { authedFetch } from "@/lib/authedFetch";
 import JoinSessionLink from "@/components/JoinSessionLink";
 import {
@@ -20,6 +20,7 @@ import {
   FileText, Filter, Save, AlertCircle, Plus, X, Info,
   ToggleLeft, ToggleRight, Trash2, ChevronDown, Lock,
   ChevronLeft, ChevronRight, Link2, ExternalLink, RefreshCw, Video,
+  Zap,
 } from "lucide-react";
 
 // ══════════════════════════════════════════════════════════════
@@ -140,12 +141,14 @@ function StatusBadge({ status, cancelledReason, paymentStatus }: {
     payment_failed: { bg:"rgba(247,148,29,0.12)", color:"#C4700A", label:"Payment failed" },
   };
   let s = styles[status] ?? styles.pending;
-  if (status === "pending" && paymentStatus === "unpaid") {
-    s = { bg: "rgba(247,148,29,0.12)", color: "#C4700A", label: "Awaiting payment" };
-  } else if (status === "cancelled" && cancelledReason === "no_show") {
+  if (status === "cancelled" && cancelledReason === "no_show") {
     s = { bg: "rgba(247,148,29,0.12)", color: "#C4700A", label: "No-show" };
-  } else if (status === "cancelled" && (cancelledReason === "payment_expired" || cancelledReason === "payment_failed")) {
-    s = { bg: "rgba(138,155,168,0.12)", color: "#8A9BA8", label: cancelledReason === "payment_expired" ? "Hold expired" : "Payment failed" };
+  } else if (status === "cancelled" && (cancelledReason === "payment_expired" || cancelledReason === "review_expired" || cancelledReason === "payment_failed")) {
+    s = {
+      bg: "rgba(138,155,168,0.12)",
+      color: "#8A9BA8",
+      label: cancelledReason === "payment_failed" ? "Payment failed" : "Hold expired",
+    };
   }
   return (
     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
@@ -156,6 +159,7 @@ function StatusBadge({ status, cancelledReason, paymentStatus }: {
 function PaymentBadge({ appt }: { appt: Appointment }) {
   const ps = resolvePaymentStatus(appt);
   if (ps === "unknown") return null;
+  if (ps === "unpaid" && !isDoctorApproved(appt)) return null;
   const b = PAYMENT_BADGE[ps];
   return (
     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
@@ -249,7 +253,14 @@ function AppointmentCard({ appt, onApprove, onReject, onCreateMeet, loading, has
 }) {
   const isActing = loading === appt.id;
   const meetLink = (appt as any).meetLink as string | undefined;
-  const awaitingPayment = appt.status === "pending" && resolvePaymentStatus(appt) === "unpaid";
+  const awaitingClientPay =
+    appt.status === "pending" &&
+    resolvePaymentStatus(appt) === "unpaid" &&
+    isDoctorApproved(appt);
+  const needsDoctorReview =
+    appt.status === "pending" &&
+    resolvePaymentStatus(appt) === "unpaid" &&
+    !isDoctorApproved(appt);
   return (
     <div className="rounded-2xl p-5" style={{ background:"white", boxShadow:"0 1px 4px rgba(30,56,16,0.07)" }}>
       <div className="flex items-start justify-between gap-3 mb-4">
@@ -271,6 +282,16 @@ function AppointmentCard({ appt, onApprove, onReject, onCreateMeet, loading, has
         </div>
         <div className="flex flex-col items-end gap-1">
           <StatusBadge status={appt.status} cancelledReason={(appt as any).cancelledReason} paymentStatus={appt.paymentStatus}/>
+          {needsDoctorReview && (
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
+              style={{ background:"rgba(247,148,29,0.12)", color:"#C4700A" }}>Needs approval</span>
+          )}
+          {awaitingClientPay && (
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
+              style={{ background:"rgba(247,148,29,0.12)", color:"#C4700A" }}>
+              {appt.initiatedBy === "doctor" ? "Urgent · awaiting payment" : "Awaiting payment"}
+            </span>
+          )}
           <PaymentBadge appt={appt}/>
         </div>
       </div>
@@ -294,7 +315,7 @@ function AppointmentCard({ appt, onApprove, onReject, onCreateMeet, loading, has
           <p className="text-xs italic" style={{ color:"#4A5568" }}>{appt.notes}</p>
         </div>
       )}
-      {meetLink ? (
+      {meetLink && appt.status === "approved" ? (
         <JoinSessionLink
           href={meetLink}
           className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium mb-4 transition-opacity hover:opacity-80"
@@ -310,22 +331,27 @@ function AppointmentCard({ appt, onApprove, onReject, onCreateMeet, loading, has
           Create Meet link for client
         </button>
       ) : null}
-      {awaitingPayment && (
+      {needsDoctorReview && (
         <p className="text-xs mb-3 rounded-xl px-3 py-2" style={{ background:"rgba(247,148,29,0.1)", color:"#C4700A" }}>
-          Client is completing payment. Slot is held temporarily — no action needed unless you want to reject the hold.
+          New request — approve within 12 hours to hold this slot, then the client will pay to confirm.
+        </p>
+      )}
+      {awaitingClientPay && (
+        <p className="text-xs mb-3 rounded-xl px-3 py-2" style={{ background:"rgba(247,148,29,0.1)", color:"#C4700A" }}>
+          You approved this time. Waiting for the client to pay (within 24 hours, before the session). You can still reject to release the slot.
         </p>
       )}
       {appt.status === "pending" && (
         <div className="flex gap-2">
-          {!awaitingPayment && (
+          {needsDoctorReview && (
             <button onClick={() => onApprove(appt.id)} disabled={!!isActing}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
               style={{ background:"linear-gradient(135deg,#1E3810,#3D6B24)" }}>
-              {isActing ? <Loader2 size={14} className="animate-spin"/> : <CheckCircle size={14}/>} Approve
+              {isActing ? <Loader2 size={14} className="animate-spin"/> : <CheckCircle size={14}/>} Approve time
             </button>
           )}
           <button onClick={() => onReject(appt.id)} disabled={!!isActing}
-            className={`${awaitingPayment ? "flex-1" : ""} flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-60`}
+            className={`${awaitingClientPay || !needsDoctorReview ? "flex-1" : ""} flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-60`}
             style={{ background:"rgba(247,148,29,0.1)", color:"#F7941D" }}>
             {isActing ? <Loader2 size={14} className="animate-spin"/> : <XCircle size={14}/>} Reject
           </button>
@@ -754,7 +780,7 @@ function GoogleCalendarPanel({ calendarId, doctorId }: { calendarId: string; doc
         <p className="text-xs font-semibold" style={{ color:"#4285F4" }}>How it works</p>
         {[
           "Connect your Google account here — this is what powers Meet link generation.",
-          "When you approve a session (or tap Create Meet link), Valeo adds a Calendar event with a Google Meet URL.",
+          "When the client pays after you approve their time (or you tap Create Meet link), Valeo adds a Calendar event with a Google Meet URL.",
           "You and the client both get a Join Google Meet button once the link exists.",
         ].map((t,i) => (
           <p key={i} className="text-xs flex gap-2" style={{ color:"#4A5568" }}>
@@ -812,6 +838,211 @@ function GoogleCalendarPanel({ calendarId, doctorId }: { calendarId: string; doc
 }
 
 // ══════════════════════════════════════════════════════════════
+//  BOOK FOR CLIENT (urgent / same-day — doctor-initiated)
+// ══════════════════════════════════════════════════════════════
+
+type AssignableClient = { uid: string; displayName: string; email: string };
+
+function localDateInputValue(d = new Date()): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function BookForClientModal({
+  avail,
+  onClose,
+  onDone,
+}: {
+  avail: AvailabilitySchedule;
+  onClose: () => void;
+  onDone: (msg: string) => void;
+}) {
+  const { user } = useAuth();
+  const services = bookableServices(avail);
+  const [clients, setClients] = useState<AssignableClient[]>([]);
+  const [loadingClients, setLoadingClients] = useState(true);
+  const [clientId, setClientId] = useState("");
+  const [serviceId, setServiceId] = useState(services[0]?.id || "");
+  const [date, setDate] = useState(localDateInputValue);
+  const [time, setTime] = useState("09:00");
+  const [notes, setNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const selectedService = services.find(s => s.id === serviceId) || services[0];
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      setLoadingClients(true);
+      try {
+        const assignSnap = await getDocs(
+          query(collection(db, "assignments"), where("doctorId", "==", user.uid)),
+        );
+        const ids = assignSnap.docs.map(d => d.id);
+        const docs = await Promise.all(ids.map(id => getDoc(doc(db, "users", id))));
+        if (cancelled) return;
+        const list: AssignableClient[] = docs
+          .filter(s => s.exists())
+          .map(s => {
+            const d = s.data() as { displayName?: string; email?: string };
+            return {
+              uid: s.id,
+              displayName: d.displayName || d.email || "Client",
+              email: d.email || "",
+            };
+          })
+          .sort((a, b) => a.displayName.localeCompare(b.displayName));
+        setClients(list);
+        if (list.length) setClientId(list[0].uid);
+      } catch {
+        if (!cancelled) setClients([]);
+      } finally {
+        if (!cancelled) setLoadingClients(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
+
+  async function submit() {
+    if (!clientId || !selectedService || !date || !time) {
+      setError("Pick a client, service, date, and time.");
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await authedFetch("/api/appointments/doctor-book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clientId,
+          date,
+          time,
+          type: selectedService.name,
+          duration: selectedService.duration,
+          amount: selectedService.price,
+          notes: notes.trim() || undefined,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Could not schedule this session.");
+        return;
+      }
+      onDone(
+        data.free
+          ? "Free session confirmed — Meet link will appear shortly."
+          : "Session scheduled. Client has been asked to pay before they can join.",
+      );
+      onClose();
+    } catch {
+      setError("Could not schedule this session. Try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(30,56,16,0.45)" }}
+      onClick={onClose}>
+      <div className="w-full max-w-md rounded-2xl p-5 space-y-4"
+        style={{ background: "white", boxShadow: "0 12px 40px rgba(30,56,16,0.2)" }}
+        onClick={e => e.stopPropagation()}>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold" style={{ color: "#1E3810" }}>Book for client</p>
+            <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>
+              Same-day and any time allowed. Client still pays before Join.
+            </p>
+          </div>
+          <button type="button" onClick={onClose} className="p-1 rounded-lg" style={{ color: "#8A9BA8" }}>
+            <X size={16} />
+          </button>
+        </div>
+
+        {loadingClients ? (
+          <div className="flex justify-center py-8">
+            <Loader2 size={22} className="animate-spin" style={{ color: "#8DC63F" }} />
+          </div>
+        ) : clients.length === 0 ? (
+          <p className="text-sm py-4" style={{ color: "#8A9BA8" }}>
+            No assigned clients yet. Assign a client in Admin before booking for them.
+          </p>
+        ) : (
+          <>
+            <label className="block space-y-1">
+              <span className="text-xs font-medium" style={{ color: "#4A5568" }}>Client</span>
+              <select value={clientId} onChange={e => setClientId(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                style={{ border: "1px solid rgba(30,56,16,0.12)", color: "#1E3810" }}>
+                {clients.map(c => (
+                  <option key={c.uid} value={c.uid}>{c.displayName}{c.email ? ` · ${c.email}` : ""}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block space-y-1">
+              <span className="text-xs font-medium" style={{ color: "#4A5568" }}>Service</span>
+              <select value={serviceId} onChange={e => setServiceId(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                style={{ border: "1px solid rgba(30,56,16,0.12)", color: "#1E3810" }}>
+                {services.map(s => (
+                  <option key={s.id} value={s.id}>
+                    {s.name} · {s.duration} min · {s.price === 0 ? "Free" : `$${s.price}`}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block space-y-1">
+                <span className="text-xs font-medium" style={{ color: "#4A5568" }}>Date</span>
+                <input type="date" value={date} min={localDateInputValue()}
+                  onChange={e => setDate(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                  style={{ border: "1px solid rgba(30,56,16,0.12)", color: "#1E3810" }} />
+              </label>
+              <label className="block space-y-1">
+                <span className="text-xs font-medium" style={{ color: "#4A5568" }}>Time</span>
+                <input type="time" value={time} onChange={e => setTime(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                  style={{ border: "1px solid rgba(30,56,16,0.12)", color: "#1E3810" }} />
+              </label>
+            </div>
+
+            <label className="block space-y-1">
+              <span className="text-xs font-medium" style={{ color: "#4A5568" }}>Note (optional)</span>
+              <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
+                placeholder="e.g. Urgent follow-up"
+                className="w-full px-3 py-2.5 rounded-xl text-sm outline-none resize-none"
+                style={{ border: "1px solid rgba(30,56,16,0.12)", color: "#1E3810" }} />
+            </label>
+
+            {error && (
+              <p className="text-xs rounded-xl px-3 py-2" style={{ background: "rgba(247,148,29,0.1)", color: "#C4700A" }}>
+                {error}
+              </p>
+            )}
+
+            <button type="button" onClick={submit} disabled={submitting}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
+              style={{ background: "linear-gradient(135deg,#F7941D,#C4700A)" }}>
+              {submitting ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
+              {submitting ? "Scheduling…" : "Schedule session"}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
 //  MAIN PAGE
 // ══════════════════════════════════════════════════════════════
 
@@ -836,6 +1067,7 @@ export default function DoctorSchedulePage() {
 
   const [mainTab, setMainTab] = useState<MainTab>("appointments");
   const [postComplete, setPostComplete] = useState<Appointment | null>(null);
+  const [bookForClientOpen, setBookForClientOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -907,31 +1139,31 @@ export default function DoctorSchedulePage() {
     if (!appt) return;
     setActing(id);
     try {
-      const becomingApproved = appt.status !== "approved";
-      const becomingCompleted = appt.status === "approved";
-      await updateAppointmentStatus(id, becomingCompleted ? "completed" : "approved");
-      if (becomingApproved) {
-        // Create Meet first so the confirmation email can include Join Session.
-        try {
-          const meetRes = await authedFetch("/api/meet/create", {
-            method:  "POST",
-            headers: { "Content-Type": "application/json" },
-            body:    JSON.stringify({ appointmentId: id }),
-          });
-          if (!meetRes.ok) {
-            const data = await meetRes.json().catch(() => ({}));
-            showToast("error", data.error || "Session approved, but Meet link failed. Use Create Meet link.");
-          }
-        } catch { /* fail-safe — link can be added later */ }
-        authedFetch("/api/email/appointment", {
-          method:  "POST",
-          headers: { "Content-Type": "application/json" },
-          body:    JSON.stringify({ appointmentId: id, event: "approved" }),
-        }).catch(() => {});
-      }
-      if (becomingCompleted) {
+      // Already confirmed → mark completed
+      if (appt.status === "approved") {
+        await updateAppointmentStatus(id, "completed");
         showToast("success", "Session marked completed.");
         setPostComplete(appt);
+        return;
+      }
+
+      // Pending request → accept the time (client pays next, unless free)
+      if (appt.status === "pending") {
+        const res = await authedFetch("/api/appointments/approve-schedule", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ appointmentId: id }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          showToast("error", data.error || "Could not approve this request.");
+          return;
+        }
+        if (data.free) {
+          showToast("success", "Free session confirmed — Meet link will appear shortly.");
+        } else {
+          showToast("success", "Time approved — client has been asked to pay to confirm.");
+        }
       }
     }
     finally { setActing(null); }
@@ -993,6 +1225,14 @@ export default function DoctorSchedulePage() {
         />
       )}
 
+      {bookForClientOpen && (
+        <BookForClientModal
+          avail={avail}
+          onClose={() => setBookForClientOpen(false)}
+          onDone={(msg) => showToast("success", msg)}
+        />
+      )}
+
       {/* Toast */}
       {toast && (
         <div className="fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg text-sm font-medium"
@@ -1008,6 +1248,13 @@ export default function DoctorSchedulePage() {
           <p className="text-sm" style={{ color:"#8A9BA8" }}>Manage appointments, view your calendar, and set availability</p>
         </div>
         <div className="flex items-center gap-2">
+          {mainTab==="appointments" && (
+            <button type="button" onClick={() => setBookForClientOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
+              style={{ background:"linear-gradient(135deg,#F7941D,#C4700A)" }}>
+              <Zap size={14}/> Book for client
+            </button>
+          )}
           {counts.pending>0 && mainTab==="appointments" && (
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
               style={{ background:"rgba(247,148,29,0.1)", color:"#F7941D" }}>

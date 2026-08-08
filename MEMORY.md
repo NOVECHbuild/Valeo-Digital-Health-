@@ -13,7 +13,7 @@ _Update this when Benny shares a new fact, decision, blocker, or “do not chang
 - **Confirmed working:** Messages, Google Calendar/Meet. Soft-launch ops still open (cron/backups/invites).
 - **Watch:** Doctor Resend emails — code now resolves Auth email + logs; confirm in Resend Logs after next booking.
 - **Next for Benny:** Stripe E2E (Phase D) + finish portal smoke + confirm doctor emails arrive.
-- **Pay model (locked):** pay-in-full at booking (no deposit). Unpaid hold **30 minutes**, then slot released. Badges: Paid / Free / Pay to confirm.
+- **Pay model (locked 2026-08-08):** Client self-book: no same-day; doctor has **12h** to approve → client pays within **24h** (capped before session start) → Confirmed/Paid + Meet. **Doctor can Book for client** (any time incl. same-day) to bypass those barriers; client still must pay before Join. Free sessions confirm on doctor approve / doctor-book.
 
 ## Account map (business — confirmed 2026-08-07)
 

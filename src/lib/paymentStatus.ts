@@ -2,10 +2,38 @@
 
 export type PaymentStatus = "unpaid" | "paid" | "free" | "refunded";
 
-export const PAYMENT_HOLD_MINUTES = 30;
+/** How long the doctor has to approve a new request (slot held). */
+export const REVIEW_HOLD_HOURS = 12;
 
+/** After doctor approves, how long the client has to pay (capped before session start). */
+export const PAYMENT_HOLD_HOURS = 24;
+
+/** @deprecated use REVIEW_HOLD_HOURS / PAYMENT_HOLD_HOURS — kept for old UI strings during migration */
+export const PAYMENT_HOLD_MINUTES = PAYMENT_HOLD_HOURS * 60;
+
+export function reviewHoldExpiresAt(from = new Date()): string {
+  return new Date(from.getTime() + REVIEW_HOLD_HOURS * 60 * 60 * 1000).toISOString();
+}
+
+/**
+ * Payment deadline after doctor approval: min(now + 24h, 1 minute before session start).
+ * Always returns a time strictly after `from` when possible.
+ */
+export function paymentHoldExpiresAt(from: Date, sessionStart: Date | null): string {
+  const by24h = from.getTime() + PAYMENT_HOLD_HOURS * 60 * 60 * 1000;
+  let cap = by24h;
+  if (sessionStart && !Number.isNaN(sessionStart.getTime())) {
+    const beforeSession = sessionStart.getTime() - 60 * 1000;
+    cap = Math.min(by24h, beforeSession);
+  }
+  // Ensure expiry is in the future (e.g. session very soon)
+  const minFuture = from.getTime() + 5 * 60 * 1000;
+  return new Date(Math.max(cap, minFuture)).toISOString();
+}
+
+/** @deprecated alias — prefer paymentHoldExpiresAt(from, sessionStart) */
 export function holdExpiresAt(from = new Date()): string {
-  return new Date(from.getTime() + PAYMENT_HOLD_MINUTES * 60 * 1000).toISOString();
+  return paymentHoldExpiresAt(from, null);
 }
 
 export function isHoldExpired(expiresAt?: string | null, now = new Date()): boolean {
@@ -13,6 +41,11 @@ export function isHoldExpired(expiresAt?: string | null, now = new Date()): bool
   const t = Date.parse(expiresAt);
   if (Number.isNaN(t)) return false;
   return t <= now.getTime();
+}
+
+/** True once the doctor has accepted the requested time (client still may need to pay). */
+export function isDoctorApproved(appt: { doctorApprovedAt?: unknown }): boolean {
+  return appt.doctorApprovedAt != null && appt.doctorApprovedAt !== "";
 }
 
 /** Infer display status for older appointments that lack paymentStatus. */

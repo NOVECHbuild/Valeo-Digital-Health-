@@ -1,9 +1,9 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
-import { isHoldExpired } from "@/lib/paymentStatus";
+import { isDoctorApproved, isHoldExpired } from "@/lib/paymentStatus";
 
 /**
- * Release slots held by unpaid bookings past paymentHoldExpiresAt.
+ * Release slots held past review (12h) or payment (24h / before session) deadlines.
  * Safe to call often (freebusy, cron, initiate).
  */
 export async function expireUnpaidPaymentHolds(): Promise<{ expired: number }> {
@@ -18,14 +18,27 @@ export async function expireUnpaidPaymentHolds(): Promise<{ expired: number }> {
   for (const docSnap of snap.docs) {
     const data = docSnap.data();
     const paymentStatus = data.paymentStatus as string | undefined;
-    // Legacy pending without paymentStatus: do not auto-cancel (doctor may still approve).
+    // Legacy pending without paymentStatus: do not auto-cancel.
     if (paymentStatus !== "unpaid") continue;
-    if (!isHoldExpired(data.paymentHoldExpiresAt ?? null, now)) continue;
+
+    const doctorOk = isDoctorApproved(data);
+    let reason: "review_expired" | "payment_expired" | null = null;
+
+    if (!doctorOk) {
+      // Waiting on doctor — 12h review hold
+      const reviewExp = data.reviewHoldExpiresAt ?? data.paymentHoldExpiresAt ?? null;
+      if (isHoldExpired(reviewExp, now)) reason = "review_expired";
+    } else {
+      // Doctor approved — client must pay before paymentHoldExpiresAt
+      if (isHoldExpired(data.paymentHoldExpiresAt ?? null, now)) reason = "payment_expired";
+    }
+
+    if (!reason) continue;
 
     await adminDb.collection("appointments").doc(docSnap.id).update({
       status:          "cancelled",
       cancelledBy:     "system",
-      cancelledReason: "payment_expired",
+      cancelledReason: reason,
       updatedAt:       FieldValue.serverTimestamp(),
     });
 

@@ -6,7 +6,7 @@ import {
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { labelToMinutes } from "@/lib/availability";
-import { holdExpiresAt, type PaymentStatus } from "@/lib/paymentStatus";
+import { reviewHoldExpiresAt, type PaymentStatus } from "@/lib/paymentStatus";
 
 export type AppointmentStatus =
   | "pending"
@@ -24,10 +24,17 @@ export interface Appointment {
   seriesId?: string; seriesIndex?: number; seriesCount?: number;
   cancelledBy?: string;
   cancelledReason?: string;
-  /** Pay-in-full: unpaid hold until Stripe succeeds or hold expires. */
+  /** Unpaid until Stripe succeeds (after doctor approves the time). */
   paymentStatus?: PaymentStatus;
+  /** 12h window for the doctor to accept the request. */
+  reviewHoldExpiresAt?: string;
+  /** Set when doctor accepts the time — then client has up to 24h (before session) to pay. */
+  doctorApprovedAt?: any;
   paymentHoldExpiresAt?: string;
   paymentId?: string;
+  /** Set when the therapist booked for the client (bypasses same-day / review hold). */
+  initiatedBy?: "client" | "doctor";
+  urgent?: boolean;
 }
 
 /** Sort by session date + time. Default soonest first (asc). */
@@ -125,12 +132,12 @@ export async function bookAppointment(data: {
     ...rest,
     ...(notes ? { notes } : {}),
     ...(seriesId ? { seriesId, seriesIndex, seriesCount } : {}),
-    // Slot held until full payment (or free confirm via /api/payments/initiate).
-    status:               "pending",
-    paymentStatus:        "unpaid",
-    paymentHoldExpiresAt: holdExpiresAt(),
-    createdAt:            serverTimestamp(),
-    updatedAt:            serverTimestamp(),
+    // Slot held 12h for doctor review; payment starts only after they approve.
+    status:             "pending",
+    paymentStatus:      "unpaid",
+    reviewHoldExpiresAt: reviewHoldExpiresAt(),
+    createdAt:          serverTimestamp(),
+    updatedAt:          serverTimestamp(),
   });
   return ref.id;
 }

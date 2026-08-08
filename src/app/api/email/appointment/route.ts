@@ -75,8 +75,8 @@ export async function POST(req: NextRequest) {
             heading: "Request received",
             greeting: `Hi ${clientFirst},`,
             paragraphs: [
-              `Thank you for booking with Valeo Experience. We've received your session request and ${esc(doctorName)} will review and confirm it shortly.`,
-              "You'll get another email as soon as it's confirmed.",
+              `Thank you for booking with Valeo Experience. We've received your session request and ${esc(doctorName)} will review the time within about 12 hours.`,
+              "Once they approve, you'll be asked to pay to confirm your session. Payment must be completed within 24 hours (and before the session starts).",
             ],
             details,
             cta: { label: "View my appointments", url: apptLink },
@@ -90,7 +90,10 @@ export async function POST(req: NextRequest) {
           subject: `New session request — ${appt.clientName}`,
           html: renderEmail({
             heading: "New appointment request",
-            paragraphs: [`${esc(appt.clientName)} has requested a session. Please review it in your schedule.`],
+            paragraphs: [
+              `${esc(appt.clientName)} has requested a session. Please approve or decline within 12 hours — the slot is held for you until then.`,
+              "After you approve, the client will be asked to pay to confirm.",
+            ],
             details,
             cta: { label: "Open schedule", url: `${APP_URL}/doctor/schedule` },
           }),

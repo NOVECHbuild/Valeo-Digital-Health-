@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { labelToMinutes } from "@/lib/availability";
+import { sessionStartAt } from "@/lib/sessionTime";
+
+export { sessionStartAt } from "@/lib/sessionTime";
 
 /** Clients may join from this many minutes before session start. */
 export const JOIN_EARLY_MINUTES = 30;
@@ -12,24 +14,7 @@ export const JOIN_EARLY_MINUTES = 30;
  */
 export const JOIN_LATE_GRACE_MINUTES = 90;
 
-/** Barbados/AST — no DST; matches platform booking timezone default. */
-const SESSION_TZ_OFFSET = "-04:00";
-
 export type JoinPhase = "unavailable" | "too_early" | "open" | "ended";
-
-/**
- * Session start as a Date (UTC instant) from YYYY-MM-DD + "9:00 AM" label.
- */
-export function sessionStartAt(date: string, timeLabel: string): Date | null {
-  if (!date || !timeLabel) return null;
-  const mins = labelToMinutes(timeLabel);
-  if (mins < 0) return null;
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  const iso = `${date}T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:00${SESSION_TZ_OFFSET}`;
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? null : d;
-}
 
 export function joinPhase(opts: {
   date?: string | null;
@@ -40,7 +25,8 @@ export function joinPhase(opts: {
   now?: Date | number;
 }): JoinPhase {
   if (!opts.meetLink) return "unavailable";
-  if (opts.status && !["approved", "pending"].includes(opts.status)) return "unavailable";
+  // Join only after the session is confirmed (paid/free). Unpaid pending stays locked out.
+  if (opts.status && opts.status !== "approved") return "unavailable";
 
   const start = sessionStartAt(opts.date || "", opts.time || "");
   if (!start) return "unavailable";
