@@ -16,7 +16,7 @@ import {
   Heart, Award, ExternalLink, AlertTriangle, UserX,
 } from "lucide-react";
 import JoinSessionLink from "@/components/JoinSessionLink";
-import { JOIN_EARLY_MINUTES, useCanJoinSession } from "@/lib/joinWindow";
+import { joinPhaseMessage, useCanJoinSession, useJoinPhase } from "@/lib/joinWindow";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface Assignment {
@@ -89,6 +89,7 @@ export default function MyDoctorPage() {
   const [doctor,        setDoctor]        = useState<DoctorProfile | null>(null);
   const [nextSession,   setNextSession]   = useState<UpcomingSession | null>(null); // S1
   const canJoinNext = useCanJoinSession(nextSession);
+  const joinPhaseNext = useJoinPhase(nextSession);
   const [loading,       setLoading]       = useState(true);
   const [fetchError,    setFetchError]    = useState<string | null>(null);           // FIX 7
   const [doctorMissing, setDoctorMissing] = useState(false);                        // S3
@@ -339,9 +340,9 @@ export default function MyDoctorPage() {
                   >
                     View Details
                   </Link>
-                  {nextSession.meetLink && !canJoinNext && (
+                  {(!nextSession.meetLink || !canJoinNext) && joinPhaseMessage(joinPhaseNext) && (
                     <p className="text-[10px] text-right max-w-[140px]" style={{ color: "#8A9BA8" }}>
-                      Join opens {JOIN_EARLY_MINUTES} min before
+                      {joinPhaseMessage(joinPhaseNext)}
                     </p>
                   )}
                 </div>

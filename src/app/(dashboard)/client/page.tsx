@@ -18,7 +18,9 @@ import JoinSessionLink from "@/components/JoinSessionLink";
 import { useUnreadCount } from "@/lib/useMessages";
 import { isConsentCurrent } from "@/lib/consent";
 import { useAssignedDoctor } from "@/hooks/useAssignedDoctor";
-import { JOIN_EARLY_MINUTES, useCanJoinSession } from "@/lib/joinWindow";
+import { joinPhaseMessage, useCanJoinSession, useJoinPhase } from "@/lib/joinWindow";
+import { localTodayStr } from "@/hooks/useAppointments";
+import { labelToMinutes } from "@/lib/availability";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 interface ActivityItem {
@@ -150,6 +152,7 @@ export default function ClientDashboard() {
   const [activity,        setActivity]        = useState<ActivityItem[]>([]);
   const [nextSession,     setNextSession]     = useState<UpcomingSession | null>(null);
   const canJoinNext = useCanJoinSession(nextSession);
+  const joinPhaseNext = useJoinPhase(nextSession);
   const [needsConsent,    setNeedsConsent]    = useState(false);
 
   const firstName = (profileName ?? user?.displayName)?.split(" ")[0] ?? "there";
@@ -187,7 +190,7 @@ export default function ClientDashboard() {
     const uid = user.uid;
     setLoading(true);
 
-    const todayStr = new Date().toISOString().split("T")[0];
+    const todayStr = localTodayStr();
     let apptDocs: { id: string; [k: string]: any }[] = [];
     let assessDocs: { id: string; [k: string]: any }[] = [];
 
@@ -250,8 +253,11 @@ export default function ClientDashboard() {
 
         const upcoming = docs.filter(a =>
           ["approved", "pending"].includes(a.status) && a.date >= todayStr
-        ).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-        // Prefer approved for "next session", else soonest pending
+        ).sort((a, b) => {
+          if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+          return labelToMinutes(a.time || "") - labelToMinutes(b.time || "");
+        });
+        // Soonest approved session, else soonest pending
         const next =
           upcoming.find(a => a.status === "approved") ??
           upcoming[0] ??
@@ -382,9 +388,9 @@ export default function ClientDashboard() {
                   <Video size={15} /> Join Session
                 </JoinSessionLink>
               )}
-              {nextSession.meetLink && !canJoinNext && (
+              {(!nextSession.meetLink || !canJoinNext) && joinPhaseMessage(joinPhaseNext) && (
                 <p className="text-xs mt-3" style={{ color: "rgba(255,255,255,0.55)" }}>
-                  Join opens {JOIN_EARLY_MINUTES} minutes before your session.
+                  {joinPhaseMessage(joinPhaseNext)}
                 </p>
               )}
             </div>

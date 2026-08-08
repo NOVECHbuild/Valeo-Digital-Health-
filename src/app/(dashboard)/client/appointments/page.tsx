@@ -43,7 +43,7 @@ import {
 } from "@/lib/series";
 import { isConsentCurrent } from "@/lib/consent";
 import JoinSessionLink from "@/components/JoinSessionLink";
-import { JOIN_EARLY_MINUTES, useCanJoinSession } from "@/lib/joinWindow";
+import { joinPhaseMessage, useCanJoinSession, useJoinPhase } from "@/lib/joinWindow";
 import {
   Calendar, Clock, Plus, X, CheckCircle, AlertCircle,
   XCircle, Loader2, ChevronLeft, ChevronRight, Video,
@@ -211,9 +211,10 @@ function AppointmentCard({
   const canCancel  = ["pending","approved"].includes(appt.status);
   const meetLink   = (appt as any).meetLink as string | undefined;
   const hasMeet    = Boolean(meetLink) && ["approved", "pending"].includes(appt.status);
-  // Clients may join only in the pre-session window (not days early).
+  // Clients may join in the session window (not days early / long after).
+  const joinPhase  = useJoinPhase(appt);
   const showJoin   = useCanJoinSession(appt) && hasMeet;
-  const joinTooEarly = hasMeet && !showJoin;
+  const joinHint   = hasMeet && !showJoin ? joinPhaseMessage(joinPhase) : null;
   const needsPay   = appt.status === "pending" && resolvePaymentStatus(appt) === "unpaid";
   const awaitingConfirm = appt.status === "pending" && !meetLink && !needsPay;
   const awaitingLink    = appt.status === "approved" && !meetLink;
@@ -277,9 +278,9 @@ function AppointmentCard({
               Session confirmed — video link is being prepared. Refresh in a moment, or message your therapist.
             </p>
           )}
-          {joinTooEarly && (
+          {joinHint && (
             <p className="text-xs mt-2" style={{ color: "#8A9BA8" }}>
-              Join Session opens {JOIN_EARLY_MINUTES} minutes before your appointment.
+              {joinHint}
             </p>
           )}
         </div>
