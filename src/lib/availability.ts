@@ -104,6 +104,55 @@ export function genStartSlots(start: string, end: string, dur: number, buf: numb
   return out;
 }
 
+/** True when a schedules/{id} doc has real weekly hours (not Google-only stub). */
+export function isUsableSchedule(data: unknown): data is AvailabilitySchedule {
+  if (!data || typeof data !== "object") return false;
+  const avail = (data as AvailabilitySchedule).availability;
+  if (!avail || typeof avail !== "object") return false;
+  return DAY_KEYS.some((k) => {
+    const day = avail[k];
+    return !!day?.enabled && Array.isArray(day.slots) && day.slots.length > 0;
+  });
+}
+
+/**
+ * Whether a calendar day can be selected for booking.
+ * When `schedule` is null, falls back to Mon–Fri (legacy).
+ */
+export function isDateBookable(
+  schedule: AvailabilitySchedule | null | undefined,
+  dateStr: string,
+  today?: Date,
+): boolean {
+  if (!dateStr) return false;
+  const d = new Date(dateStr + "T12:00:00");
+  if (Number.isNaN(d.getTime())) return false;
+
+  const start = today ? new Date(today) : new Date();
+  start.setHours(0, 0, 0, 0);
+  if (d < start) return false;
+
+  if (!schedule || !isUsableSchedule(schedule)) {
+    const day = d.getDay();
+    return day !== 0 && day !== 6;
+  }
+
+  if (Array.isArray(schedule.blockedDates) && schedule.blockedDates.includes(dateStr)) {
+    return false;
+  }
+
+  const max = Number(schedule.maxAdvanceDays);
+  if (Number.isFinite(max) && max > 0) {
+    const latest = new Date(start);
+    latest.setDate(latest.getDate() + max);
+    if (d > latest) return false;
+  }
+
+  const dayKey = DAY_KEYS[d.getDay()];
+  const day = schedule.availability?.[dayKey];
+  return !!day?.enabled && Array.isArray(day.slots) && day.slots.length > 0;
+}
+
 // All bookable start labels for a given ISO date (e.g. "2026-06-20"),
 // honouring the day's enabled hours and blocked dates. Returns [] if unavailable.
 // `serviceDuration` (minutes) ensures a slot is only offered if the chosen

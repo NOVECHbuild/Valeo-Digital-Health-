@@ -7,6 +7,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { isRevenuePayment } from "@/lib/paymentMetrics";
 import {
   CreditCard, CheckCircle, Clock, AlertCircle,
   XCircle, Download, ChevronDown, ChevronUp,
@@ -175,7 +176,7 @@ function PaymentCard({ payment }: { payment: Payment }) {
             {[
               {
                 label: "Payment Provider",
-                value: payment.provider || payment.gateway || "Stripe",
+                value: payment.provider || payment.gateway || "Card",
               },
               {
                 label: "Session Type",
@@ -314,12 +315,12 @@ export default function ClientPaymentsPage() {
 
   const filtered = payments.filter(p => filter === "all" || p.status === filter);
 
-  // FIX 9: Only sum USD completed payments (platform base currency)
+  // Only sum USD revenue payments (platform base currency)
   const totalSpent = payments
-    .filter(p => p.status === "completed" && (p.currency === "USD" || !p.currency))
+    .filter(p => isRevenuePayment(p.status) && (p.currency === "USD" || !p.currency))
     .reduce((sum, p) => sum + p.amount, 0);
 
-  const totalSessions = payments.filter(p => p.status === "completed").length;
+  const totalSessions = payments.filter(p => isRevenuePayment(p.status)).length;
   const pendingCount  = payments.filter(p => p.status === "pending").length;
 
   // FIX 5: Only show tabs that have at least one record (except "All")
@@ -460,7 +461,7 @@ export default function ClientPaymentsPage() {
       >
         <Lock size={13} className="flex-shrink-0 mt-0.5" style={{ color: "#8A9BA8" }} />
         <p className="text-xs" style={{ color: "#8A9BA8" }}>
-          Payments are processed securely by Stripe. Valeo does not store your card details.
+          Payments are processed securely by our payment partner. Valeo does not store your card details.
           For billing questions, contact{" "}
           <a
             href="mailto:support@valeoexperience.com"

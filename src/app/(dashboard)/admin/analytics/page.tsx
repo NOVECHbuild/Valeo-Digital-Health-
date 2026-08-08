@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { isRevenuePayment } from "@/lib/paymentMetrics";
 import {
   Users, Calendar, DollarSign, TrendingUp, TrendingDown,
   ClipboardList, Activity, Loader2, BarChart2, PieChart,
@@ -101,24 +102,23 @@ export default function AdminAnalyticsPage(){
   const[loading,setLoading]=useState(true);
   const[period,setPeriod]=useState<"6m"|"3m"|"1m">("6m");
 
+  const[onlinePay,setOnlinePay]=useState<Payment[]>([]);
+  const[manualPay,setManualPay]=useState<Payment[]>([]);
+
   useEffect(()=>{
-    (async()=>{
-      const[uSnap,aSnap,pSnap,mpSnap,asSnap]=await Promise.all([
-        getDocs(collection(db,"users")),
-        getDocs(query(collection(db,"appointments"),orderBy("createdAt","desc"))),
-        getDocs(query(collection(db,"payments"),orderBy("createdAt","desc"))),
-        getDocs(query(collection(db,"manualPayments"),orderBy("createdAt","desc"))),
-        getDocs(query(collection(db,"assessments"),orderBy("assignedAt","desc"))),
-      ]);
-      setUsers(uSnap.docs.map(d=>({uid:d.id,...d.data()}) as UserDoc));
-      setAppts(aSnap.docs.map(d=>({id:d.id,...d.data()}) as Appointment));
-      const online:Payment[]=pSnap.docs.map(d=>{const data=d.data() as any;return{id:d.id,amount:data.amount??0,status:data.status??"pending",createdAt:data.createdAt,source:"online",method:data.provider??"Stripe",clientId:data.clientId};});
-      const manual:Payment[]=mpSnap.docs.map(d=>{const data=d.data() as any;return{id:d.id,amount:data.amount??0,status:data.status??"completed",createdAt:data.createdAt,source:"manual",method:data.method??"Cash",clientId:data.clientId};});
-      setPayments([...online,...manual]);
-      setAssessments(asSnap.docs.map(d=>({id:d.id,...d.data()}) as Assessment));
-      setLoading(false);
-    })();
+    let u=false,a=false,p=false,m=false,as=false;
+    const done=()=>{if(u&&a&&p&&m&&as)setLoading(false);};
+    const unsubs=[
+      onSnapshot(collection(db,"users"),snap=>{setUsers(snap.docs.map(d=>({uid:d.id,...d.data()}) as UserDoc));u=true;done();},()=>{u=true;done();}),
+      onSnapshot(query(collection(db,"appointments"),orderBy("createdAt","desc")),snap=>{setAppts(snap.docs.map(d=>({id:d.id,...d.data()}) as Appointment));a=true;done();},()=>{a=true;done();}),
+      onSnapshot(query(collection(db,"payments"),orderBy("createdAt","desc")),snap=>{setOnlinePay(snap.docs.map(d=>{const data=d.data() as any;return{id:d.id,amount:data.amount??0,status:data.status??"pending",createdAt:data.createdAt,source:"online" as const,method:data.provider??"Card",clientId:data.clientId};}));p=true;done();},()=>{p=true;done();}),
+      onSnapshot(query(collection(db,"manualPayments"),orderBy("createdAt","desc")),snap=>{setManualPay(snap.docs.map(d=>{const data=d.data() as any;return{id:d.id,amount:data.amount??0,status:data.status??"completed",createdAt:data.createdAt,source:"manual" as const,method:data.method??"Cash",clientId:data.clientId};}));m=true;done();},()=>{m=true;done();}),
+      onSnapshot(query(collection(db,"assessments"),orderBy("assignedAt","desc")),snap=>{setAssessments(snap.docs.map(d=>({id:d.id,...d.data()}) as Assessment));as=true;done();},()=>{as=true;done();}),
+    ];
+    return()=>unsubs.forEach(u=>u());
   },[]);
+
+  useEffect(()=>{setPayments([...onlinePay,...manualPay]);},[onlinePay,manualPay]);
 
   const now=new Date(),months6=last6MonthKeys(),months3=months6.slice(3),months1=months6.slice(5);
   const activeMonths=period==="6m"?months6:period==="3m"?months3:months1;
@@ -130,7 +130,7 @@ export default function AdminAnalyticsPage(){
   const completedAppts=appts.filter(a=>a.status==="completed"),pendingAppts=appts.filter(a=>a.status==="pending"),cancelledAppts=appts.filter(a=>a.status==="cancelled");
   const apptThisM=completedAppts.filter(a=>{const d=toDate(a.createdAt);return d&&monthKey(d)===thisMonth;}).length;
   const apptLastM=completedAppts.filter(a=>{const d=toDate(a.createdAt);return d&&monthKey(d)===lastMonth;}).length;
-  const completedPay=payments.filter(p=>p.status==="completed");
+  const completedPay=payments.filter(p=>isRevenuePayment(p.status));
   const totalRevenue=completedPay.reduce((s,p)=>s+p.amount,0);
   const onlineRevenue=completedPay.filter(p=>p.source==="online").reduce((s,p)=>s+p.amount,0);
   const manualRevenue=completedPay.filter(p=>p.source==="manual").reduce((s,p)=>s+p.amount,0);
@@ -207,7 +207,7 @@ export default function AdminAnalyticsPage(){
           <div className="space-y-4">
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <span className="flex items-center gap-1.5 text-xs" style={{color:"#4A5568"}}><Globe size={12} style={{color:C.teal}}/> Online (Stripe)</span>
+                <span className="flex items-center gap-1.5 text-xs" style={{color:"#4A5568"}}><Globe size={12} style={{color:C.teal}}/> Online</span>
                 <span className="text-xs font-bold" style={{color:C.ocean}}>{fmt(onlineRevenue)}</span>
               </div>
               <div className="h-2 rounded-full overflow-hidden" style={{background:"rgba(42,74,26,0.06)"}}>

@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import {
-  collection, query, where, getDocs, orderBy,
+  collection, query, where, orderBy, onSnapshot,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { isRevenuePayment } from "@/lib/paymentMetrics";
 import {
   TrendingUp, TrendingDown, Users, Calendar,
   CheckCircle, DollarSign, FileText, ClipboardList,
@@ -23,11 +24,11 @@ interface Appointment {
 }
 interface Payment {
   id: string; clientId?: string; amount: number;
-  status: "success" | "paid" | "pending" | "failed" | "manual";
-  type?: string; createdAt: any;
+  status: string;
+  type?: string; source?: string; createdAt: any;
 }
 interface RawNote    { id: string; clientId: string; createdAt: any; }
-interface RawAssess  { id: string; status: "pending" | "completed"; completedAt: any; }
+interface RawAssess  { id: string; status: "pending" | "completed"; completedAt?: any; assignedAt?: any; createdAt?: any; }
 
 // ══════════════════════════════════════════════════════════════
 //  HELPERS
@@ -241,165 +242,169 @@ export default function DoctorAnalyticsPage() {
   const [topClients,       setTopClients]       = useState<{ name: string; count: number; completed: number }[]>([]);
   const [revSparkline,     setRevSparkline]     = useState<number[]>([]);
 
-  // ── Fetch all data ────────────────────────────────────────────────────────
+  const [onlinePays, setOnlinePays] = useState<Payment[]>([]);
+  const [manualPays, setManualPays] = useState<Payment[]>([]);
+
+  // ── Live data ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!user) return;
+    let a = false, p = false, m = false, n = false, as = false;
+    const done = () => { if (a && p && m && n && as) setLoading(false); };
+
+    const unsubAppts = onSnapshot(
+      query(collection(db, "appointments"), where("doctorId", "==", user.uid), orderBy("createdAt", "desc")),
+      (snap) => { setAppointments(snap.docs.map(d => ({ id: d.id, ...d.data() } as Appointment))); a = true; done(); },
+      () => { a = true; done(); },
+    );
+    const unsubPay = onSnapshot(
+      query(collection(db, "payments"), where("doctorId", "==", user.uid), orderBy("createdAt", "desc")),
+      (snap) => { setOnlinePays(snap.docs.map(d => ({ id: d.id, ...d.data(), source: "online" } as Payment))); p = true; done(); },
+      () => { p = true; done(); },
+    );
+    const unsubManual = onSnapshot(
+      query(collection(db, "manualPayments"), where("doctorId", "==", user.uid)),
+      (snap) => {
+        setManualPays(snap.docs.map(d => {
+          const data = d.data() as any;
+          return { id: d.id, ...data, status: data.status || "completed", source: "manual", amount: data.amount ?? 0 } as Payment;
+        }));
+        m = true; done();
+      },
+      () => { setManualPays([]); m = true; done(); },
+    );
+    const unsubNotes = onSnapshot(
+      query(collection(db, "notes"), where("doctorId", "==", user.uid)),
+      (snap) => { setNotes(snap.docs.map(d => ({ id: d.id, ...d.data() } as RawNote))); n = true; done(); },
+      () => { n = true; done(); },
+    );
+    const unsubAssess = onSnapshot(
+      query(collection(db, "assessments"), where("doctorId", "==", user.uid)),
+      (snap) => { setAssessments(snap.docs.map(d => ({ id: d.id, ...d.data() } as RawAssess))); as = true; done(); },
+      () => { as = true; done(); },
+    );
+
+    return () => { unsubAppts(); unsubPay(); unsubManual(); unsubNotes(); unsubAssess(); };
+  }, [user]);
+
+  useEffect(() => {
+    setPayments([...onlinePays, ...manualPays]);
+  }, [onlinePays, manualPays]);
+
+  // ── Recompute KPIs whenever live data changes ─────────────────────────────
+  useEffect(() => {
+    if (loading) return;
     const today = new Date();
     setNow(today);
+    const appts = appointments;
+    const pays = payments;
+    const nts = notes;
+    const assmnts = assessments;
 
-    (async () => {
-      const [apptSnap, paySnap, noteSnap, assessSnap] = await Promise.all([
-        getDocs(query(collection(db, "appointments"), where("doctorId", "==", user.uid), orderBy("createdAt", "desc"))),
-        getDocs(query(collection(db, "payments"),     where("doctorId", "==", user.uid), orderBy("createdAt", "desc"))),
-        getDocs(query(collection(db, "notes"),        where("doctorId", "==", user.uid))),
-        getDocs(query(collection(db, "assessments"),  where("doctorId", "==", user.uid))),
-      ]);
+    const yr  = today.getFullYear();
+    const mo  = today.getMonth();
+    const thisMonthStart  = new Date(yr, mo, 1);
+    const lastMonthStart  = new Date(yr, mo - 1, 1);
+    const lastMonthEnd    = new Date(yr, mo, 0, 23, 59, 59);
 
-      const appts:   Appointment[] = apptSnap.docs.map(d  => ({ id: d.id, ...d.data()  } as Appointment));
-      const pays:    Payment[]     = paySnap.docs.map(d   => ({ id: d.id, ...d.data()  } as Payment));
-      const nts:     RawNote[]     = noteSnap.docs.map(d  => ({ id: d.id, ...d.data()  } as RawNote));
-      const assmnts: RawAssess[]   = assessSnap.docs.map(d=> ({ id: d.id, ...d.data()  } as RawAssess));
+    const completedAppts = appts.filter(a => a.status === "completed");
 
-      setAppointments(appts);
-      setPayments(pays);
-      setNotes(nts);
-      setAssessments(assmnts);
+    setSessMonth(completedAppts.filter(a => {
+      const d = toDate(a.createdAt);
+      return d && d >= thisMonthStart && d <= today;
+    }).length);
+    setSessLastMonth(completedAppts.filter(a => {
+      const d = toDate(a.createdAt);
+      return d && d >= lastMonthStart && d <= lastMonthEnd;
+    }).length);
 
-      // ── Date boundaries ──────────────────────────────────────────────────
-      const yr  = today.getFullYear();
-      const mo  = today.getMonth();
-      const thisMonthStart  = new Date(yr, mo, 1);
-      const lastMonthStart  = new Date(yr, mo - 1, 1);
-      const lastMonthEnd    = new Date(yr, mo, 0, 23, 59, 59);
+    const paidPays = pays.filter(p => isRevenuePayment(p.status));
+    setRevMonth(paidPays
+      .filter(p => { const d = toDate(p.createdAt); return d && d >= thisMonthStart; })
+      .reduce((s, p) => s + (p.amount || 0), 0));
+    setRevLastMonth(paidPays
+      .filter(p => { const d = toDate(p.createdAt); return d && d >= lastMonthStart && d <= lastMonthEnd; })
+      .reduce((s, p) => s + (p.amount || 0), 0));
 
-      // ── Sessions this / last month ────────────────────────────────────────
-      const completedAppts = appts.filter(a => a.status === "completed");
+    const nonRejected = appts.filter(a => !["rejected","cancelled"].includes(a.status));
+    setCompletionRate(nonRejected.length > 0
+      ? Math.round((completedAppts.length / nonRejected.length) * 100)
+      : 0);
 
-      const sessThisM = completedAppts.filter(a => {
-        const d = toDate(a.createdAt);
-        return d && d >= thisMonthStart && d <= today;
-      }).length;
-      const sessLastM = completedAppts.filter(a => {
-        const d = toDate(a.createdAt);
-        return d && d >= lastMonthStart && d <= lastMonthEnd;
-      }).length;
-      setSessMonth(sessThisM);
-      setSessLastMonth(sessLastM);
+    const upcoming = appts.filter(a => ["pending","approved"].includes(a.status));
+    setActiveClients(new Set(upcoming.map(a => a.clientId)).size);
 
-      // ── Revenue ──────────────────────────────────────────────────────────
-      const paidPays = pays.filter(p => ["success","paid","manual"].includes(p.status));
-      const revThisM = paidPays
-        .filter(p => { const d = toDate(p.createdAt); return d && d >= thisMonthStart; })
-        .reduce((s, p) => s + (p.amount || 0), 0);
-      const revLastM = paidPays
-        .filter(p => { const d = toDate(p.createdAt); return d && d >= lastMonthStart && d <= lastMonthEnd; })
-        .reduce((s, p) => s + (p.amount || 0), 0);
-      setRevMonth(revThisM);
-      setRevLastMonth(revLastM);
+    const withDur = completedAppts.filter(a => a.duration > 0);
+    setAvgDuration(withDur.length > 0
+      ? Math.round(withDur.reduce((s, a) => s + a.duration, 0) / withDur.length)
+      : 0);
 
-      // ── Completion rate ───────────────────────────────────────────────────
-      const nonRejected = appts.filter(a => !["rejected","cancelled"].includes(a.status));
-      const rate = nonRejected.length > 0
-        ? Math.round((completedAppts.length / nonRejected.length) * 100)
-        : 0;
-      setCompletionRate(rate);
+    setNotesMonth(nts.filter(n => {
+      const d = toDate(n.createdAt);
+      return d && d >= thisMonthStart;
+    }).length);
 
-      // ── Active clients (upcoming approved/pending) ────────────────────────
-      const upcoming = appts.filter(a => ["pending","approved"].includes(a.status));
-      const uniqueActive = new Set(upcoming.map(a => a.clientId)).size;
-      setActiveClients(uniqueActive);
+    setAssessDone(assmnts.filter(a => a.status === "completed").length);
+    setAssessPending(assmnts.filter(a => a.status === "pending").length);
 
-      // ── Avg session duration ──────────────────────────────────────────────
-      const withDur = completedAppts.filter(a => a.duration > 0);
-      const avg = withDur.length > 0
-        ? Math.round(withDur.reduce((s, a) => s + a.duration, 0) / withDur.length)
-        : 0;
-      setAvgDuration(avg);
+    const weekMap: Record<string, number> = {};
+    for (let w = 7; w >= 0; w--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - w * 7);
+      weekMap[isoWeekKey(d)] = 0;
+    }
+    completedAppts.forEach(a => {
+      const d = toDate(a.createdAt);
+      if (!d) return;
+      const key = isoWeekKey(d);
+      if (key in weekMap) weekMap[key]++;
+    });
+    setWeekBars(Object.entries(weekMap).slice(-8).map(([k, v]) => ({
+      label: new Date(k + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      count: v,
+    })));
 
-      // ── Notes this month ──────────────────────────────────────────────────
-      const ntm = nts.filter(n => {
-        const d = toDate(n.createdAt);
-        return d && d >= thisMonthStart;
-      }).length;
-      setNotesMonth(ntm);
+    const typeMap: Record<string, number> = {};
+    appts.forEach(a => { typeMap[a.type] = (typeMap[a.type] || 0) + 1; });
+    const typeColors = ["#2A4A1A","#8DC63F","#F7941D","#F7941D","#8E44AD","#2980B9"];
+    setTypeSlices(Object.entries(typeMap)
+      .sort((x, y) => y[1] - x[1])
+      .map(([label, value], i) => ({ label, value, color: typeColors[i % typeColors.length] })));
 
-      // ── Assessment stats ─────────────────────────────────────────────────
-      setAssessDone(assmnts.filter(a => a.status === "completed").length);
-      setAssessPending(assmnts.filter(a => a.status === "pending").length);
+    const dayCount = Array(7).fill(0);
+    appts.forEach(a => {
+      const d = toDate(a.createdAt);
+      if (d) dayCount[d.getDay()]++;
+    });
+    setDayBars(dayCount);
 
-      // ── Sessions per week (last 8 weeks) ──────────────────────────────────
-      const weekMap: Record<string, number> = {};
-      for (let w = 7; w >= 0; w--) {
-        const d = new Date(today);
-        d.setDate(today.getDate() - w * 7);
-        const key = isoWeekKey(d);
-        weekMap[key] = 0;
-      }
-      completedAppts.forEach(a => {
-        const d = toDate(a.createdAt);
-        if (!d) return;
-        const key = isoWeekKey(d);
-        if (key in weekMap) weekMap[key]++;
-      });
-      const weekEntries = Object.entries(weekMap).slice(-8);
-      setWeekBars(weekEntries.map(([k, v]) => ({
-        label: new Date(k + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-        count: v,
-      })));
+    const monthRevMap: Record<string, number> = {};
+    for (let m = 5; m >= 0; m--) {
+      const d = new Date(yr, mo - m, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      monthRevMap[key] = 0;
+    }
+    paidPays.forEach(p => {
+      const d = toDate(p.createdAt);
+      if (!d) return;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      if (key in monthRevMap) monthRevMap[key] += p.amount || 0;
+    });
+    const revEntries = Object.entries(monthRevMap);
+    setMonthRevBars(revEntries.map(([k, v]) => ({
+      label: MONTH_LABELS[parseInt(k.split("-")[1]) - 1],
+      rev: v,
+    })));
+    setRevSparkline(revEntries.map(([, v]) => v));
 
-      // ── Session type breakdown ────────────────────────────────────────────
-      const typeMap: Record<string, number> = {};
-      appts.forEach(a => { typeMap[a.type] = (typeMap[a.type] || 0) + 1; });
-      const typeColors = ["#2A4A1A","#8DC63F","#F7941D","#F7941D","#8E44AD","#2980B9"];
-      const slices = Object.entries(typeMap)
-        .sort((a, b) => b[1] - a[1])
-        .map(([label, value], i) => ({ label, value, color: typeColors[i % typeColors.length] }));
-      setTypeSlices(slices);
-
-      // ── Busiest day of week ───────────────────────────────────────────────
-      const dayCount = Array(7).fill(0);
-      appts.forEach(a => {
-        const d = toDate(a.createdAt);
-        if (d) dayCount[d.getDay()]++;
-      });
-      setDayBars(dayCount);
-
-      // ── Revenue last 6 months ────────────────────────────────────────────
-      const monthRevMap: Record<string, number> = {};
-      for (let m = 5; m >= 0; m--) {
-        const d = new Date(yr, mo - m, 1);
-        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-        monthRevMap[key] = 0;
-      }
-      paidPays.forEach(p => {
-        const d = toDate(p.createdAt);
-        if (!d) return;
-        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-        if (key in monthRevMap) monthRevMap[key] += p.amount || 0;
-      });
-      const revEntries = Object.entries(monthRevMap);
-      setMonthRevBars(revEntries.map(([k, v]) => ({
-        label: MONTH_LABELS[parseInt(k.split("-")[1]) - 1],
-        rev: v,
-      })));
-      setRevSparkline(revEntries.map(([, v]) => v));
-
-      // ── Top clients ───────────────────────────────────────────────────────
-      const clientMap: Record<string, { name: string; count: number; completed: number }> = {};
-      appts.forEach(a => {
-        if (!a.clientId) return;
-        if (!clientMap[a.clientId]) clientMap[a.clientId] = { name: a.clientName || "Unknown", count: 0, completed: 0 };
-        clientMap[a.clientId].count++;
-        if (a.status === "completed") clientMap[a.clientId].completed++;
-      });
-      const top = Object.values(clientMap)
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 6);
-      setTopClients(top);
-
-      setLoading(false);
-    })();
-  }, [user]);
+    const clientMap: Record<string, { name: string; count: number; completed: number }> = {};
+    appts.forEach(a => {
+      if (!a.clientId) return;
+      if (!clientMap[a.clientId]) clientMap[a.clientId] = { name: a.clientName || "Unknown", count: 0, completed: 0 };
+      clientMap[a.clientId].count++;
+      if (a.status === "completed") clientMap[a.clientId].completed++;
+    });
+    setTopClients(Object.values(clientMap).sort((x, y) => y.count - x.count).slice(0, 6));
+  }, [loading, appointments, payments, notes, assessments]);
 
   // ── Derived display values ────────────────────────────────────────────────
   const sessTrend = pctChange(sessionsMonth, sessionsLastMonth);

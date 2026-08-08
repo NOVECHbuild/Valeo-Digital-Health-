@@ -20,12 +20,14 @@ import {
   PAYMENT_HOLD_MINUTES,
 } from "@/lib/paymentStatus";
 import {
-  collection, query, where, getDocs, getDoc,
+  collection, query, where, getDocs, getDoc, onSnapshot,
   doc, updateDoc, serverTimestamp,
 } from "firebase/firestore";
 import {
   availableSlotsForDate,
   bookableServices,
+  isDateBookable,
+  isUsableSchedule,
   labelToMinutes,
   overlapsAny,
   type AvailabilitySchedule,
@@ -51,14 +53,7 @@ export const dynamic = "force-dynamic";
 
 // ── Config ─────────────────────────────────────────────────────────────────
 
-const SESSION_TYPES = [
-  { id: "individual",   label: "Individual Therapy",  duration: 60, price: 400, description: "One-on-one therapy session" },
-  { id: "couples",      label: "Couples Therapy",     duration: 90, price: 600, description: "Therapy for couples" },
-  { id: "coaching",     label: "Life Coaching",       duration: 60, price: 350, description: "Goal-focused coaching session" },
-  { id: "workplace",    label: "Workplace Wellness",  duration: 60, price: 500, description: "Workplace mental health support" },
-  { id: "consultation", label: "Free Consultation",   duration: 15, price: 0,   description: "Initial 15-minute consultation" },
-];
-
+// Legacy fallback when the doctor has not saved weekly hours yet.
 const TIME_SLOTS = [
   "9:00 AM","9:30 AM","10:00 AM","10:30 AM",
   "11:00 AM","11:30 AM","2:00 PM","2:30 PM",
@@ -67,45 +62,49 @@ const TIME_SLOTS = [
 
 // ── Hooks ──────────────────────────────────────────────────────────────────
 
-// Fetch already-booked appointments for a date as minute-intervals [start,end)
-// so we can block any candidate slot that overlaps (duration-aware).
+// Live booked intervals for a date (duration-aware overlap blocking).
 function useBookedIntervals(doctorId: string, date: string) {
   const [intervals, setIntervals] = useState<{ start: number; end: number }[]>([]);
   useEffect(() => {
     if (!doctorId || !date) { setIntervals([]); return; }
-    (async () => {
-      const snap = await getDocs(
-        query(
-          collection(db, "appointments"),
-          where("doctorId", "==", doctorId),
-          where("date",     "==", date),
-          where("status",   "in", ["pending","approved"]),
-        )
-      );
-      setIntervals(snap.docs.map(d => {
-        const a = d.data() as any;
-        const start = labelToMinutes(a.time || "");
-        const dur   = Number(a.duration) || 60;
-        return { start, end: start + dur };
-      }));
-    })();
+    const q = query(
+      collection(db, "appointments"),
+      where("doctorId", "==", doctorId),
+      where("date",     "==", date),
+      where("status",   "in", ["pending","approved"]),
+    );
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        setIntervals(snap.docs.map(d => {
+          const a = d.data() as any;
+          const start = labelToMinutes(a.time || "");
+          const dur   = Number(a.duration) || 60;
+          return { start, end: start + dur };
+        }));
+      },
+      () => setIntervals([]),
+    );
+    return () => unsub();
   }, [doctorId, date]);
   return intervals;
 }
 
-// Load the doctor's saved availability schedule (schedules/{doctorId})
+// Live doctor's schedule — ignores Google-only stubs with no weekly hours.
 function useDoctorSchedule(doctorId: string) {
   const [schedule, setSchedule] = useState<AvailabilitySchedule | null>(null);
   useEffect(() => {
     if (!doctorId) { setSchedule(null); return; }
-    (async () => {
-      try {
-        const snap = await getDoc(doc(db, "schedules", doctorId));
-        setSchedule(snap.exists() ? (snap.data() as AvailabilitySchedule) : null);
-      } catch {
-        setSchedule(null); // fall back to default slots
-      }
-    })();
+    const unsub = onSnapshot(
+      doc(db, "schedules", doctorId),
+      (snap) => {
+        if (!snap.exists()) { setSchedule(null); return; }
+        const data = snap.data();
+        setSchedule(isUsableSchedule(data) ? (data as AvailabilitySchedule) : null);
+      },
+      () => setSchedule(null),
+    );
+    return () => unsub();
   }, [doctorId]);
   return schedule;
 }
@@ -323,9 +322,12 @@ function AppointmentCard({
 }
 
 // ── Mini calendar ──────────────────────────────────────────────────────────
-// FIX 7: today computed via useRef (stable, no hydration mismatch)
-function MiniCalendar({ selected, onSelect }: { selected: string; onSelect: (d: string) => void }) {
-  // FIX 7: Stable reference — won't cause hydration mismatch
+// Days follow the doctor's schedule (enabled days, blocked dates, max advance).
+function MiniCalendar({ selected, onSelect, schedule }: {
+  selected: string;
+  onSelect: (d: string) => void;
+  schedule: AvailabilitySchedule | null;
+}) {
   const todayRef = useRef<Date | null>(null);
   if (!todayRef.current) {
     const t = new Date(); t.setHours(0,0,0,0);
@@ -334,7 +336,6 @@ function MiniCalendar({ selected, onSelect }: { selected: string; onSelect: (d: 
   const today = todayRef.current;
 
   const [viewDate, setViewDate] = useState<Date | null>(null);
-  // Initialise viewDate in useEffect to avoid SSR mismatch
   useEffect(() => { setViewDate(new Date()); }, []);
 
   if (!viewDate) return (
@@ -348,6 +349,12 @@ function MiniCalendar({ selected, onSelect }: { selected: string; onSelect: (d: 
   const cells: (number | null)[] = [];
   for (let i = 0; i < new Date(year, month, 1).getDay(); i++) cells.push(null);
   for (let d = 1; d <= new Date(year, month + 1, 0).getDate(); d++) cells.push(d);
+
+  const hint = schedule
+    ? (Number(schedule.maxAdvanceDays) > 0
+      ? `Based on your therapist's schedule · up to ${schedule.maxAdvanceDays} days ahead`
+      : "Based on your therapist's schedule")
+    : "Mon – Fri · schedule not set yet";
 
   return (
     <div className="rounded-2xl p-4"
@@ -374,10 +381,8 @@ function MiniCalendar({ selected, onSelect }: { selected: string; onSelect: (d: 
         {cells.map((day, i) => {
           if (!day) return <div key={`e-${i}`} />;
           const dateStr = `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-          const d       = new Date(year, month, day);
-          const isWeekend  = d.getDay() === 0 || d.getDay() === 6;
-          const isPast     = d < today;
-          const disabled   = isPast || isWeekend;
+          const d        = new Date(year, month, day);
+          const disabled = !isDateBookable(schedule, dateStr, today);
           const isSelected = dateStr === selected;
           const isToday    = d.getTime() === today.getTime();
           return (
@@ -396,7 +401,7 @@ function MiniCalendar({ selected, onSelect }: { selected: string; onSelect: (d: 
         })}
       </div>
       <p className="text-xs text-center mt-3" style={{ color: "#8A9BA8" }}>
-        Mon – Fri only · Weekends unavailable
+        {hint}
       </p>
     </div>
   );
@@ -481,6 +486,16 @@ function ClientAppointmentsPageInner() {
   // Falls back to the platform defaults if they haven't configured anything.
   const schedule = useDoctorSchedule(doctorId);
   const services = useMemo(() => bookableServices(schedule), [schedule]);
+
+  // Drop a selected day if the doctor's schedule no longer allows it.
+  useEffect(() => {
+    if (!selectedDate) return;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (!isDateBookable(schedule, selectedDate, today)) {
+      setSelectedDate("");
+      setSelectedTime("");
+    }
+  }, [schedule, selectedDate]);
   const selectedService  = services.find(s => s.id === selectedType);
   const selectedPrice    = selectedService?.price ?? 0;
   const selectedDuration = selectedService?.duration ?? 60;
@@ -517,7 +532,7 @@ function ClientAppointmentsPageInner() {
       }
     })();
     return () => { cancelled = true; };
-  }, [selectedDate, daySlots, selectedService?.duration, schedule?.timezone]);
+  }, [selectedDate, daySlots, selectedService?.duration, schedule?.timezone, doctorId]);
 
   // FIX 2: Toast auto-dismiss — effect depends on toast object, dismisses on its own timer
   useEffect(() => {
@@ -1049,7 +1064,7 @@ function ClientAppointmentsPageInner() {
               {/* Step 2 — Date & time */}
               {step === 2 && (
                 <div className="space-y-4">
-                  <MiniCalendar selected={selectedDate} onSelect={d => {
+                  <MiniCalendar schedule={schedule} selected={selectedDate} onSelect={d => {
                     setSelectedDate(d);
                     setSelectedTime(""); // reset time when date changes
                   }} />

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { isRevenuePayment } from "@/lib/paymentMetrics";
 import {
   Users, DollarSign, Calendar, TrendingUp, ArrowRight,
   Activity, Clock, Stethoscope, Settings, Loader2,
@@ -180,7 +181,7 @@ export default function AdminDashboard() {
   const completedAppts = appts.filter(a => a.status==="completed");
   const pendingAppts   = appts.filter(a => a.status==="pending");
 
-  const completedPay  = payments.filter(p => p.status==="completed");
+  const completedPay  = payments.filter(p => isRevenuePayment(p.status));
   const totalRevenue  = completedPay.reduce((s,p) => s+p.amount, 0);
   const onlineRevenue = completedPay.filter(p => p.source==="online").reduce((s,p) => s+p.amount, 0);
   const manualRevenue = completedPay.filter(p => p.source==="manual").reduce((s,p) => s+p.amount, 0);

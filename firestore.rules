@@ -229,9 +229,13 @@ service cloud.firestore {
       allow read:  if isAuth();
       allow write: if isAdmin();
     }
-    // ── Manual payments (admin only) ──────────────────────────────────────────
+    // ── Manual payments ───────────────────────────────────────────────────────
+    // Admin full access. Doctors may read rows stamped with their doctorId
+    // (set when admin records cash against an assigned client).
     match /manualPayments/{id} {
-      allow read, write: if isAdmin();
+      allow read: if isAdmin()
+        || (isDoctor() && resource.data.doctorId == request.auth.uid);
+      allow write: if isAdmin();
     }
     // ── Valeo settlement payouts (admin only) ─────────────────────────────────
     match /payouts/{id} {

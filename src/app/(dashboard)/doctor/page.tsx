@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { collection, query, where, orderBy, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { isRevenuePayment } from "@/lib/paymentMetrics";
 import {
   Calendar, Users, ClipboardList, DollarSign,
   Clock, CheckCircle, AlertCircle, ArrowRight,
@@ -23,7 +24,7 @@ type Appointment = {
 };
 type ClientDoc = { uid: string; displayName: string; email: string; createdAt: any; };
 type Payment   = { id: string; amount: number; status: string; createdAt: any; source: string; };
-type Assessment = { id: string; status: string; assignedTo?: string; };
+type Assessment = { id: string; status: string; assignedTo?: string; assignedAt?: any; completedAt?: any; createdAt?: any; };
 type Message   = { id: string; createdAt: any; senderId: string; read?: boolean; };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -151,7 +152,8 @@ export default function DoctorDashboard() {
 
   const [appts,       setAppts]       = useState<Appointment[]>([]);
   const [clients,     setClients]     = useState<ClientDoc[]>([]);
-  const [payments,    setPayments]    = useState<Payment[]>([]);
+  const [onlinePays,  setOnlinePays]  = useState<Payment[]>([]);
+  const [manualPays,  setManualPays]  = useState<Payment[]>([]);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [notedApptIds, setNotedApptIds] = useState<Set<string>>(new Set());
   const [loading,     setLoading]     = useState(true);
@@ -160,6 +162,8 @@ export default function DoctorDashboard() {
   // Client-only state to avoid hydration mismatch
   const [greeting,    setGreeting]    = useState("");
   const [today,       setToday]       = useState("");
+
+  const payments = [...onlinePays, ...manualPays];
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -171,10 +175,11 @@ export default function DoctorDashboard() {
     setLoading(true);
     let apptsReady = false;
     let paymentsReady = false;
+    let manualReady = false;
     let assessReady = false;
     let notesReady = false;
     const maybeDone = () => {
-      if (apptsReady && paymentsReady && assessReady && notesReady) setLoading(false);
+      if (apptsReady && paymentsReady && manualReady && assessReady && notesReady) setLoading(false);
     };
 
     const unsubAppts = onSnapshot(
@@ -208,11 +213,30 @@ export default function DoctorDashboard() {
     const unsubPay = onSnapshot(
       query(collection(db, "payments"), where("doctorId", "==", user.uid), orderBy("createdAt", "desc")),
       (snap) => {
-        setPayments(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Payment));
+        setOnlinePays(snap.docs.map(d => ({ id: d.id, ...d.data(), source: "online" }) as Payment));
         paymentsReady = true;
         maybeDone();
       },
       () => { paymentsReady = true; maybeDone(); }
+    );
+
+    const unsubManual = onSnapshot(
+      query(collection(db, "manualPayments"), where("doctorId", "==", user.uid)),
+      (snap) => {
+        setManualPays(snap.docs.map(d => {
+          const data = d.data() as any;
+          return {
+            id: d.id,
+            amount: data.amount ?? 0,
+            status: data.status || "completed",
+            createdAt: data.createdAt,
+            source: "manual",
+          } as Payment;
+        }));
+        manualReady = true;
+        maybeDone();
+      },
+      () => { setManualPays([]); manualReady = true; maybeDone(); }
     );
 
     const unsubAssess = onSnapshot(
@@ -243,6 +267,7 @@ export default function DoctorDashboard() {
     return () => {
       unsubAppts();
       unsubPay();
+      unsubManual();
       unsubAssess();
       unsubNotes();
     };
@@ -272,7 +297,7 @@ export default function DoctorDashboard() {
   const completedThisMonth = completedAppts.filter(a => { const d=toDate(a.createdAt); return d && monthKey(d)===thisMonthK; }).length;
   const newClientsThisMonth = clients.filter(c => { const d=toDate(c.createdAt); return d && monthKey(d)===thisMonthK; }).length;
 
-  const completedPay    = payments.filter(p => p.status==="completed");
+  const completedPay    = payments.filter(p => isRevenuePayment(p.status));
   const revenueThisMonth = completedPay.filter(p => { const d=toDate(p.createdAt); return d && monthKey(d)===thisMonthK; }).reduce((s,p)=>s+p.amount,0);
   const totalRevenue    = completedPay.reduce((s,p) => s+p.amount, 0);
 
@@ -281,7 +306,11 @@ export default function DoctorDashboard() {
 
   const weekAppts      = enrichedAppts.filter(a => { const d=toDate(a.createdAt); return d && isThisWeek(d) && a.status==="completed"; }).length;
   const weekNewClients = clients.filter(c => { const d=toDate(c.createdAt); return d && isThisWeek(d); }).length;
-  const weekAssess     = assessments.filter(a => { return a.status==="completed"; }).length;
+  const weekAssess     = assessments.filter(a => {
+    if (a.status !== "completed") return false;
+    const d = toDate(a.completedAt ?? a.assignedAt ?? a.createdAt);
+    return d ? isThisWeek(d) : false;
+  }).length;
 
   const rawName   = profileName ?? user?.displayName ?? "Doctor";
   const cleanName = rawName.replace(/^Dr\.?\s*/i, "");

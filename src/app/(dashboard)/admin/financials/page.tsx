@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useMemo } from "react";
 import {
-  collection, getDocs, addDoc, orderBy, query,
-  doc, getDoc, serverTimestamp,
+  collection, addDoc, orderBy, query,
+  doc, getDoc, onSnapshot, serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { authedFetch } from "@/lib/authedFetch";
 import { computeSettlement } from "@/lib/settlement";
+import { isRevenuePayment } from "@/lib/paymentMetrics";
 import {
   DollarSign, TrendingUp, TrendingDown,
   Search, X, Loader2, CheckCircle, Clock,
@@ -39,7 +40,7 @@ interface Transaction {
   createdAt:   any;
 }
 
-interface UserDoc { uid: string; displayName: string; email: string; role: string; }
+interface UserDoc { uid: string; displayName: string; email: string; role: string; doctorId?: string; }
 
 interface Payout {
   id: string;
@@ -200,13 +201,26 @@ function ManualPaymentDrawer({ clients, onClose, onSave }: {
     if (!form.description.trim()) return setError("Description is required.");
     setSaving(true);
     try {
+      // Stamp assigned therapist so doctor dashboards can include this cash payment.
+      let doctorId = "";
+      try {
+        const aSnap = await getDoc(doc(db, "assignments", form.clientId));
+        if (aSnap.exists()) doctorId = String((aSnap.data() as any).doctorId || "");
+        if (!doctorId) {
+          const uSnap = await getDoc(doc(db, "users", form.clientId));
+          if (uSnap.exists()) doctorId = String((uSnap.data() as any).doctorId || "");
+        }
+      } catch { /* optional */ }
+
       const payload = {
         clientId: form.clientId, clientName: form.clientName, clientEmail: form.clientEmail,
         amount: Number(form.amount), currency: "USD", method: form.method,
         description: form.description.trim(), reference: form.reference.trim(),
         date: form.date, sessionType: form.sessionType.trim() || form.description.trim(),
         recordedBy: user?.displayName ?? "Admin", status: "completed",
-        source: "manual", type: "manual", createdAt: serverTimestamp(),
+        source: "manual", type: "manual",
+        ...(doctorId ? { doctorId } : {}),
+        createdAt: serverTimestamp(),
       };
       const docRef = await addDoc(collection(db, "manualPayments"), payload);
       onSave({ id: docRef.id, ...payload, createdAt: new Date() } as unknown as Transaction);
@@ -546,90 +560,123 @@ export default function AdminFinancialsPage() {
   const [showDrawer,   setShowDrawer]   = useState(false);
   const [showPayoutDrawer, setShowPayoutDrawer] = useState(false);
 
+  const [onlineRaw, setOnlineRaw] = useState<any[]>([]);
+  const [manualRaw, setManualRaw] = useState<any[]>([]);
+
   useEffect(() => {
-    (async () => {
-      try {
-        const [paySnap, manualSnap, userSnap, settingsSnap] = await Promise.all([
-          getDocs(query(collection(db, "payments"),       orderBy("createdAt", "desc"))),
-          getDocs(query(collection(db, "manualPayments"), orderBy("createdAt", "desc"))),
-          getDocs(collection(db, "users")),
-          getDoc(doc(db, "settings", "platform")),
-        ]);
+    let usersReady = false;
+    let payReady = false;
+    let manualReady = false;
+    let payoutReady = false;
+    const maybeDone = () => {
+      if (usersReady && payReady && manualReady && payoutReady) setLoading(false);
+    };
 
-        if (settingsSnap.exists()) {
-          const s = settingsSnap.data() as any;
-          setSettlementCfg({
-            platformFeePercent: Number(s.platformFeePercent) || SETTLEMENT_DEFAULTS.platformFeePercent,
-            minPayoutUsd: Number(s.minPayoutUsd) || SETTLEMENT_DEFAULTS.minPayoutUsd,
-            payoutReceiptEmail: String(s.payoutReceiptEmail || ""),
-          });
-        }
+    const unsubSettings = onSnapshot(doc(db, "settings", "platform"), (settingsSnap) => {
+      if (settingsSnap.exists()) {
+        const s = settingsSnap.data() as any;
+        setSettlementCfg({
+          platformFeePercent: Number(s.platformFeePercent) || SETTLEMENT_DEFAULTS.platformFeePercent,
+          minPayoutUsd: Number(s.minPayoutUsd) || SETTLEMENT_DEFAULTS.minPayoutUsd,
+          payoutReceiptEmail: String(s.payoutReceiptEmail || ""),
+        });
+      }
+    });
 
-        try {
-          const payoutSnap = await getDocs(query(collection(db, "payouts"), orderBy("createdAt", "desc")));
-          setPayouts(payoutSnap.docs.map(d => {
-            const data = d.data() as any;
-            return {
-              id: d.id,
-              amount: data.amount ?? 0,
-              currency: data.currency ?? "USD",
-              periodLabel: data.periodLabel ?? "",
-              reference: data.reference ?? "",
-              notes: data.notes ?? "",
-              status: "sent",
-              feePercentApplied: data.feePercentApplied ?? 10,
-              receiptSent: !!data.receiptSent,
-              receiptSkipped: !!data.receiptSkipped,
-              receiptError: data.receiptError ?? null,
-              receiptTo: data.receiptTo ?? "",
-              recordedBy: data.recordedBy ?? "Admin",
-              createdAt: data.createdAt,
-            } as Payout;
-          }));
-        } catch {
-          setPayouts([]);
-        }
+    const unsubUsers = onSnapshot(collection(db, "users"), (userSnap) => {
+      const userMap: Record<string, UserDoc> = {};
+      userSnap.docs.forEach(d => { userMap[d.id] = { uid: d.id, ...d.data() } as UserDoc; });
+      setUsers(userMap);
+      setClients(userSnap.docs.map(d => ({ uid: d.id, ...d.data() } as UserDoc)).filter(u => u.role === "client"));
+      usersReady = true;
+      maybeDone();
+    }, () => { usersReady = true; maybeDone(); });
 
-        const userMap: Record<string, UserDoc> = {};
-        userSnap.docs.forEach(d => { userMap[d.id] = { uid: d.id, ...d.data() } as UserDoc; });
-        setUsers(userMap);
-        setClients(userSnap.docs.map(d => ({ uid: d.id, ...d.data() } as UserDoc)).filter(u => u.role === "client"));
+    const unsubPay = onSnapshot(
+      query(collection(db, "payments"), orderBy("createdAt", "desc")),
+      (paySnap) => {
+        setOnlineRaw(paySnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        payReady = true;
+        maybeDone();
+      },
+      () => { payReady = true; maybeDone(); }
+    );
 
-        const online: Transaction[] = paySnap.docs.map(d => {
+    const unsubManual = onSnapshot(
+      query(collection(db, "manualPayments"), orderBy("createdAt", "desc")),
+      (manualSnap) => {
+        setManualRaw(manualSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        manualReady = true;
+        maybeDone();
+      },
+      () => { manualReady = true; maybeDone(); }
+    );
+
+    const unsubPayouts = onSnapshot(
+      query(collection(db, "payouts"), orderBy("createdAt", "desc")),
+      (payoutSnap) => {
+        setPayouts(payoutSnap.docs.map(d => {
           const data = d.data() as any;
           return {
-            id: d.id, source: "online" as PaymentSource,
-            clientId: data.clientId ?? "", clientName: userMap[data.clientId]?.displayName ?? data.clientName ?? "Unknown",
-            clientEmail: userMap[data.clientId]?.email ?? "", amount: data.amount ?? 0, currency: data.currency ?? "USD",
-            status: data.status ?? "pending", sessionType: data.sessionType ?? "", method: data.provider ?? data.gateway ?? "Stripe",
-            reference: data.reference ?? "", description: data.sessionType ?? "", date: data.sessionDate ?? "",
+            id: d.id,
+            amount: data.amount ?? 0,
+            currency: data.currency ?? "USD",
+            periodLabel: data.periodLabel ?? "",
+            reference: data.reference ?? "",
+            notes: data.notes ?? "",
+            status: "sent",
+            feePercentApplied: data.feePercentApplied ?? 10,
+            receiptSent: !!data.receiptSent,
+            receiptSkipped: !!data.receiptSkipped,
+            receiptError: data.receiptError ?? null,
+            receiptTo: data.receiptTo ?? "",
+            recordedBy: data.recordedBy ?? "Admin",
             createdAt: data.createdAt,
-          };
-        });
+          } as Payout;
+        }));
+        payoutReady = true;
+        maybeDone();
+      },
+      () => { setPayouts([]); payoutReady = true; maybeDone(); }
+    );
 
-        const manual: Transaction[] = manualSnap.docs.map(d => {
-          const data = d.data() as any;
-          return {
-            id: d.id, source: "manual" as PaymentSource,
-            clientId: data.clientId ?? "", clientName: data.clientName ?? userMap[data.clientId]?.displayName ?? "Unknown",
-            clientEmail: data.clientEmail ?? userMap[data.clientId]?.email ?? "", amount: data.amount ?? 0, currency: data.currency ?? "USD",
-            status: (data.status ?? "completed") as PaymentStatus, sessionType: data.sessionType ?? data.description ?? "",
-            method: data.method ?? "Cash", reference: data.reference ?? "", description: data.description ?? "",
-            date: data.date ?? "", createdAt: data.createdAt,
-          };
-        });
-
-        const all = [...online, ...manual].sort((a, b) => {
-          const da = getDate(a)?.getTime() ?? 0;
-          const db2 = getDate(b)?.getTime() ?? 0;
-          return db2 - da;
-        });
-        setTransactions(all);
-      } finally { setLoading(false); }
-    })();
+    return () => {
+      unsubSettings();
+      unsubUsers();
+      unsubPay();
+      unsubManual();
+      unsubPayouts();
+    };
   }, []);
 
-  const completed     = transactions.filter(t => t.status === "completed");
+  useEffect(() => {
+    const online: Transaction[] = onlineRaw.map(data => ({
+      id: data.id, source: "online" as PaymentSource,
+      clientId: data.clientId ?? "", clientName: users[data.clientId]?.displayName ?? data.clientName ?? "Unknown",
+      clientEmail: users[data.clientId]?.email ?? "", amount: data.amount ?? 0, currency: data.currency ?? "USD",
+      status: data.status ?? "pending", sessionType: data.sessionType ?? "", method: data.provider ?? data.gateway ?? "Card",
+      reference: data.reference ?? "", description: data.sessionType ?? "", date: data.sessionDate ?? "",
+      createdAt: data.createdAt,
+    }));
+
+    const manual: Transaction[] = manualRaw.map(data => ({
+      id: data.id, source: "manual" as PaymentSource,
+      clientId: data.clientId ?? "", clientName: data.clientName ?? users[data.clientId]?.displayName ?? "Unknown",
+      clientEmail: data.clientEmail ?? users[data.clientId]?.email ?? "", amount: data.amount ?? 0, currency: data.currency ?? "USD",
+      status: (data.status ?? "completed") as PaymentStatus, sessionType: data.sessionType ?? data.description ?? "",
+      method: data.method ?? "Cash", reference: data.reference ?? "", description: data.description ?? "",
+      date: data.date ?? "", createdAt: data.createdAt,
+    }));
+
+    const all = [...online, ...manual].sort((a, b) => {
+      const da = getDate(a)?.getTime() ?? 0;
+      const db2 = getDate(b)?.getTime() ?? 0;
+      return db2 - da;
+    });
+    setTransactions(all);
+  }, [onlineRaw, manualRaw, users]);
+
+  const completed     = transactions.filter(t => isRevenuePayment(t.status));
   const revenue       = completed.reduce((s, t) => s + t.amount, 0);
   const manualRev     = completed.filter(t => t.source === "manual").reduce((s, t) => s + t.amount, 0);
   const onlineRev     = completed.filter(t => t.source === "online").reduce((s, t) => s + t.amount, 0);
