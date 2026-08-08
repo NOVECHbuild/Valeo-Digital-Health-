@@ -502,7 +502,7 @@ export default function MyDoctorPage() {
                   <MessageCircle size={15} /> Message
                 </Link>
                 <Link
-                  href="/client/appointments"
+                  href="/client/appointments?book=1"
                   className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold"
                   style={{ background: "rgba(141,198,63,0.1)", color: "#6BA028" }}
                 >

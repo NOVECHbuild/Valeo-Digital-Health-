@@ -453,7 +453,7 @@ export default function ClientDashboard() {
             Quick Actions
           </h3>
           <QuickAction
-            href="/client/appointments"
+            href="/client/appointments?book=1"
             icon={Calendar}
             label="Book a Session"
             desc="Schedule your next appointment"
@@ -543,7 +543,7 @@ export default function ClientDashboard() {
                 Your sessions and activity will appear here.
               </p>
               <Link
-                href="/client/appointments"
+                href="/client/appointments?book=1"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white"
                 style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
               >

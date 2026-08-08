@@ -546,27 +546,30 @@ function ClientAppointmentsPageInner() {
     }
   }, [searchParams]);
 
-  // Sticky-header "Book Session" lands here with ?book=1 (replaces the old page-level CTA)
+  // ?book=1 opens the booking modal (Quick Actions, header Book, deep links).
+  // Open modal BEFORE clearing the query — replace used to cancel this effect mid-flight.
   useEffect(() => {
     if (searchParams.get("book") !== "1") return;
     if (doctorLoading) return;
     let cancelled = false;
     (async () => {
-      router.replace("/client/appointments", { scroll: false });
       if (!doctor) { router.push("/onboarding/match"); return; }
       if (!user) return;
       try {
         const cSnap = await getDoc(doc(db, "consents", user.uid));
         const version = cSnap.exists() ? (cSnap.data() as { version?: string }).version : null;
         if (!isConsentCurrent(version)) {
-          router.push("/onboarding/consent?next=/client/appointments");
+          router.push("/onboarding/consent?next=/client/appointments%3Fbook%3D1");
           return;
         }
       } catch {
-        router.push("/onboarding/consent?next=/client/appointments");
+        router.push("/onboarding/consent?next=/client/appointments%3Fbook%3D1");
         return;
       }
-      if (!cancelled) { setShowBooking(true); setStep(1); }
+      if (cancelled) return;
+      setShowBooking(true);
+      setStep(1);
+      router.replace("/client/appointments", { scroll: false });
     })();
     return () => { cancelled = true; };
   }, [searchParams, doctorLoading, doctor, user, router]);
@@ -867,10 +870,22 @@ function ClientAppointmentsPageInner() {
         </div>
       )}
 
-      {/* Subtitle only — Book Session lives in the sticky header */}
-      <p className="text-sm" style={{ color: "#8A9BA8" }}>
-        Manage your sessions with {doctorName}
-      </p>
+      {/* Title row — Book always visible on the page (header Book is easy to miss on mobile) */}
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm" style={{ color: "#8A9BA8" }}>
+          Manage your sessions with {doctorName}
+        </p>
+        {!!doctor && (
+          <button
+            type="button"
+            onClick={startBooking}
+            className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl text-sm font-semibold text-white flex-shrink-0"
+            style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
+          >
+            <Plus size={16} /> Book
+          </button>
+        )}
+      </div>
 
       {/* Not-yet-matched notice — booking requires an assigned doctor */}
       {!doctorLoading && !doctor && (

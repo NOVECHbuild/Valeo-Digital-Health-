@@ -435,7 +435,7 @@ export default function ClientPaymentsPage() {
                 Payments appear here after you book a session.
                 <br />
                 <Link
-                  href="/client/appointments"
+                  href="/client/appointments?book=1"
                   className="underline mt-1 inline-block"
                   style={{ color: "#2A4A1A" }}
                 >

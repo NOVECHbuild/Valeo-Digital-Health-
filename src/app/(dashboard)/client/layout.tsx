@@ -241,7 +241,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               aria-label="Book Session"
             >
               <Calendar size={14} />
-              <span className="hidden xs:inline sm:inline">Book</span>
+              <span>Book</span>
               <span className="hidden sm:inline"> Session</span>
             </Link>
           </div>
