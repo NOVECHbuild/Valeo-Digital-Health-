@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { authedFetch } from '@/lib/authedFetch';
 import { CheckCircle, Calendar, Video, ArrowRight, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import JoinSessionLink from '@/components/JoinSessionLink';
 import { JOIN_EARLY_MINUTES, useCanJoinSession } from '@/lib/joinWindow';
@@ -29,6 +30,7 @@ function SuccessContent() {
   const searchParams   = useSearchParams();
   const orderId        = searchParams.get('order_id') ?? '';
   const appointmentIdQ = searchParams.get('appointment_id') ?? '';
+  const sessionIdQ     = searchParams.get('session_id') ?? '';
 
   const [meetLink,    setMeetLink]    = useState<string | null>(null);
   const [sessionDate, setSessionDate] = useState<string>('');
@@ -52,6 +54,19 @@ function SuccessContent() {
       setLoading(true);
       setError(null);
       try {
+        // Confirm with Stripe in case the webhook was delayed / misconfigured.
+        if (sessionIdQ.startsWith('cs_')) {
+          try {
+            await authedFetch('/api/payments/confirm-session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ sessionId: sessionIdQ }),
+            });
+          } catch (err) {
+            console.warn('[Payment success] confirm-session fallback failed:', err);
+          }
+        }
+
         let appointmentId = appointmentIdQ;
 
         if (orderId) {
@@ -87,7 +102,7 @@ function SuccessContent() {
       }
     })();
     return () => { cancelled = true; };
-  }, [orderId, appointmentIdQ, retryKey]);
+  }, [orderId, appointmentIdQ, sessionIdQ, retryKey]);
 
   function fmtDate(d: string) {
     if (!d) return '';
