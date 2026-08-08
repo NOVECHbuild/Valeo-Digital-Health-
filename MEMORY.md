@@ -6,6 +6,7 @@ _Update this when Benny shares a new fact, decision, blocker, or “do not chang
 - **Stripe parked** until website/product feels complete (Benny 2026-08-07).
 - Build sequence: **1 recurring** → **2 portal polish** → **3 stale-data** (done). Soft-launch ops next when ready.
 - Meet/Calendar working. Stay invite-only + Calendly homepage until public launch.
+- **Clinical file (Phase 1 shipped):** Doctor Clients → Clinical file tab; manual Meet audio/transcript upload → AI SOAP → `sessionReports` + linked `notes`. Doctor-owned forever (not client-visible; not transferred on reassignment). In-app Meet/Workspace guide. Auto-Meet transcription deferred until revenue. Consent v`2026-08-08` includes recording/AI ack.
 
 ## Account map (business — confirmed 2026-08-07)
 

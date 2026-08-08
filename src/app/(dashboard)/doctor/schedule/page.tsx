@@ -192,16 +192,21 @@ function PostCompleteNoteModal({
           </p>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-2 pt-1">
-          <Link href={`/doctor/notes?appointmentId=${appt.id}`}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white"
+        <div className="flex flex-col gap-2 pt-1">
+          <Link href={`/doctor/clients?clientId=${appt.clientId}&file=${appt.id}`}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white"
             style={{ background: "linear-gradient(135deg,#1E3810,#3D6B24)" }}>
             <FileText size={15} />
-            {hasNote ? "View session note" : "Add session note"}
+            File visit (clinical file)
+          </Link>
+          <Link href={`/doctor/notes?appointmentId=${appt.id}`}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold"
+            style={{ background: "white", color: "#2A4A1A", border: "1px solid rgba(42,74,26,0.12)" }}>
+            {hasNote ? "Open session note" : "Add session note"}
           </Link>
           <button type="button" onClick={onClose}
-            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold"
-            style={{ background: "white", color: "#2A4A1A", border: "1px solid rgba(42,74,26,0.12)" }}>
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
+            style={{ color: "#8A9BA8" }}>
             Do later
           </button>
         </div>
@@ -297,17 +302,27 @@ function AppointmentCard({ appt, onApprove, onReject, onCreateMeet, loading, has
         </button>
       )}
 
-      {/* Session note link — available once a session is approved or completed */}
+      {/* Clinical file + session note — once approved or completed */}
       {(appt.status === "approved" || appt.status === "completed") && (
-        <Link href={`/doctor/notes?appointmentId=${appt.id}`}
-          className="mt-2 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all hover:-translate-y-0.5"
-          style={{
-            background: hasNote ? "rgba(141,198,63,0.12)" : "white",
-            color: "#2A4A1A",
-            border: "1px solid rgba(141,198,63,0.3)",
-          }}>
-          <FileText size={14}/> {hasNote ? "View session note" : "Add session note"}
-        </Link>
+        <div className="mt-2 space-y-2">
+          <Link href={`/doctor/clients?clientId=${appt.clientId}&file=${appt.id}`}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all hover:-translate-y-0.5"
+            style={{
+              background: "linear-gradient(135deg,#1E3810,#3D6B24)",
+              color: "white",
+            }}>
+            <FileText size={14}/> File visit
+          </Link>
+          <Link href={`/doctor/notes?appointmentId=${appt.id}`}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all hover:-translate-y-0.5"
+            style={{
+              background: hasNote ? "rgba(141,198,63,0.12)" : "white",
+              color: "#2A4A1A",
+              border: "1px solid rgba(141,198,63,0.3)",
+            }}>
+            <FileText size={14}/> {hasNote ? "View session note" : "Add session note"}
+          </Link>
+        </div>
       )}
     </div>
   );

@@ -156,6 +156,8 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
     // ── Notes ─────────────────────────────────────────────────────────────────
+    // Doctor-owned clinical notes. Stay with the session doctor forever —
+    // clients cannot read; reassignment does not move these docs.
     match /notes/{noteId} {
       allow read: if isAuth() && (
         resource.data.doctorId == request.auth.uid ||
@@ -164,6 +166,22 @@ service cloud.firestore {
       allow create: if isDoctor()
         && request.resource.data.doctorId == request.auth.uid;
       allow update, delete: if isAuth() && (
+        resource.data.doctorId == request.auth.uid ||
+        isAdmin()
+      );
+    }
+    // ── Session reports (transcript + AI SOAP, filed under a visit) ───────────
+    // Same ownership rule as notes: only the doctor who ran the session (or admin).
+    match /sessionReports/{reportId} {
+      allow read: if isAuth() && (
+        resource.data.doctorId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create, update: if isDoctor()
+        && request.resource.data.doctorId == request.auth.uid
+        && (!exists(/databases/$(database)/documents/sessionReports/$(reportId))
+            || get(/databases/$(database)/documents/sessionReports/$(reportId)).data.doctorId == request.auth.uid);
+      allow delete: if isAuth() && (
         resource.data.doctorId == request.auth.uid ||
         isAdmin()
       );

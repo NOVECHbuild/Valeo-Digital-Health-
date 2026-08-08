@@ -83,12 +83,16 @@ export async function POST(req: NextRequest) {
     let appointmentId = "";
     let audioUsed     = false;
     let preview       = false;   // preview = generate SOAP only, do not save to Firestore
+    let storagePath   = "";
+    let alsoNote      = true;
 
     // ── Mode 1: Audio file upload ──────────────────────────────────────────
     if (contentType.includes("multipart/form-data")) {
       const form          = await req.formData();
       appointmentId       = (form.get("appointmentId") as string) ?? "";
       preview             = form.get("preview") === "true";
+      alsoNote            = form.get("alsoNote") !== "false";
+      storagePath         = (form.get("storagePath") as string) ?? "";
       const audioFile     = form.get("audio") as File;
 
       if (!audioFile) {
@@ -99,7 +103,6 @@ export async function POST(req: NextRequest) {
       const base64Audio = Buffer.from(audioBytes).toString("base64");
       const mimeType    = audioFile.type as "audio/mp3" | "audio/wav" | "audio/ogg" | "audio/m4a" | "audio/webm";
 
-      // Use Gemini 1.5 Pro for audio transcription (supports audio natively)
       const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
       const transcriptionResult = await model.generateContent([
@@ -116,6 +119,8 @@ export async function POST(req: NextRequest) {
       transcript    = body.transcript;
       appointmentId = body.appointmentId ?? "";
       preview       = body.preview === true;
+      alsoNote      = body.alsoNote !== false;
+      storagePath   = body.storagePath ?? "";
 
       if (!transcript?.trim()) {
         return NextResponse.json({ error: "No transcript provided" }, { status: 400 });
@@ -123,7 +128,6 @@ export async function POST(req: NextRequest) {
     }
 
     // appointmentId is only required when we intend to save a report.
-    // In preview mode (e.g. Doctor Notes AI Assist) we generate SOAP without saving.
     if (!preview && !appointmentId) {
       return NextResponse.json({ error: "appointmentId required" }, { status: 400 });
     }
@@ -137,7 +141,6 @@ export async function POST(req: NextRequest) {
     const summaryResult = await model.generateContent(SUMMARY_PROMPT(transcript));
     const rawJson       = summaryResult.response.text();
 
-    // Parse JSON safely
     let clinicalReport: any;
     try {
       const cleaned = rawJson.replace(/```json|```/g, "").trim();
@@ -147,8 +150,6 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Preview mode — return SOAP without persisting anything ─────────────
-    // Used by Doctor Notes "AI Assist": the doctor reviews and saves the note
-    // manually, so we do not write to sessionReports or touch the appointment.
     if (preview) {
       return NextResponse.json({
         success: true,
@@ -158,41 +159,99 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Load appointment for metadata
+    // Load appointment — ownership: only the session doctor may file
     const apptSnap = await adminDb.collection("appointments").doc(appointmentId).get();
-    const appt     = apptSnap.data();
+    if (!apptSnap.exists) {
+      return NextResponse.json({ error: "Appointment not found." }, { status: 404 });
+    }
+    const appt = apptSnap.data()!;
+    if (gate.role === "doctor" && appt.doctorId !== gate.uid) {
+      return NextResponse.json({
+        error: "Only the therapist who ran this session can file clinical records for it.",
+      }, { status: 403 });
+    }
 
-    // Build full session report document
+    const doctorId = appt.doctorId as string;
+    const clientId = (appt.clientId as string) ?? "";
+
     const reportData = {
       appointmentId,
-      clientId:      appt?.clientId   ?? "",
-      doctorId:      appt?.doctorId   ?? "",
-      clientName:    appt?.clientName ?? "",
-      sessionType:   appt?.type       ?? "",
-      sessionDate:   appt?.date       ?? "",
-      sessionTime:   appt?.time       ?? "",
-      duration:      appt?.duration   ?? 0,
+      clientId,
+      doctorId,
+      clientName:    appt.clientName ?? "",
+      sessionType:   appt.type       ?? "",
+      sessionDate:   appt.date       ?? "",
+      sessionTime:   appt.time       ?? "",
+      duration:      appt.duration   ?? 0,
       transcript,
       audioUsed,
+      storagePath:   storagePath || null,
       clinicalReport,
       generatedAt:   new Date().toISOString(),
-      status:        "draft", // doctor can mark as "finalised"
+      updatedAt:     new Date().toISOString(),
+      status:        "draft",
+      filedBy:       gate.uid,
     };
 
-    // Save to Firestore sessionReports collection
-    await adminDb.collection("sessionReports").doc(appointmentId).set(reportData);
+    await adminDb.collection("sessionReports").doc(appointmentId).set(reportData, { merge: true });
 
-    // Also update the appointment to mark it has a report
     await adminDb.collection("appointments").doc(appointmentId).update({
-      hasSessionReport: true,
+      hasSessionReport:  true,
       reportGeneratedAt: new Date().toISOString(),
     });
+
+    // Also mirror a doctor-owned note so it appears in Notes + Clinical File
+    let noteId: string | null = null;
+    if (alsoNote) {
+      const { formatAIReport } = await import("@/lib/sessionReportFormat");
+      const content = formatAIReport(clinicalReport);
+      const title =
+        (clinicalReport?.sessionSummary as string | undefined)?.split(/[.!?]/)[0]?.slice(0, 60)
+        || `${appt.type || "Session"} — ${appt.date || ""}`;
+
+      const existing = await adminDb.collection("notes")
+        .where("doctorId", "==", doctorId)
+        .where("appointmentId", "==", appointmentId)
+        .limit(1)
+        .get();
+
+      if (!existing.empty) {
+        noteId = existing.docs[0].id;
+        await existing.docs[0].ref.update({
+          title,
+          content,
+          sessionDate: appt.date ?? "",
+          sessionType: appt.type ?? "",
+          appointmentTime: appt.time ?? "",
+          updatedAt: new Date().toISOString(),
+          source: "ai-session-report",
+        });
+      } else {
+        const ref = await adminDb.collection("notes").add({
+          clientId,
+          clientName: appt.clientName ?? "",
+          doctorId,
+          title,
+          content,
+          sessionDate: appt.date ?? "",
+          sessionType: appt.type ?? "",
+          tags: ["AI"],
+          appointmentId,
+          appointmentTime: appt.time ?? "",
+          source: "ai-session-report",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+        noteId = ref.id;
+      }
+    }
 
     return NextResponse.json({
       success: true,
       transcript,
       clinicalReport,
       reportId: appointmentId,
+      noteId,
     });
 
   } catch (err: any) {
@@ -201,8 +260,14 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// ── GET — load existing report ─────────────────────────────────────────────
+// ── GET — load existing report (session doctor or admin only) ──────────────
 export async function GET(req: NextRequest) {
+  const gate = await requireAuth(req);
+  if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
+  if (gate.role !== "doctor" && gate.role !== "admin") {
+    return NextResponse.json({ error: "Doctor access required." }, { status: 403 });
+  }
+
   const { searchParams } = new URL(req.url);
   const appointmentId    = searchParams.get("appointmentId");
 
@@ -215,5 +280,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ exists: false }, { status: 404 });
   }
 
-  return NextResponse.json({ exists: true, report: snap.data() });
+  const report = snap.data()!;
+  if (gate.role === "doctor" && report.doctorId !== gate.uid) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  return NextResponse.json({ exists: true, report });
 }

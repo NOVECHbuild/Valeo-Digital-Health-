@@ -1,14 +1,15 @@
 // Telehealth consent — versioned platform acknowledgments (not legal advice).
 // Bump CONSENT_VERSION when checkbox copy changes so clients re-sign.
 
-export const CONSENT_VERSION = "2026-08-01";
+export const CONSENT_VERSION = "2026-08-08";
 
 export type ConsentAccepted = {
-  privacy:      boolean;
-  terms:        boolean;
-  hipaaNotice:  boolean;
-  telehealth:   boolean;
-  emergency:    boolean;
+  privacy:           boolean;
+  terms:             boolean;
+  hipaaNotice:       boolean;
+  telehealth:        boolean;
+  sessionRecording:  boolean;
+  emergency:         boolean;
 };
 
 export type ConsentRecord = {
@@ -23,7 +24,14 @@ export type ConsentRecord = {
 };
 
 export function allAccepted(a: ConsentAccepted): boolean {
-  return !!(a.privacy && a.terms && a.hipaaNotice && a.telehealth && a.emergency);
+  return !!(
+    a.privacy &&
+    a.terms &&
+    a.hipaaNotice &&
+    a.telehealth &&
+    a.sessionRecording &&
+    a.emergency
+  );
 }
 
 export function isConsentCurrent(version?: string | null): boolean {
@@ -54,6 +62,11 @@ export const CONSENT_ACKS: {
     key:   "telehealth",
     label: "I understand sessions may be delivered by secure video and that this platform is not for emergencies.",
     link:  { href: "/legal/disclaimer", text: "Disclaimer" },
+  },
+  {
+    key:   "sessionRecording",
+    label:
+      "I understand my therapist may record or transcribe sessions (e.g. via Google Meet) and may use AI tools to help draft clinical notes. Recordings and notes are kept in my therapist's private clinical file — not shared with me in the app, and not transferred if I later work with a different therapist on this platform.",
   },
   {
     key:   "emergency",

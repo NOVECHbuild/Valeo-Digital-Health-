@@ -16,6 +16,18 @@ service firebase.storage {
         && request.resource.contentType.matches('application/pdf|image/.*');
     }
 
+    // Clinical session captures (audio / transcript text) — private to the
+    // session doctor. Path: clinical/{doctorId}/{clientId}/{appointmentId}/…
+    // Never client-readable. Reassignment does not grant access to another doctor.
+    match /clinical/{doctorId}/{clientId}/{appointmentId}/{fileName} {
+      allow read: if request.auth != null && request.auth.uid == doctorId;
+      allow write: if request.auth != null
+        && request.auth.uid == doctorId
+        && request.resource.size < 50 * 1024 * 1024
+        && request.resource.contentType.matches('audio/.*|text/plain|text/.*|application/pdf');
+      allow delete: if request.auth != null && request.auth.uid == doctorId;
+    }
+
     // Everything else is locked down.
     match /{allPaths=**} {
       allow read, write: if false;

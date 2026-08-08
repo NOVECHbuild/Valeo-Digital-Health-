@@ -17,38 +17,8 @@ import {
   AlertCircle, Lock, Calendar, User,
   Sparkles, Upload, FileAudio, AlertTriangle, Link2,
 } from "lucide-react";
-
-// ── AI report formatter ─────────────────────────────────────────────────────
-// Turns the Gemini clinical report JSON into a readable SOAP note body.
-function formatAIReport(r: any): string {
-  const soap = r?.soap ?? {};
-  const out: string[] = [];
-  if (r?.sessionSummary) out.push(`SUMMARY\n${r.sessionSummary}`);
-  out.push(`SUBJECTIVE\n${soap.subjective || "—"}`);
-  out.push(`OBJECTIVE\n${soap.objective || "—"}`);
-  out.push(`ASSESSMENT\n${soap.assessment || "—"}`);
-  out.push(`PLAN\n${soap.plan || "—"}`);
-  if (Array.isArray(r?.keyThemes) && r.keyThemes.length)
-    out.push(`KEY THEMES\n${r.keyThemes.join(", ")}`);
-  if (Array.isArray(r?.recommendedInterventions) && r.recommendedInterventions.length)
-    out.push(`RECOMMENDED INTERVENTIONS\n${r.recommendedInterventions.join(", ")}`);
-  if (r?.nextSessionFocus) out.push(`NEXT SESSION FOCUS\n${r.nextSessionFocus}`);
-  const rf = r?.riskFlags ?? {};
-  const risks: string[] = [];
-  if (rf.selfHarm)         risks.push("self-harm");
-  if (rf.suicidalIdeation) risks.push("suicidal ideation");
-  if (rf.harmToOthers)     risks.push("harm to others");
-  if (rf.substanceUse)     risks.push("substance use");
-  if (risks.length)
-    out.push(`⚠ RISK FLAGS: ${risks.join(", ")}${rf.details ? ` — ${rf.details}` : ""}`);
-  return out.join("\n\n");
-}
-
-// Returns true if the report contains any active risk flag.
-function reportHasRisk(r: any): boolean {
-  const rf = r?.riskFlags ?? {};
-  return !!(rf.selfHarm || rf.suicidalIdeation || rf.harmToOthers || rf.substanceUse);
-}
+import { formatAIReport, reportHasRisk } from "@/lib/sessionReportFormat";
+import MeetRecordingGuide from "@/components/MeetRecordingGuide";
 
 interface Client { uid: string; displayName: string; email: string; }
 interface Note {
@@ -313,6 +283,10 @@ function NoteEditor({ note, clients, appointments, sessionTypes, doctorId, onSav
                   <Sparkles size={14} style={{ color:"#6BA028" }}/>
                   <p className="text-xs font-semibold" style={{ color:"#2A4A1A" }}>AI Session Summary</p>
                   <span className="text-xs" style={{ color:"#8A9BA8" }}>· Draft only — review before saving</span>
+                </div>
+
+                <div className="px-4 pt-3">
+                  <MeetRecordingGuide compact />
                 </div>
 
                 {/* Mode toggle */}

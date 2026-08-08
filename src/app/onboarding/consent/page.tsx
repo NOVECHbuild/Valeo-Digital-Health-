@@ -15,7 +15,8 @@ import {
 } from "lucide-react";
 
 const EMPTY_ACCEPTED: ConsentAccepted = {
-  privacy: false, terms: false, hipaaNotice: false, telehealth: false, emergency: false,
+  privacy: false, terms: false, hipaaNotice: false, telehealth: false,
+  sessionRecording: false, emergency: false,
 };
 
 function toDate(ts: any): Date | null {

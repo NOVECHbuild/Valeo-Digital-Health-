@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { collection, query, where, getDoc, doc, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { useSearchParams } from "next/navigation";
 import {
   Search, Users, Calendar, Clock, ChevronRight, Loader2,
   Mail, Phone, MapPin, Heart, X, CheckCircle, MessageCircle,
-  ExternalLink, FileText, TrendingUp, AlertCircle, Shield,
+  ExternalLink, FileText, TrendingUp, AlertCircle, Shield, FolderOpen,
 } from "lucide-react";
 import Link from "next/link";
 import { CONSENT_VERSION, isConsentCurrent, CONSENT_ACKS, type ConsentRecord } from "@/lib/consent";
+import ClinicalFile from "@/components/ClinicalFile";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface Client {
@@ -79,9 +81,12 @@ function StatusBadge({ status }: { status: Appointment["status"] }) {
 }
 
 // ── Client drawer ──────────────────────────────────────────────────────────
-function ClientDrawer({ client, appointments, consent, onClose }: {
+function ClientDrawer({ client, appointments, consent, onClose, initialTab = "profile", initialFileAppt }: {
   client: Client; appointments: Appointment[]; consent: ConsentRecord | null; onClose: () => void;
+  initialTab?: "profile" | "clinical";
+  initialFileAppt?: string;
 }) {
+  const [tab, setTab] = useState<"profile" | "clinical">(initialTab);
   const [apptFilter, setApptFilter] = useState<"all"|"upcoming"|"completed">("all");
   const [showConsent, setShowConsent] = useState(false);
 
@@ -105,25 +110,58 @@ function ClientDrawer({ client, appointments, consent, onClose }: {
     <div className="fixed inset-0 z-50 flex justify-end"
       style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="w-full max-w-md h-full overflow-y-auto"
+      <div className="w-full max-w-lg h-full overflow-y-auto"
         style={{ background: "#F6FAF0", boxShadow: "-4px 0 24px rgba(0,0,0,0.1)" }}>
 
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b"
+        <div className="sticky top-0 z-10 border-b"
           style={{ background: "#F6FAF0", borderColor: "rgba(42,74,26,0.08)" }}>
-          <h3 className="font-semibold" style={{ color: "#2A4A1A" }}>Client Profile</h3>
-          <div className="flex items-center gap-2">
-            <Link href="/doctor/messages"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:opacity-80"
-              style={{ background: "rgba(141,198,63,0.12)", color: "#6BA028" }}>
-              <MessageCircle size={12}/> Message
-            </Link>
-            <button onClick={onClose} className="p-2 rounded-lg hover:bg-black/5">
-              <X size={18} style={{ color: "#4A5568" }} />
-            </button>
+          <div className="flex items-center justify-between px-6 py-4">
+            <h3 className="font-semibold" style={{ color: "#2A4A1A" }}>
+              {client.displayName}
+            </h3>
+            <div className="flex items-center gap-2">
+              <Link href="/doctor/messages"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:opacity-80"
+                style={{ background: "rgba(141,198,63,0.12)", color: "#6BA028" }}>
+                <MessageCircle size={12}/> Message
+              </Link>
+              <button onClick={onClose} className="p-2 rounded-lg hover:bg-black/5">
+                <X size={18} style={{ color: "#4A5568" }} />
+              </button>
+            </div>
+          </div>
+          <div className="flex gap-1 px-6 pb-3">
+            {([
+              { key: "profile", label: "Profile", Icon: Users },
+              { key: "clinical", label: "Clinical file", Icon: FolderOpen },
+            ] as const).map(({ key, label, Icon }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setTab(key)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                style={{
+                  background: tab === key ? "#2A4A1A" : "rgba(42,74,26,0.06)",
+                  color: tab === key ? "white" : "#8A9BA8",
+                }}
+              >
+                <Icon size={12} /> {label}
+              </button>
+            ))}
           </div>
         </div>
 
+        {tab === "clinical" ? (
+          <div className="p-6">
+            <ClinicalFile
+              clientId={client.uid}
+              clientName={client.displayName}
+              appointments={appointments}
+              initialApptId={initialFileAppt}
+            />
+          </div>
+        ) : (
         <div className="p-6 space-y-5">
 
           {/* Avatar + name */}
@@ -363,7 +401,17 @@ function ClientDrawer({ client, appointments, consent, onClose }: {
             )}
           </div>
 
+          <button
+            type="button"
+            onClick={() => setTab("clinical")}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold"
+            style={{ background: "rgba(42,74,26,0.06)", color: "#2A4A1A" }}
+          >
+            <FolderOpen size={15} /> Open clinical file
+          </button>
+
         </div>
+        )}
       </div>
     </div>
   );
@@ -471,8 +519,9 @@ function ClientCard({ client, appts, consentOk, onClick }: {
 // ── Main page ──────────────────────────────────────────────────────────────
 type FilterType = "all" | "active" | "inactive";
 
-export default function DoctorClientsPage() {
+function DoctorClientsPageInner() {
   const { user }  = useAuth();
+  const searchParams = useSearchParams();
   const [clients,  setClients]  = useState<Client[]>([]);
   const [allAppts, setAllAppts] = useState<Record<string, Appointment[]>>({});
   const [consents, setConsents] = useState<Record<string, ConsentRecord | null>>({});
@@ -480,6 +529,21 @@ export default function DoctorClientsPage() {
   const [search,   setSearch]   = useState("");
   const [filter,   setFilter]   = useState<FilterType>("all");
   const [selected, setSelected] = useState<Client | null>(null);
+  const [drawerTab, setDrawerTab] = useState<"profile" | "clinical">("profile");
+  const [fileApptId, setFileApptId] = useState<string | undefined>();
+
+  // Deep link: /doctor/clients?clientId=…&file=appointmentId
+  useEffect(() => {
+    const cid = searchParams.get("clientId");
+    const file = searchParams.get("file") || undefined;
+    if (!cid || clients.length === 0) return;
+    const c = clients.find(x => x.uid === cid);
+    if (c) {
+      setSelected(c);
+      setDrawerTab("clinical");
+      setFileApptId(file);
+    }
+  }, [searchParams, clients]);
 
   useEffect(() => {
     if (!user) return;
@@ -676,7 +740,11 @@ export default function DoctorClientsPage() {
                 client={client}
                 appts={allAppts[client.uid] ?? []}
                 consentOk={consentOk}
-                onClick={() => setSelected(client)}
+                onClick={() => {
+                  setDrawerTab("profile");
+                  setFileApptId(undefined);
+                  setSelected(client);
+                }}
               />
             );
           })}
@@ -689,9 +757,27 @@ export default function DoctorClientsPage() {
           client={selected}
           appointments={allAppts[selected.uid] ?? []}
           consent={consents[selected.uid] ?? null}
-          onClose={() => setSelected(null)}
+          initialTab={drawerTab}
+          initialFileAppt={fileApptId}
+          onClose={() => {
+            setSelected(null);
+            setFileApptId(undefined);
+            setDrawerTab("profile");
+          }}
         />
       )}
     </div>
+  );
+}
+
+export default function DoctorClientsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center py-24">
+        <Loader2 size={28} className="animate-spin" style={{ color: "#8DC63F" }} />
+      </div>
+    }>
+      <DoctorClientsPageInner />
+    </Suspense>
   );
 }
