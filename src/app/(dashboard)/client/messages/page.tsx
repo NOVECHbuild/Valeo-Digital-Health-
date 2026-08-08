@@ -254,16 +254,9 @@ export default function ClientMessagesPage() {
             ${mobileView === "chat" ? "hidden md:flex" : "flex"} w-full md:w-72`}
           style={{ borderColor: "rgba(42,74,26,0.08)" }}
         >
-          {/* Sidebar header */}
+          {/* Sidebar header — page name lives in the sticky header */}
           <div className="p-5 border-b" style={{ borderColor: "rgba(42,74,26,0.08)" }}>
-            <h2
-              className="text-lg font-semibold"
-              style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}
-            >
-              Messages
-            </h2>
-            {/* FIX 7: Dynamic label instead of hardcoded "your therapist" */}
-            <p className="text-xs mt-0.5" style={{ color: "#8A9BA8" }}>
+            <p className="text-xs" style={{ color: "#8A9BA8" }}>
               Secure conversations with your therapist
             </p>
           </div>

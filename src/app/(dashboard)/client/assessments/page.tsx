@@ -694,15 +694,10 @@ export default function ClientAssessmentsPage() {
       {/* FIX 1: Toast driven by useEffect */}
       {toast && <Toast {...toast} />}
 
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
-          Assessments
-        </h2>
-        <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>
-          Forms and questionnaires assigned by your therapist
-        </p>
-      </div>
+      {/* Subtitle only — page name lives in the sticky header */}
+      <p className="text-sm" style={{ color: "#8A9BA8" }}>
+        Forms and questionnaires assigned by your therapist
+      </p>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">

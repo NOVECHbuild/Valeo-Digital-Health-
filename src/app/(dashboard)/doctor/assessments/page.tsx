@@ -860,13 +860,10 @@ export default function DoctorAssessmentsPage() {
         />
       )}
 
-      {/* Header */}
+      {/* Subtitle + actions — page name lives in the sticky header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
-            Assessments
-          </h2>
-          <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>
+          <p className="text-sm" style={{ color: "#8A9BA8" }}>
             Clinical tools, custom forms, and client responses
           </p>
         </div>

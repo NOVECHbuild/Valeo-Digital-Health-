@@ -252,15 +252,10 @@ export default function AccountSettingsPage() {
         </div>
       )}
 
-      {/* Header */}
-      <div>
-        <h1 style={{ fontFamily: 'var(--font-dm-serif)', fontSize: '28px', color: '#2A4A1A', marginBottom: '6px' }}>
-          Account Settings
-        </h1>
-        <p style={{ fontSize: '14px', color: '#8A9BA8' }}>
-          Password and email notification preferences. Personal details live in Profile.
-        </p>
-      </div>
+      {/* Subtitle only — page name lives in the sticky header */}
+      <p style={{ fontSize: '14px', color: '#8A9BA8' }}>
+        Password and email notification preferences. Personal details live in Profile.
+      </p>
 
       {/* Load error banner */}
       {loadError && (

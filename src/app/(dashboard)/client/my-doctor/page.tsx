@@ -211,7 +211,7 @@ export default function MyDoctorPage() {
 
   // ── FIX 7: Error state instead of endless spinner ───────────────────────
   if (fetchError) return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       <div className="rounded-2xl p-10 text-center"
         style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
         <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3"
@@ -225,19 +225,14 @@ export default function MyDoctorPage() {
   );
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
 
       {toast && <Toast {...toast} />}
 
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
-          My Therapist
-        </h2>
-        <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>
-          Your assigned therapist and session information
-        </p>
-      </div>
+      {/* Subtitle only — page name lives in the sticky header */}
+      <p className="text-sm" style={{ color: "#8A9BA8" }}>
+        Your assigned therapist and session information
+      </p>
 
       {/* No assignment yet */}
       {!assignment && (
@@ -346,8 +341,8 @@ export default function MyDoctorPage() {
           <div className="rounded-2xl"
             style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
 
-            {/* Gradient header — clip only here for rounded top */}
-            <div className="p-6 pb-12 relative overflow-hidden rounded-t-2xl"
+            {/* Gradient header — clip only here for rounded top; extra bottom pad for avatar overlap */}
+            <div className="p-6 pb-16 relative overflow-hidden rounded-t-2xl"
               style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
               <div className="absolute right-0 top-0 w-48 h-full opacity-10 pointer-events-none"
                 style={{ background: "radial-gradient(circle at 80% 50%, #8DC63F, transparent 70%)" }} />
@@ -379,20 +374,31 @@ export default function MyDoctorPage() {
               </div>
             </div>
 
-            {/* Avatar sits half on the header, half on the white body */}
-            <div className="px-6 relative z-10" style={{ marginTop: "-2.5rem" }}>
+            {/* Avatar straddles header/body — large enough for a full monogram; thin ring so letter has room */}
+            <div className="px-6 relative z-10" style={{ marginTop: "-3.5rem" }}>
               {(doctor as any).photoURL ? (
                 <img
                   src={(doctor as any).photoURL}
                   alt={doctor.displayName || "Therapist"}
-                  className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-md"
+                  className="w-28 h-28 rounded-2xl object-cover shadow-md"
+                  style={{ border: "3px solid white" }}
                 />
               ) : (
                 <div
-                  className="w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-bold border-4 border-white shadow-md"
-                  style={{ background: "rgba(141,198,63,0.15)", color: "#2A4A1A" }}
+                  className="w-28 h-28 rounded-2xl flex items-center justify-center shadow-md"
+                  style={{
+                    background: "rgba(141,198,63,0.18)",
+                    border: "3px solid white",
+                    color: "#2A4A1A",
+                    fontFamily: "var(--font-dm-serif)",
+                    fontSize: "3rem",
+                    lineHeight: 1,
+                  }}
+                  aria-hidden
                 >
-                  {(doctor.displayName || "").replace(/^Dr\.?\s*/i, "").trim()?.[0]?.toUpperCase() ?? "D"}
+                  <span className="leading-none select-none" style={{ display: "block", paddingBottom: "0.06em" }}>
+                    {(doctor.displayName || "").replace(/^Dr\.?\s*/i, "").trim()?.[0]?.toUpperCase() ?? "D"}
+                  </span>
                 </div>
               )}
             </div>

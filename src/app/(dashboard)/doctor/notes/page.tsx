@@ -613,8 +613,7 @@ function NotesPageInner() {
 
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-2xl" style={{ fontFamily:"var(--font-dm-serif)", color:"#2A4A1A" }}>Session Notes</h2>
-          <p className="text-sm mt-0.5 flex items-center gap-1.5" style={{ color:"#8A9BA8" }}>
+          <p className="text-sm flex items-center gap-1.5" style={{ color:"#8A9BA8" }}>
             <Lock size={12}/> Private and confidential — only visible to you
           </p>
         </div>

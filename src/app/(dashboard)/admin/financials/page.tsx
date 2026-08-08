@@ -680,11 +680,10 @@ export default function AdminFinancialsPage() {
         />
       )}
 
-      {/* Header */}
+      {/* Subtitle + actions — page name lives in the sticky header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#1E3810" }}>Financials</h2>
-          <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>Platform revenue, Valeo settlement, and billing overview</p>
+          <p className="text-sm" style={{ color: "#8A9BA8" }}>Platform revenue, Valeo settlement, and billing overview</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => exportCSV(filtered)}

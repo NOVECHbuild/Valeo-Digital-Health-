@@ -566,13 +566,10 @@ export default function DoctorClientsPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
 
-      {/* Header */}
+      {/* Subtitle + actions — page name lives in the sticky header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
-            Clients
-          </h2>
-          <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>
+          <p className="text-sm" style={{ color: "#8A9BA8" }}>
             Everyone who has booked a session with you
           </p>
         </div>

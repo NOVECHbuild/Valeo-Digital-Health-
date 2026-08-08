@@ -151,15 +151,10 @@ export default function AnnouncementsPage() {
         </div>
       )}
 
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#1E3810" }}>
-          Announcements
-        </h2>
-        <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>
-          Broadcast messages to users across the platform
-        </p>
-      </div>
+      {/* Subtitle only — page name lives in the sticky header */}
+      <p className="text-sm" style={{ color: "#8A9BA8" }}>
+        Broadcast messages to users across the platform
+      </p>
 
       {/* Compose Card */}
       <div className="rounded-2xl p-6 space-y-5"

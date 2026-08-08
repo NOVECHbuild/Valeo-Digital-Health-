@@ -256,15 +256,10 @@ export default function AccountSettingsPage({ role, accent, accentLight }: Setti
         </div>
       )}
 
-      {/* Header */}
-      <div>
-        <h1 style={{ fontFamily: 'var(--font-dm-serif)', fontSize: '28px', color: '#2A4A1A', marginBottom: '6px' }}>
-          Account Settings
-        </h1>
-        <p style={{ fontSize: '14px', color: '#8A9BA8' }}>
-          Manage your profile, security, and notification preferences.
-        </p>
-      </div>
+      {/* Subtitle only — page name lives in the sticky header */}
+      <p style={{ fontSize: '14px', color: '#8A9BA8' }}>
+        Manage your profile, security, and notification preferences.
+      </p>
 
       {/* ── PROFILE CARD ───────────────────────────────────────── */}
       <div className="rounded-2xl overflow-hidden"

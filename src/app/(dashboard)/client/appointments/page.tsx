@@ -758,16 +758,11 @@ function ClientAppointmentsPageInner() {
         </div>
       )}
 
-      {/* Header */}
+      {/* Subtitle + booking CTA — page name lives in the sticky header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
-            Appointments
-          </h2>
-          <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>
-            Manage your sessions with {doctorName}
-          </p>
-        </div>
+        <p className="text-sm" style={{ color: "#8A9BA8" }}>
+          Manage your sessions with {doctorName}
+        </p>
         <button
           onClick={startBooking}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-0.5"

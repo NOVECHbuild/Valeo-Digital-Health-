@@ -233,13 +233,12 @@ export default function DoctorMessagesPage() {
           ${mobileView === "chat" ? "hidden md:flex" : "flex"} w-full md:w-72`}
           style={{ borderColor: "rgba(42,74,26,0.08)" }}>
 
-          {/* Sidebar header */}
+          {/* Sidebar header — page name lives in the sticky header */}
           <div className="p-5 border-b" style={{ borderColor: "rgba(42,74,26,0.08)" }}>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold"
-                style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
-                Messages
-              </h2>
+              <p className="text-xs" style={{ color: "#8A9BA8" }}>
+                Client conversations
+              </p>
               {totalUnread > 0 && (
                 <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
                   style={{ background: "#F7941D" }}>

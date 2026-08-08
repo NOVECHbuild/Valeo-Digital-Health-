@@ -141,8 +141,7 @@ export default function ResourcesManager({ accent, accentDark }: Props) {
 
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>Resources Library</h2>
-          <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>
+          <p className="text-sm" style={{ color: "#8A9BA8" }}>
             Books, videos, articles and guides shared with all clients.
           </p>
         </div>

@@ -177,11 +177,10 @@ export default function AdminAnalyticsPage(){
   return(
     <div className="max-w-6xl mx-auto space-y-6">
 
-      {/* Header */}
+      {/* Subtitle + period — page name lives in the sticky header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl" style={{fontFamily:"var(--font-dm-serif)",color:C.ocean}}>Analytics</h2>
-          <p className="text-sm mt-0.5" style={{color:C.slate}}>Platform performance and clinical activity overview</p>
+          <p className="text-sm" style={{color:C.slate}}>Platform performance and clinical activity overview</p>
         </div>
         <div className="flex gap-1 p-1 rounded-xl" style={{background:"rgba(42,74,26,0.06)"}}>
           {(["1m","3m","6m"] as const).map(p=>(

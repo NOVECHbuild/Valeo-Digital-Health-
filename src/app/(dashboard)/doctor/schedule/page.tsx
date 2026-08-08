@@ -948,11 +948,10 @@ export default function DoctorSchedulePage() {
         </div>
       )}
 
-      {/* Page header */}
+      {/* Subtitle + actions — page name lives in the sticky header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl" style={{ fontFamily:"var(--font-dm-serif)", color:"#1E3810" }}>Schedule</h2>
-          <p className="text-sm mt-0.5" style={{ color:"#8A9BA8" }}>Manage appointments, view your calendar, and set availability</p>
+          <p className="text-sm" style={{ color:"#8A9BA8" }}>Manage appointments, view your calendar, and set availability</p>
         </div>
         <div className="flex items-center gap-2">
           {counts.pending>0 && mainTab==="appointments" && (

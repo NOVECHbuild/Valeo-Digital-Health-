@@ -150,8 +150,7 @@ export default function ClientResourcesPage() {
             <Library size={24} style={{ color: "#8DC63F" }} />
           </div>
           <div>
-            <h2 className="text-2xl text-white" style={{ fontFamily: "var(--font-dm-serif)" }}>Resources</h2>
-            <p className="text-sm" style={{ color: "rgba(255,255,255,0.65)" }}>
+            <p className="text-sm sm:text-base" style={{ color: "rgba(255,255,255,0.85)", fontFamily: "var(--font-dm-serif)" }}>
               Books, videos, articles and guides shared by your care team.
             </p>
           </div>

@@ -417,15 +417,10 @@ export default function DoctorAnalyticsPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
 
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
-          Practice Analytics
-        </h2>
-        <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>
-          {now ? `Your performance overview · as of ${now.toLocaleDateString("en-US", { month: "long", year: "numeric" })}` : "Your performance overview"}
-        </p>
-      </div>
+      {/* Subtitle only — page name lives in the sticky header */}
+      <p className="text-sm" style={{ color: "#8A9BA8" }}>
+        {now ? `Your performance overview · as of ${now.toLocaleDateString("en-US", { month: "long", year: "numeric" })}` : "Your performance overview"}
+      </p>
 
       {/* ── KPI row ─────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

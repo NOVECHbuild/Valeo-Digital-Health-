@@ -182,17 +182,10 @@ export default function AdminAssignmentsPage() {
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex items-start justify-between flex-wrap gap-3">
-        <div>
-          <h2 className="text-2xl" style={{ fontFamily: "var(--font-dm-serif)", color: "#2A4A1A" }}>
-            Assignments
-          </h2>
-          <p className="text-sm mt-0.5" style={{ color: "#8A9BA8" }}>
-            Manage client–therapist assignments and switch requests
-          </p>
-        </div>
-      </div>
+      {/* Subtitle only — page name lives in the sticky header */}
+      <p className="text-sm" style={{ color: "#8A9BA8" }}>
+        Manage client–therapist assignments and switch requests
+      </p>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
