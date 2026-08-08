@@ -870,22 +870,10 @@ function ClientAppointmentsPageInner() {
         </div>
       )}
 
-      {/* Title row — Book always visible on the page (header Book is easy to miss on mobile) */}
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-sm" style={{ color: "#8A9BA8" }}>
-          Manage your sessions with {doctorName}
-        </p>
-        {!!doctor && (
-          <button
-            type="button"
-            onClick={startBooking}
-            className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl text-sm font-semibold text-white flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
-          >
-            <Plus size={16} /> Book
-          </button>
-        )}
-      </div>
+      {/* Book Session lives in the sticky header (one CTA — avoid duplicate on this page) */}
+      <p className="text-sm" style={{ color: "#8A9BA8" }}>
+        Manage your sessions with {doctorName}
+      </p>
 
       {/* Not-yet-matched notice — booking requires an assigned doctor */}
       {!doctorLoading && !doctor && (
