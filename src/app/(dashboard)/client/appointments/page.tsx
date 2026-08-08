@@ -44,7 +44,7 @@ import {
   type SeriesOccurrence,
 } from "@/lib/series";
 import { isConsentCurrent } from "@/lib/consent";
-import JoinSessionLink from "@/components/JoinSessionLink";
+import MeetJoinPanel from "@/components/MeetJoinPanel";
 import { joinPhaseMessage, useCanJoinSession, useJoinPhase } from "@/lib/joinWindow";
 import {
   Calendar, Clock, Plus, X, CheckCircle, AlertCircle,
@@ -301,27 +301,19 @@ function AppointmentCard({
       </div>
 
       {(showJoin || canCancel || needsPay) && (
-        <div className="flex items-center gap-2 mt-4 pt-4 border-t"
+        <div className="mt-4 pt-4 border-t space-y-3"
           style={{ borderColor: "rgba(42,74,26,0.06)" }}>
           {needsPay && onPay && (
             <button
               onClick={() => onPay(appt)}
               disabled={paying}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-0.5 disabled:opacity-60"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-0.5 disabled:opacity-60"
               style={{ background: "linear-gradient(135deg, #F7941D, #C4700A)" }}>
               {paying ? <Loader2 size={14} className="animate-spin" /> : null}
               {paying ? "Opening checkout…" : `Pay $${appt.amount ?? "—"} & confirm`}
             </button>
           )}
-          {showJoin && meetLink && (
-            <JoinSessionLink
-              href={meetLink}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-0.5"
-              style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
-            >
-              <Video size={14} /> Join Session
-            </JoinSessionLink>
-          )}
+          {showJoin && meetLink && <MeetJoinPanel meetLink={meetLink} />}
           {canCancel && onCancel && (
             <button
               onClick={() => onCancel(appt)}

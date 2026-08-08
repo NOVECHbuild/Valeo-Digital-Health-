@@ -1,3 +1,23 @@
+/** Extract a Meet room code (e.g. ayp-gvpr-naj) from a hangout / Meet URL. */
+export function meetCodeFromLink(url: string): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url.trim());
+    if (!/meet\.google\.com$/i.test(u.hostname) && !/\.meet\.google\.com$/i.test(u.hostname)) {
+      return null;
+    }
+    const seg = u.pathname.replace(/^\/+|\/+$/g, "").split("/")[0] || "";
+    if (!seg || /^accounts?/i.test(seg) || /^landing/i.test(seg)) return null;
+    // Standard Meet codes: xxx-yyyy-zzz
+    if (/^[a-z0-9]{2,4}-[a-z0-9]{3,5}-[a-z0-9]{2,4}$/i.test(seg)) return seg.toLowerCase();
+    // Fallback: bare path segment that looks like a code
+    if (/^[a-z0-9-]{6,20}$/i.test(seg)) return seg.toLowerCase();
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Open a Google Meet link without navigating the current Valeo page away.
  * On mobile (esp. PWA / iOS), a plain <a href> to Meet can replace the app;

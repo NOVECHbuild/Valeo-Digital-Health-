@@ -14,7 +14,7 @@ import {
 import { type Service, servicesForEditing, bookableServices } from "@/lib/availability";
 import { isDoctorApproved, PAYMENT_BADGE, resolvePaymentStatus } from "@/lib/paymentStatus";
 import { authedFetch } from "@/lib/authedFetch";
-import JoinSessionLink from "@/components/JoinSessionLink";
+import MeetJoinPanel from "@/components/MeetJoinPanel";
 import {
   Calendar, Clock, CheckCircle, XCircle, Loader2, Users,
   FileText, Filter, Save, AlertCircle, Plus, X, Info,
@@ -316,13 +316,9 @@ function AppointmentCard({ appt, onApprove, onReject, onCreateMeet, loading, has
         </div>
       )}
       {meetLink && appt.status === "approved" ? (
-        <JoinSessionLink
-          href={meetLink}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium mb-4 transition-opacity hover:opacity-80"
-          style={{ background:"rgba(66,133,244,0.08)", color:"#4285F4", border:"1px solid rgba(66,133,244,0.15)" }}
-        >
-          <ExternalLink size={12}/> Join Session
-        </JoinSessionLink>
+        <div className="mb-4">
+          <MeetJoinPanel meetLink={meetLink} />
+        </div>
       ) : appt.status === "approved" && onCreateMeet ? (
         <button onClick={() => onCreateMeet(appt.id)} disabled={!!isActing}
           className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold mb-4 w-full justify-center disabled:opacity-60"
