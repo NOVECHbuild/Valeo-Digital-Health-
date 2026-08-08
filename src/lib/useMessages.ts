@@ -14,11 +14,14 @@
 
 import { useEffect, useState } from "react";
 import {
-  collection, query, where, orderBy, onSnapshot,
+  collection, query, where, orderBy, limit, onSnapshot,
   addDoc, updateDoc, doc, serverTimestamp,
   getDocs, getDoc, setDoc, increment,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+
+/** Cap history so opening a thread stays snappy on mobile. */
+const MESSAGE_PAGE_SIZE = 80;
 
 export interface Conversation {
   id:            string;
@@ -224,27 +227,45 @@ export function useMessages(conversationId: string | null) {
 
     setLoading(true);
     setError(null);
+    // Clear immediately so we never flash the previous thread's content
     setMessages([]);
 
-    // Listen without orderBy (sort client-side). Avoids index failures and
-    // keeps the loading flag honest when the listener errors.
     const col = collection(db, "conversations", conversationId, "messages");
-    const unsub = onSnapshot(
-      col,
+    // Prefer newest N messages (fast path). Fall back if orderBy/index fails.
+    const q = query(col, orderBy("createdAt", "desc"), limit(MESSAGE_PAGE_SIZE));
+
+    let activeUnsub: (() => void) | undefined;
+
+    activeUnsub = onSnapshot(
+      q,
       snap => {
+        // Fetched newest-first → mapMessageDocs sorts oldest→newest for the UI
         setMessages(mapMessageDocs(snap.docs));
         setLoading(false);
         setError(null);
       },
       err => {
-        console.error("[useMessages]", err);
-        setMessages([]);
-        setLoading(false);
-        setError("Could not load messages. Please refresh.");
+        console.warn("[useMessages] ordered query failed, falling back:", err?.message || err);
+        activeUnsub?.();
+        activeUnsub = onSnapshot(
+          col,
+          snap => {
+            const all = mapMessageDocs(snap.docs);
+            setMessages(all.length > MESSAGE_PAGE_SIZE ? all.slice(-MESSAGE_PAGE_SIZE) : all);
+            setLoading(false);
+            setError(null);
+          },
+          err2 => {
+            console.error("[useMessages]", err2);
+            setMessages([]);
+            setLoading(false);
+            setError("Could not load messages. Please refresh.");
+          },
+        );
       },
     );
 
-    return unsub;
+    return () => { activeUnsub?.(); };
   }, [conversationId]);
 
   return { messages, loading, error };

@@ -63,3 +63,19 @@ h1, h2, h3 {
   .tap-target { min-height: 44px; min-width: 44px; }
   .scroll-x-touch { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
+
+/* Message composer — hide always-visible scrollbar gutter on mobile WebKit */
+.msg-composer {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(42, 74, 26, 0.2) transparent;
+}
+.msg-composer::-webkit-scrollbar {
+  width: 4px;
+}
+.msg-composer::-webkit-scrollbar-thumb {
+  background: rgba(42, 74, 26, 0.2);
+  border-radius: 4px;
+}
+.msg-composer::-webkit-scrollbar-track {
+  background: transparent;
+}

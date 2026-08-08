@@ -492,27 +492,34 @@ export default function DoctorMessagesPage() {
                     value={text}
                     onChange={e => setText(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Reply to client… (Enter to send, Shift+Enter for new line)"
+                    placeholder="Type a reply…"
                     rows={1}
-                    className="flex-1 px-4 py-3 rounded-2xl text-sm border resize-none focus:outline-none leading-relaxed"
+                    enterKeyHint="send"
+                    className="msg-composer flex-1 min-w-0 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-2xl text-sm border resize-none focus:outline-none"
                     style={{
-                      borderColor: "rgba(42,74,26,0.15)",
-                      background:  "rgba(42,74,26,0.02)",
+                      borderColor: "rgba(42,74,26,0.12)",
+                      background:  "#F7F9F4",
+                      color:       "#2A4A1A",
+                      minHeight:   "44px",
                       maxHeight:   "120px",
+                      lineHeight:  "1.4",
+                      overflowY:   "auto",
                     }}
+                    aria-label="Reply"
                   />
 
                   <button onClick={handleSend}
                     disabled={!text.trim() || sending}
-                    className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 disabled:opacity-40 transition-all hover:-translate-y-0.5 mb-0.5"
-                    style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-2xl flex items-center justify-center flex-shrink-0 disabled:opacity-40 transition-all mb-0.5"
+                    style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
+                    aria-label="Send reply">
                     {sending
                       ? <Loader2 size={16} className="animate-spin text-white" />
                       : <Send    size={16} className="text-white" />}
                   </button>
                 </div>
 
-                <p className="text-xs mt-2" style={{ color: "#C4C4C4" }}>
+                <p className="text-[11px] sm:text-xs mt-2 leading-snug" style={{ color: "#C4C4C4" }}>
                   Do not share clinical diagnoses via chat. Use session notes for clinical records.
                 </p>
               </div>

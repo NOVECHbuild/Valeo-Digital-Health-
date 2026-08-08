@@ -10,8 +10,6 @@ import {
   MessageCircle, Send, Loader2, Lock,
   CheckCheck, ChevronLeft, AlertCircle,
 } from "lucide-react";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { useAssignedDoctor } from "@/hooks/useAssignedDoctor";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -135,12 +133,16 @@ export default function ClientMessagesPage() {
     if (activeId) markRead(activeId, "client");
   }, [activeId]);
 
-  // FIX 3: Auto-open first conversation — include activeId in dep array
+  // Auto-open first conversation on desktop. On mobile, open chat only when
+  // there's a single thread (typical client) so the list stays instant otherwise.
   useEffect(() => {
-    if (!activeId && conversations.length > 0) {
-      setActiveId(conversations[0].id);
-      setDoctorName(conversations[0].doctorName ?? "your therapist");
-    }
+    if (activeId || conversations.length === 0) return;
+    const first = conversations[0];
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    if (isMobile && conversations.length > 1) return;
+    setActiveId(first.id);
+    setDoctorName(first.doctorName ?? "your therapist");
+    if (isMobile && conversations.length === 1) setMobileView("chat");
   }, [conversations, activeId]);
 
   // FIX 5: Full try/catch — spinner always stops, error shown to user
@@ -241,8 +243,8 @@ export default function ClientMessagesPage() {
       <div
         className="rounded-3xl overflow-hidden flex"
         style={{
-          height: "calc(100vh - 160px)",
-          minHeight: "520px",
+          height: "calc(100dvh - 11.5rem - env(safe-area-inset-bottom, 0px))",
+          minHeight: "420px",
           background: "white",
           boxShadow: "0 2px 12px rgba(42,74,26,0.08)",
         }}
@@ -465,10 +467,9 @@ export default function ClientMessagesPage() {
 
               {/* Input area */}
               <div
-                className="px-5 py-4 border-t flex-shrink-0"
+                className="px-3 sm:px-5 py-3 sm:py-4 border-t flex-shrink-0"
                 style={{ borderColor: "rgba(42,74,26,0.08)" }}
               >
-                {/* FIX 10: Send error banner */}
                 {sendError && (
                   <div
                     className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs mb-3"
@@ -485,36 +486,42 @@ export default function ClientMessagesPage() {
                   </div>
                 )}
 
-                <div className="flex items-end gap-3">
-                  {/* FIX 9: Use ref for resize instead of e.target cast */}
+                <div className="flex items-end gap-2 sm:gap-3">
                   <textarea
                     ref={textareaRef}
                     value={text}
-                    onChange={e => setText(e.target.value)}
+                    onChange={e => { setText(e.target.value); handleTextareaInput(); }}
                     onKeyDown={handleKeyDown}
-                    onInput={handleTextareaInput}
-                    placeholder="Type a message… (Enter to send, Shift+Enter for new line)"
+                    placeholder="Type a message…"
                     rows={1}
-                    className="flex-1 px-4 py-3 rounded-2xl text-sm border resize-none focus:outline-none leading-relaxed"
+                    enterKeyHint="send"
+                    className="msg-composer flex-1 min-w-0 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-2xl text-sm border resize-none focus:outline-none"
                     style={{
-                      borderColor: "rgba(42,74,26,0.15)",
-                      background:  "rgba(42,74,26,0.02)",
+                      borderColor: "rgba(42,74,26,0.12)",
+                      background:  "#F7F9F4",
+                      color:       "#2A4A1A",
+                      minHeight:   "44px",
                       maxHeight:   "120px",
+                      lineHeight:  "1.4",
+                      overflowY:   "auto",
                     }}
+                    aria-label="Message"
                   />
                   <button
                     onClick={handleSend}
                     disabled={!text.trim() || sending}
-                    className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 disabled:opacity-40 transition-all hover:-translate-y-0.5"
+                    className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-2xl flex items-center justify-center flex-shrink-0 disabled:opacity-40 transition-all"
                     style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
+                    aria-label="Send message"
                   >
                     {sending
                       ? <Loader2 size={16} className="animate-spin text-white" />
                       : <Send size={16} className="text-white" />}
                   </button>
                 </div>
-                <p className="text-xs mt-2" style={{ color: "#C4C4C4" }}>
-                  Messages are private and secure. For emergencies call 911.
+                <p className="text-[11px] sm:text-xs mt-2 leading-snug" style={{ color: "#C4C4C4" }}>
+                  Private &amp; secure. For emergencies call 911.
+                  <span className="hidden sm:inline"> Enter to send · Shift+Enter for a new line.</span>
                 </p>
               </div>
             </>
