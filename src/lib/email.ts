@@ -18,6 +18,19 @@ export interface SendArgs {
   html:    string;
 }
 
+const DEFAULT_FROM = "Valeo Experience <noreply@valeoexperience.com>";
+
+/** Resend requires `email@x.com` or `Name <email@x.com>`. Bad Vercel values currently 422 every send. */
+function resolveFrom(): string {
+  const raw = (process.env.EMAIL_FROM || "").trim();
+  if (!raw) return DEFAULT_FROM;
+  const bare = /^[^\s<>]+@[^\s<>]+\.[^\s<>]+$/;
+  const named = /^.+\s<[^\s<>]+@[^\s<>]+\.[^\s<>]+>$/;
+  if (bare.test(raw) || named.test(raw)) return raw;
+  console.warn(`[email] EMAIL_FROM invalid — using default. Got: ${JSON.stringify(raw)}`);
+  return DEFAULT_FROM;
+}
+
 export async function sendEmail({ to, subject, html }: SendArgs): Promise<{ ok: boolean; skipped?: boolean; error?: string }> {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
@@ -29,7 +42,7 @@ export async function sendEmail({ to, subject, html }: SendArgs): Promise<{ ok: 
     console.warn(`[email] empty "to" — skipping "${subject}"`);
     return { ok: false, skipped: true, error: "empty recipient" };
   }
-  const from = process.env.EMAIL_FROM || "Valeo Experience <noreply@valeoexperience.com>";
+  const from = resolveFrom();
   try {
     const res = await fetch(RESEND_ENDPOINT, {
       method:  "POST",
@@ -38,7 +51,7 @@ export async function sendEmail({ to, subject, html }: SendArgs): Promise<{ ok: 
     });
     if (!res.ok) {
       const txt = await res.text();
-      console.error("[email] send failed", res.status, txt, { to: recipients, subject });
+      console.error("[email] send failed", res.status, txt, { to: recipients, subject, from });
       return { ok: false, error: txt };
     }
     console.log(`[email] sent "${subject}" → ${recipients.join(", ")}`);
