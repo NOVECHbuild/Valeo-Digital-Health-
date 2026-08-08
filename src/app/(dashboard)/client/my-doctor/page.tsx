@@ -341,9 +341,11 @@ export default function MyDoctorPage() {
           <div className="rounded-2xl"
             style={{ background: "white", boxShadow: "0 1px 4px rgba(42,74,26,0.07)" }}>
 
-            {/* Gradient header — clip only here for rounded top; extra bottom pad for avatar overlap */}
-            <div className="p-6 pb-16 relative overflow-hidden rounded-t-2xl"
-              style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
+            {/* Gradient header — no initial/monogram fallback (letter clipping); photo only when set */}
+            <div
+              className={`p-6 relative overflow-hidden rounded-t-2xl ${(doctor as any).photoURL ? "pb-16" : ""}`}
+              style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
+            >
               <div className="absolute right-0 top-0 w-48 h-full opacity-10 pointer-events-none"
                 style={{ background: "radial-gradient(circle at 80% 50%, #8DC63F, transparent 70%)" }} />
               <div className="flex items-start justify-between relative z-10">
@@ -374,36 +376,18 @@ export default function MyDoctorPage() {
               </div>
             </div>
 
-            {/* Avatar straddles header/body — large enough for a full monogram; thin ring so letter has room */}
-            <div className="px-6 relative z-10" style={{ marginTop: "-3.5rem" }}>
-              {(doctor as any).photoURL ? (
+            {(doctor as any).photoURL && (
+              <div className="px-6 relative z-10" style={{ marginTop: "-3.5rem" }}>
                 <img
                   src={(doctor as any).photoURL}
                   alt={doctor.displayName || "Therapist"}
                   className="w-28 h-28 rounded-2xl object-cover shadow-md"
                   style={{ border: "3px solid white" }}
                 />
-              ) : (
-                <div
-                  className="w-28 h-28 rounded-2xl flex items-center justify-center shadow-md"
-                  style={{
-                    background: "rgba(141,198,63,0.18)",
-                    border: "3px solid white",
-                    color: "#2A4A1A",
-                    fontFamily: "var(--font-dm-serif)",
-                    fontSize: "3rem",
-                    lineHeight: 1,
-                  }}
-                  aria-hidden
-                >
-                  <span className="leading-none select-none" style={{ display: "block", paddingBottom: "0.06em" }}>
-                    {(doctor.displayName || "").replace(/^Dr\.?\s*/i, "").trim()?.[0]?.toUpperCase() ?? "D"}
-                  </span>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            <div className="px-6 pb-6 pt-4">
+            <div className={`px-6 pb-6 ${(doctor as any).photoURL ? "pt-4" : "pt-5"}`}>
               {/* FIX 12: Only render bio when it exists */}
               {(doctor as any).bio && (
                 <p className="text-sm leading-relaxed mb-5" style={{ color: "#4A5568" }}>
