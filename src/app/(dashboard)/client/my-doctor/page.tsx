@@ -15,6 +15,7 @@ import {
   MessageCircle, Calendar, RefreshCw, Loader2, ChevronRight,
   Heart, Award, ExternalLink, AlertTriangle, UserX,
 } from "lucide-react";
+import JoinSessionLink from "@/components/JoinSessionLink";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface Assignment {
@@ -315,15 +316,14 @@ export default function MyDoctorPage() {
                 </p>
               </div>
               {nextSession.meetLink ? (
-                <a
+                <JoinSessionLink
                   href={nextSession.meetLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white flex-shrink-0 transition-all hover:-translate-y-0.5"
                   style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
+                  ariaLabel="Join Meet"
                 >
                   <ExternalLink size={14} /> Join Meet
-                </a>
+                </JoinSessionLink>
               ) : (
                 <Link
                   href="/client/appointments"

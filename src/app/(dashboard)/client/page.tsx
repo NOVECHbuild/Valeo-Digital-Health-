@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
+import JoinSessionLink from "@/components/JoinSessionLink";
 import { useUnreadCount } from "@/lib/useMessages";
 import { isConsentCurrent } from "@/lib/consent";
 import { useAssignedDoctor } from "@/hooks/useAssignedDoctor";
@@ -367,15 +368,13 @@ export default function ClientDashboard() {
                 {fmtNextSession()}
               </div>
               {nextSession.meetLink && (
-                <a
+                <JoinSessionLink
                   href={nextSession.meetLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
                   style={{ background: "linear-gradient(135deg, #8DC63F, #6BA028)" }}
                 >
                   <Video size={15} /> Join Session
-                </a>
+                </JoinSessionLink>
               )}
             </div>
           ) : (
@@ -569,16 +568,14 @@ export default function ClientDashboard() {
             </p>
           </div>
           {nextSession.meetLink ? (
-            <a
+            <JoinSessionLink
               href={nextSession.meetLink}
-              target="_blank"
-              rel="noopener noreferrer"
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
               style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
             >
               <Video size={15} />
               Join Session
-            </a>
+            </JoinSessionLink>
           ) : (
             <Link
               href="/client/appointments"

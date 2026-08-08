@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { CheckCircle, Calendar, Video, ArrowRight, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import JoinSessionLink from '@/components/JoinSessionLink';
 
 // ── Shared loading card ───────────────────────────────────────────────────────
 function LoadingCard() {
@@ -143,11 +144,13 @@ function SuccessContent() {
 
         {/* Meet link if already generated */}
         {meetLink && (
-          <a href={meetLink} target="_blank" rel="noopener noreferrer"
+          <JoinSessionLink
+            href={meetLink}
             className="flex items-center justify-center gap-2 w-full py-3 min-h-[48px] rounded-2xl text-sm font-semibold text-white mb-3 transition-all hover:-translate-y-0.5"
-            style={{ background: 'linear-gradient(135deg, #8DC63F, #6BA028)' }}>
+            style={{ background: 'linear-gradient(135deg, #8DC63F, #6BA028)' }}
+          >
             <Video size={15} /> Join Session
-          </a>
+          </JoinSessionLink>
         )}
 
         {/* View appointments */}

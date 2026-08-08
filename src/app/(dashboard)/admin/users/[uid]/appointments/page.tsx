@@ -8,6 +8,7 @@ import {
   ArrowLeft, Calendar, Clock, Video, CheckCircle,
   AlertCircle, Loader2, User, Stethoscope, XCircle,
 } from "lucide-react";
+import JoinSessionLink from "@/components/JoinSessionLink";
 
 interface Appointment {
   id:          string;
@@ -202,11 +203,14 @@ export default function ClientAppointmentsPage() {
                     </p>
                   )}
                   {appt.meetLink && appt.status === "approved" && (
-                    <a href={appt.meetLink} target="_blank" rel="noopener noreferrer"
+                    <JoinSessionLink
+                      href={appt.meetLink}
                       className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg"
-                      style={{ background: "rgba(141,198,63,0.1)", color: "#6BA028" }}>
+                      style={{ background: "rgba(141,198,63,0.1)", color: "#6BA028" }}
+                      ariaLabel="Join Meet"
+                    >
                       <Video size={11} /> Join Meet
-                    </a>
+                    </JoinSessionLink>
                   )}
                   <p className="text-xs" style={{ color: "#C4C4C4" }}>
                     Booked {appt.createdAt?.toDate

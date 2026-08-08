@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
+import JoinSessionLink from "@/components/JoinSessionLink";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type Appointment = {
@@ -98,12 +99,14 @@ function AppointmentRow({ name, time, type, status, meetLink }: {
         <p className="text-xs" style={{ color:"#8A9BA8" }}>{type} · {time}</p>
       </div>
       <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0" style={{ background:s.bg, color:s.color }}>{s.label}</span>
-      {canJoin && (
-        <a href={meetLink} target="_blank" rel="noopener noreferrer"
+      {canJoin && meetLink && (
+        <JoinSessionLink
+          href={meetLink}
           className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white flex-shrink-0"
-          style={{ background:"linear-gradient(135deg,#1E3810,#3D6B24)" }}>
+          style={{ background:"linear-gradient(135deg,#1E3810,#3D6B24)" }}
+        >
           <Video size={12}/> Join Session
-        </a>
+        </JoinSessionLink>
       )}
       {needsLink && (
         <Link href="/doctor/schedule"

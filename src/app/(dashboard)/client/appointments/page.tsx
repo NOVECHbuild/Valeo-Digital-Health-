@@ -40,6 +40,7 @@ import {
   type SeriesOccurrence,
 } from "@/lib/series";
 import { isConsentCurrent } from "@/lib/consent";
+import JoinSessionLink from "@/components/JoinSessionLink";
 import {
   Calendar, Clock, Plus, X, CheckCircle, AlertCircle,
   XCircle, Loader2, ChevronLeft, ChevronRight, Video,
@@ -290,12 +291,14 @@ function AppointmentCard({
               {paying ? "Opening checkout…" : `Pay $${appt.amount ?? "—"} & confirm`}
             </button>
           )}
-          {showJoin && (
-            <a href={meetLink} target="_blank" rel="noopener noreferrer"
+          {showJoin && meetLink && (
+            <JoinSessionLink
+              href={meetLink}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-0.5"
-              style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}>
+              style={{ background: "linear-gradient(135deg, #2A4A1A, #3D6B24)" }}
+            >
               <Video size={14} /> Join Session
-            </a>
+            </JoinSessionLink>
           )}
           {canCancel && onCancel && (
             <button

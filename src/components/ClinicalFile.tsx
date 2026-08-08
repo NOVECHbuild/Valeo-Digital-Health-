@@ -9,6 +9,7 @@ import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { authedFetch } from "@/lib/authedFetch";
 import MeetRecordingGuide from "@/components/MeetRecordingGuide";
+import JoinSessionLink from "@/components/JoinSessionLink";
 import { formatAIReport } from "@/lib/sessionReportFormat";
 import {
   FileText, ClipboardList, Loader2, Plus, X, Sparkles, Upload,
@@ -361,15 +362,14 @@ function VisitCard({
       {open && (
         <div className="px-4 pb-4 space-y-3 border-t" style={{ borderColor: "rgba(42,74,26,0.06)" }}>
           {appt.meetLink && (
-            <a
+            <JoinSessionLink
               href={appt.meetLink}
-              target="_blank"
-              rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-xs font-medium hover:underline mt-3"
               style={{ color: "#4285F4" }}
+              ariaLabel="Open Meet link"
             >
               <ExternalLink size={11} /> Open Meet link
-            </a>
+            </JoinSessionLink>
           )}
 
           {report?.clinicalReport && (

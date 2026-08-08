@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { CONSENT_VERSION, isConsentCurrent, CONSENT_ACKS, type ConsentRecord } from "@/lib/consent";
 import ClinicalFile from "@/components/ClinicalFile";
+import JoinSessionLink from "@/components/JoinSessionLink";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface Client {
@@ -389,11 +390,14 @@ function ClientDrawer({ client, appointments, consent, onClose, initialTab = "pr
                     )}
                     {/* Meet link */}
                     {appt.meetLink && (
-                      <a href={appt.meetLink} target="_blank" rel="noopener noreferrer"
+                      <JoinSessionLink
+                        href={appt.meetLink}
                         className="flex items-center gap-1.5 mt-2 text-xs font-medium hover:underline"
-                        style={{ color: "#4285F4" }}>
+                        style={{ color: "#4285F4" }}
+                        ariaLabel="Join Google Meet"
+                      >
                         <ExternalLink size={11}/> Join Google Meet
-                      </a>
+                      </JoinSessionLink>
                     )}
                   </div>
                 ))}
