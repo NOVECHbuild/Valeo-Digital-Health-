@@ -77,6 +77,63 @@ export async function enablePush(uid: string): Promise<{ ok: boolean; error?: st
   }
 }
 
+/**
+ * Soft re-register: if permission already granted, refresh token onto users/{uid}.
+ * Call after login so phones keep a valid FCM token without opening Settings.
+ */
+export async function refreshPushToken(uid: string): Promise<{ ok: boolean; error?: string }> {
+  if (!uid) return { ok: false, error: "Not signed in" };
+  if (!(await pushSupported())) return { ok: false, error: "unsupported" };
+  const vapid = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+  if (!vapid || !getApps().length) return { ok: false, error: "not configured" };
+  if (typeof Notification === "undefined" || Notification.permission !== "granted") {
+    return { ok: false, error: "permission not granted" };
+  }
+
+  const reg = await ensureMessagingSw();
+  if (!reg) return { ok: false, error: "sw failed" };
+
+  try {
+    const messaging = getMessaging();
+    const token = await getToken(messaging, { vapidKey: vapid, serviceWorkerRegistration: reg });
+    if (!token) return { ok: false, error: "no token" };
+    await updateDoc(doc(db, "users", uid), {
+      fcmTokens: arrayUnion(token),
+    });
+    return { ok: true };
+  } catch (e: any) {
+    console.warn("[push] refresh failed", e);
+    return { ok: false, error: e?.message || "refresh failed" };
+  }
+}
+
+/** Show in-app / system notification when a push arrives while Valeo is open. */
+export async function listenForForegroundPush(
+  onNotify: (n: { title: string; body: string; url: string }) => void,
+): Promise<() => void> {
+  if (!(await pushSupported()) || !getApps().length) return () => {};
+  try {
+    const { onMessage } = await import("firebase/messaging");
+    const messaging = getMessaging();
+    return onMessage(messaging, (payload) => {
+      const title = payload.notification?.title || payload.data?.title || "Valeo";
+      const body = payload.notification?.body || payload.data?.body || "";
+      const url = payload.data?.url || "/";
+      onNotify({ title, body, url });
+      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+        try {
+          new Notification(title, { body, icon: "/android-chrome-192x192.png", data: { url } });
+        } catch {
+          /* some browsers block Notification from insecure contexts */
+        }
+      }
+    });
+  } catch (e) {
+    console.warn("[push] foreground listen failed", e);
+    return () => {};
+  }
+}
+
 export async function disablePush(uid: string): Promise<void> {
   if (!uid) return;
   try {

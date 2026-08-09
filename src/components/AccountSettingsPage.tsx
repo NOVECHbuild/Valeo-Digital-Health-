@@ -576,6 +576,9 @@ export default function AccountSettingsPage({ role, accent, accentLight }: Setti
             <div className="flex items-center gap-3">
               <Bell size={18} style={{ color: '#8DC63F' }} />
               <h2 className="text-base font-semibold" style={{ color: '#2A4A1A' }}>Notification Preferences</h2>
+              <p className="text-xs mt-1" style={{ color: '#8A9BA8' }}>
+                Turn on Push, tap Save, and allow notifications in the browser. On iPhone, install Valeo to the Home Screen first — Safari alone cannot receive push.
+              </p>
             </div>
             {notifsDirty && (
               <span className="text-xs font-medium" style={{ color: '#C4700A' }}>Unsaved</span>

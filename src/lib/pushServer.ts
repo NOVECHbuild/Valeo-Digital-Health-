@@ -54,7 +54,10 @@ export async function sendPushToUser(
     }
 
     const tokens = await tokensForUser(uid);
-    if (tokens.length === 0) return { ok: true, skipped: true };
+    if (tokens.length === 0) {
+      console.warn("[pushServer] no fcmTokens for", uid);
+      return { ok: true, skipped: true, error: "no_tokens" };
+    }
 
     const messaging = admin.messaging();
     const res = await messaging.sendEachForMulticast({

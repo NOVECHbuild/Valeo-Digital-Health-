@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import AppVersionGuard from "@/components/AppVersionGuard";
+import PushBootstrap from "@/components/PushBootstrap";
 import MaintenanceGate from "@/components/MaintenanceGate";
 
 const dmSans = DM_Sans({
@@ -81,6 +82,7 @@ export default function RootLayout({
             {children}
           </MaintenanceGate>
           <AppVersionGuard />
+          <PushBootstrap />
         </AuthProvider>
       </body>
     </html>

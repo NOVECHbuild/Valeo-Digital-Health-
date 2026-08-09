@@ -483,6 +483,9 @@ export default function AccountSettingsPage() {
               <span className="text-xs font-medium" style={{ color: '#C4700A' }}>Unsaved</span>
             )}
           </div>
+          <p className="text-xs mb-4" style={{ color: '#8A9BA8' }}>
+            Turn on Push, tap Save, and allow notifications in the browser. On iPhone, install Valeo to the Home Screen first — Safari alone cannot receive push.
+          </p>
 
           <div className="space-y-4">
             <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#8A9BA8' }}>Email</p>

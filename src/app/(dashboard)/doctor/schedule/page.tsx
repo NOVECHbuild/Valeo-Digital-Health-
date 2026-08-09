@@ -866,7 +866,9 @@ function BookForClientModal({
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [picker, setPicker] = useState<"client" | "service" | null>(null);
 
+  const selectedClient = clients.find(c => c.uid === clientId) || null;
   const selectedService = services.find(s => s.id === serviceId) || services[0];
 
   useEffect(() => {
@@ -943,10 +945,11 @@ function BookForClientModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
       style={{ background: "rgba(30,56,16,0.45)" }}
       onClick={onClose}>
-      <div className="w-full max-w-md rounded-2xl p-5 space-y-4"
+      <div
+        className="w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-5 space-y-4 max-h-[92vh] overflow-y-auto"
         style={{ background: "white", boxShadow: "0 12px 40px rgba(30,56,16,0.2)" }}
         onClick={e => e.stopPropagation()}>
         <div className="flex items-start justify-between gap-3">
@@ -971,29 +974,107 @@ function BookForClientModal({
           </p>
         ) : (
           <>
-            <label className="block space-y-1">
+            <div className="space-y-1">
               <span className="text-xs font-medium" style={{ color: "#4A5568" }}>Client</span>
-              <select value={clientId} onChange={e => setClientId(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                style={{ border: "1px solid rgba(30,56,16,0.12)", color: "#1E3810" }}>
-                {clients.map(c => (
-                  <option key={c.uid} value={c.uid}>{c.displayName}{c.email ? ` · ${c.email}` : ""}</option>
-                ))}
-              </select>
-            </label>
+              <button
+                type="button"
+                onClick={() => setPicker(p => p === "client" ? null : "client")}
+                className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left"
+                style={{ border: "1px solid rgba(30,56,16,0.12)", background: picker === "client" ? "rgba(141,198,63,0.06)" : "white" }}
+              >
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold truncate" style={{ color: "#1E3810" }}>
+                    {selectedClient?.displayName || "Select client"}
+                  </span>
+                  {selectedClient?.email && (
+                    <span className="block text-xs truncate" style={{ color: "#8A9BA8" }}>
+                      {selectedClient.email}
+                    </span>
+                  )}
+                </span>
+                <ChevronDown size={16} style={{ color: "#8A9BA8", transform: picker === "client" ? "rotate(180deg)" : undefined, transition: "transform .15s" }} />
+              </button>
+              {picker === "client" && (
+                <div className="rounded-xl overflow-hidden max-h-48 overflow-y-auto"
+                  style={{ border: "1px solid rgba(30,56,16,0.1)", background: "#FAFCF7" }}>
+                  {clients.map(c => {
+                    const active = c.uid === clientId;
+                    return (
+                      <button
+                        key={c.uid}
+                        type="button"
+                        onClick={() => { setClientId(c.uid); setPicker(null); }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-left"
+                        style={{
+                          background: active ? "rgba(141,198,63,0.12)" : "transparent",
+                          borderBottom: "1px solid rgba(30,56,16,0.06)",
+                        }}
+                      >
+                        <span className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                          style={{ background: "rgba(42,74,26,0.08)", color: "#1E3810" }}>
+                          {(c.displayName || "?").charAt(0).toUpperCase()}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-semibold truncate" style={{ color: "#1E3810" }}>{c.displayName}</span>
+                          <span className="block text-xs truncate" style={{ color: "#8A9BA8" }}>{c.email}</span>
+                        </span>
+                        {active && <CheckCircle size={16} style={{ color: "#6BA028" }} className="flex-shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
-            <label className="block space-y-1">
+            <div className="space-y-1">
               <span className="text-xs font-medium" style={{ color: "#4A5568" }}>Service</span>
-              <select value={serviceId} onChange={e => setServiceId(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                style={{ border: "1px solid rgba(30,56,16,0.12)", color: "#1E3810" }}>
-                {services.map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} · {s.duration} min · {s.price === 0 ? "Free" : `$${s.price}`}
-                  </option>
-                ))}
-              </select>
-            </label>
+              <button
+                type="button"
+                onClick={() => setPicker(p => p === "service" ? null : "service")}
+                className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left"
+                style={{ border: "1px solid rgba(30,56,16,0.12)", background: picker === "service" ? "rgba(141,198,63,0.06)" : "white" }}
+              >
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold truncate" style={{ color: "#1E3810" }}>
+                    {selectedService?.name || "Select service"}
+                  </span>
+                  {selectedService && (
+                    <span className="block text-xs" style={{ color: "#8A9BA8" }}>
+                      {selectedService.duration} min · {selectedService.price === 0 ? "Free" : `$${selectedService.price}`}
+                    </span>
+                  )}
+                </span>
+                <ChevronDown size={16} style={{ color: "#8A9BA8", transform: picker === "service" ? "rotate(180deg)" : undefined, transition: "transform .15s" }} />
+              </button>
+              {picker === "service" && (
+                <div className="rounded-xl overflow-hidden max-h-48 overflow-y-auto"
+                  style={{ border: "1px solid rgba(30,56,16,0.1)", background: "#FAFCF7" }}>
+                  {services.map(s => {
+                    const active = s.id === serviceId;
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => { setServiceId(s.id); setPicker(null); }}
+                        className="w-full flex items-center justify-between gap-3 px-3 py-2.5 text-left"
+                        style={{
+                          background: active ? "rgba(141,198,63,0.12)" : "transparent",
+                          borderBottom: "1px solid rgba(30,56,16,0.06)",
+                        }}
+                      >
+                        <span className="min-w-0">
+                          <span className="block text-sm font-semibold truncate" style={{ color: "#1E3810" }}>{s.name}</span>
+                          <span className="block text-xs" style={{ color: "#8A9BA8" }}>
+                            {s.duration} min · {s.price === 0 ? "Free" : `$${s.price}`}
+                          </span>
+                        </span>
+                        {active && <CheckCircle size={16} style={{ color: "#6BA028" }} className="flex-shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             <div className="grid grid-cols-2 gap-3">
               <label className="block space-y-1">
