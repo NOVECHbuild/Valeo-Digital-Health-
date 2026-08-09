@@ -85,11 +85,13 @@ export function minutesToLabel(tt: number): string {
 }
 
 // Parse a "9:00 AM" label back to minutes-since-midnight.
+// Returns -1 when the label is not a valid platform time (do not treat as midnight).
 export function labelToMinutes(label: string): number {
-  const m = label.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-  if (!m) return 0;
+  const m = String(label || "").trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!m) return -1;
   let h = Number(m[1]) % 12;
   const min = Number(m[2]);
+  if (!Number.isFinite(h) || !Number.isFinite(min) || min < 0 || min > 59) return -1;
   if (/PM/i.test(m[3])) h += 12;
   return h * 60 + min;
 }

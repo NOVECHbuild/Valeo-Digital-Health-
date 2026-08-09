@@ -47,6 +47,12 @@ export async function POST(req: NextRequest) {
     const type = typeof body.type === "string" ? body.type.trim() : "";
     const notes = typeof body.notes === "string" ? body.notes.trim() : "";
     const timeLabel = parseTimeToLabel(typeof body.time === "string" ? body.time : "");
+    const timezoneOffsetMinutes =
+      typeof body.timezoneOffsetMinutes === "number" && Number.isFinite(body.timezoneOffsetMinutes)
+        ? body.timezoneOffsetMinutes
+        : (typeof body.timezoneOffsetMinutes === "string" && body.timezoneOffsetMinutes !== ""
+          ? Number(body.timezoneOffsetMinutes)
+          : undefined);
 
     if (!clientId || !date || !timeLabel || !type) {
       return NextResponse.json(
@@ -102,13 +108,20 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const start = sessionStartAt(date, timeLabel);
+    // Interpret wall-clock in the doctor's phone timezone (not hardcoded AST).
+    const start = sessionStartAt(
+      date,
+      timeLabel,
+      Number.isFinite(timezoneOffsetMinutes as number)
+        ? (timezoneOffsetMinutes as number)
+        : undefined,
+    );
     if (!start) {
       return NextResponse.json({ error: "Could not parse session time." }, { status: 400 });
     }
     if (start.getTime() < Date.now() - 60_000) {
       return NextResponse.json({
-        error: `${timeLabel} on ${date} has already passed. Evening times use 24-hour clock (e.g. 7:45 PM = 19:45).`,
+        error: `${timeLabel} on ${date} has already passed on this device. Pick a later time.`,
       }, { status: 400 });
     }
 
@@ -149,6 +162,9 @@ export async function POST(req: NextRequest) {
       paymentHoldExpiresAt: isFree ? null : payExpiry,
       initiatedBy: "doctor",
       urgent: true,
+      ...(Number.isFinite(timezoneOffsetMinutes as number)
+        ? { timezoneOffsetMinutes }
+        : {}),
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     });

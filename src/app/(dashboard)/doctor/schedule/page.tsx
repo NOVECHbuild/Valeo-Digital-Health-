@@ -12,6 +12,7 @@ import {
   type Appointment,
 } from "@/hooks/useAppointments";
 import { type Service, servicesForEditing, bookableServices, minutesToLabel } from "@/lib/availability";
+import { sessionStartAt } from "@/lib/sessionTime";
 import { isDoctorApproved, PAYMENT_BADGE, resolvePaymentStatus } from "@/lib/paymentStatus";
 import { authedFetch } from "@/lib/authedFetch";
 import MeetJoinPanel from "@/components/MeetJoinPanel";
@@ -943,6 +944,12 @@ function BookForClientModal({
       setError("Pick a client, service, date, and time.");
       return;
     }
+    const tzOffset = new Date().getTimezoneOffset();
+    const start = sessionStartAt(date, timeLabelPreview, tzOffset);
+    if (!start || start.getTime() < Date.now() - 60_000) {
+      setError(`${timeLabelPreview} on this date has already passed on this device. Pick a later time.`);
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -953,6 +960,7 @@ function BookForClientModal({
           clientId,
           date,
           time: timeLabelPreview,
+          timezoneOffsetMinutes: tzOffset,
           type: selectedService.name,
           duration: selectedService.duration,
           amount: selectedService.price,
