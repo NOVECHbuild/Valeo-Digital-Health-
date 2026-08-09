@@ -1,5 +1,7 @@
 // Client-side fallback when Stripe webhook is delayed/misconfigured.
 // Verifies the Checkout Session with Stripe, then fulfills payment + appointment.
+// Auth is preferred but NOT required: after Stripe redirect Firebase auth is often
+// not restored yet. A completed Checkout Session id is sufficient proof of payment.
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/requireAuth";
 import { getStripe } from "@/lib/stripe";
@@ -11,9 +13,6 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
-    const gate = await requireAuth(req);
-    if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status });
-
     const body = await req.json().catch(() => ({}));
     const sessionId = typeof body?.sessionId === "string" ? body.sessionId.trim() : "";
     if (!sessionId.startsWith("cs_")) {
@@ -25,19 +24,23 @@ export async function POST(req: NextRequest) {
     }
 
     const session = await getStripe().checkout.sessions.retrieve(sessionId);
-    const clientId = session.metadata?.clientId;
-    if (gate.role !== "admin" && clientId && gate.uid !== clientId) {
-      return NextResponse.json({ error: "Not authorized for this payment." }, { status: 403 });
-    }
-    // If metadata lacks clientId, verify via payment doc ownership.
-    if (gate.role !== "admin" && !clientId) {
-      const paymentId = session.metadata?.paymentId;
-      if (!paymentId) {
+
+    // Optional auth check when a signed-in user is present
+    const gate = await requireAuth(req);
+    if (gate.ok && gate.role !== "admin") {
+      const clientId = session.metadata?.clientId;
+      if (clientId && gate.uid !== clientId) {
         return NextResponse.json({ error: "Not authorized for this payment." }, { status: 403 });
       }
-      const paySnap = await adminDb.collection("payments").doc(paymentId).get();
-      if (!paySnap.exists || paySnap.data()?.clientId !== gate.uid) {
-        return NextResponse.json({ error: "Not authorized for this payment." }, { status: 403 });
+      if (!clientId) {
+        const paymentId = session.metadata?.paymentId;
+        if (!paymentId) {
+          return NextResponse.json({ error: "Not authorized for this payment." }, { status: 403 });
+        }
+        const paySnap = await adminDb.collection("payments").doc(paymentId).get();
+        if (!paySnap.exists || paySnap.data()?.clientId !== gate.uid) {
+          return NextResponse.json({ error: "Not authorized for this payment." }, { status: 403 });
+        }
       }
     }
 

@@ -7,7 +7,6 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { authedFetch } from '@/lib/authedFetch';
 import { CheckCircle, Calendar, Video, ArrowRight, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import JoinSessionLink from '@/components/JoinSessionLink';
 import { JOIN_EARLY_MINUTES, useCanJoinSession } from '@/lib/joinWindow';
@@ -55,15 +54,32 @@ function SuccessContent() {
       setError(null);
       try {
         // Confirm with Stripe in case the webhook was delayed / misconfigured.
+        // Use plain fetch (not authedFetch): after Checkout redirect Firebase auth
+        // is often not restored yet, and confirm-session trusts a paid session id.
         if (sessionIdQ.startsWith('cs_')) {
-          try {
-            await authedFetch('/api/payments/confirm-session', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ sessionId: sessionIdQ }),
-            });
-          } catch (err) {
-            console.warn('[Payment success] confirm-session fallback failed:', err);
+          let confirmed = false;
+          for (let attempt = 0; attempt < 3 && !confirmed; attempt++) {
+            try {
+              const res = await fetch('/api/payments/confirm-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId: sessionIdQ }),
+              });
+              const data = await res.json().catch(() => ({}));
+              if (res.ok && data.ok) {
+                confirmed = true;
+              } else if (attempt < 2) {
+                await new Promise(r => setTimeout(r, 800 * (attempt + 1)));
+              } else {
+                console.warn('[Payment success] confirm-session fallback failed:', data);
+              }
+            } catch (err) {
+              if (attempt >= 2) {
+                console.warn('[Payment success] confirm-session fallback failed:', err);
+              } else {
+                await new Promise(r => setTimeout(r, 800 * (attempt + 1)));
+              }
+            }
           }
         }
 
