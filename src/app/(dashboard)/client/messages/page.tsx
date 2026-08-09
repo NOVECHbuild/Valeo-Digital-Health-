@@ -8,7 +8,7 @@ import {
 } from "@/lib/useMessages";
 import {
   MessageCircle, Send, Loader2, Lock,
-  CheckCheck, ChevronLeft, AlertCircle,
+  CheckCheck, Check, ChevronLeft, AlertCircle,
 } from "lucide-react";
 import { useAssignedDoctor } from "@/hooks/useAssignedDoctor";
 
@@ -68,11 +68,13 @@ function Bubble({ msg, isOwn }: { msg: any; isOwn: boolean }) {
         >
           {fullTime(msg.createdAt)}
           {isOwn && (
-            <CheckCheck
-              size={11}
-              className="inline ml-1"
-              style={{ color: msg._optimistic ? "#C4C4C4" : "#8DC63F" }} // S1: dim while pending
-            />
+            msg._optimistic ? (
+              <Check size={11} className="inline ml-1" style={{ color: "#C4C4C4" }} />
+            ) : msg.readByDoctor === true ? (
+              <CheckCheck size={11} className="inline ml-1" style={{ color: "#8DC63F" }} />
+            ) : (
+              <Check size={11} className="inline ml-1" style={{ color: "#C4C4C4" }} />
+            )
           )}
         </p>
       </div>

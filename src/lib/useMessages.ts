@@ -46,6 +46,10 @@ export interface Message {
   text:       string;
   createdAt:  any;
   read:       boolean;
+  /** Set when the client has opened the thread (doctor's outbound ticks). */
+  readByClient?: boolean;
+  /** Set when the doctor has opened the thread (client's outbound ticks). */
+  readByDoctor?: boolean;
   clientId?:  string;
   doctorId?:  string;
 }
@@ -142,11 +146,25 @@ export async function sendMessage(
   } catch { /* ignore */ }
 }
 
-// ── Mark conversation as read for a role ──────────────────────────────────
-export async function markRead(conversationId: string, role: "client" | "doctor") {
-  await updateDoc(doc(db, "conversations", conversationId), {
-    ...(role === "client" ? { unreadClient: 0 } : { unreadDoctor: 0 }),
-  });
+// ── Mark conversation + peer messages as read (server stamps readBy*) ─────
+export async function markRead(conversationId: string, _role: "client" | "doctor") {
+  if (!conversationId) return;
+  try {
+    const { authedFetch } = await import("@/lib/authedFetch");
+    await authedFetch("/api/messages/mark-read", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ conversationId }),
+    });
+  } catch (e) {
+    // Fallback: at least clear the unread badge locally if the API fails
+    console.warn("[markRead]", e);
+    try {
+      await updateDoc(doc(db, "conversations", conversationId), {
+        ...(_role === "client" ? { unreadClient: 0 } : { unreadDoctor: 0 }),
+      });
+    } catch { /* ignore */ }
+  }
 }
 
 // ── Hook: live list of conversations ──────────────────────────────────────

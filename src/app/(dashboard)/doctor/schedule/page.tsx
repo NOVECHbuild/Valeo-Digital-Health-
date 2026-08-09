@@ -11,7 +11,7 @@ import {
   sortAppointmentsBySession,
   type Appointment,
 } from "@/hooks/useAppointments";
-import { type Service, servicesForEditing, bookableServices } from "@/lib/availability";
+import { type Service, servicesForEditing, bookableServices, minutesToLabel } from "@/lib/availability";
 import { isDoctorApproved, PAYMENT_BADGE, resolvePaymentStatus } from "@/lib/paymentStatus";
 import { authedFetch } from "@/lib/authedFetch";
 import MeetJoinPanel from "@/components/MeetJoinPanel";
@@ -846,6 +846,19 @@ function localDateInputValue(d = new Date()): string {
   return `${y}-${m}-${day}`;
 }
 
+/** Default book time: next half-hour from now (local), as HH:MM for <input type="time">. */
+function defaultBookTimeValue(from = new Date()): string {
+  const d = new Date(from.getTime() + 30 * 60 * 1000);
+  d.setMinutes(Math.ceil(d.getMinutes() / 30) * 30, 0, 0);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+function timeValueToLabel(hhmm: string): string {
+  const m = hhmm.trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return hhmm;
+  return minutesToLabel(Number(m[1]) * 60 + Number(m[2]));
+}
+
 function BookForClientModal({
   avail,
   onClose,
@@ -862,7 +875,7 @@ function BookForClientModal({
   const [clientId, setClientId] = useState("");
   const [serviceId, setServiceId] = useState(services[0]?.id || "");
   const [date, setDate] = useState(localDateInputValue);
-  const [time, setTime] = useState("09:00");
+  const [time, setTime] = useState(defaultBookTimeValue);
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -870,6 +883,7 @@ function BookForClientModal({
 
   const selectedClient = clients.find(c => c.uid === clientId) || null;
   const selectedService = services.find(s => s.id === serviceId) || services[0];
+  const timeLabelPreview = timeValueToLabel(time);
 
   useEffect(() => {
     if (!user) return;
@@ -1091,6 +1105,10 @@ function BookForClientModal({
                   style={{ border: "1px solid rgba(30,56,16,0.12)", color: "#1E3810" }} />
               </label>
             </div>
+            <p className="text-xs -mt-2" style={{ color: "#8A9BA8" }}>
+              Starts at <strong style={{ color: "#1E3810" }}>{timeLabelPreview}</strong>
+              {" "}(24-hour clock: evening 7:45 = <strong style={{ color: "#1E3810" }}>19:45</strong>).
+            </p>
 
             <label className="block space-y-1">
               <span className="text-xs font-medium" style={{ color: "#4A5568" }}>Note (optional)</span>

@@ -107,7 +107,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Could not parse session time." }, { status: 400 });
     }
     if (start.getTime() < Date.now() - 60_000) {
-      return NextResponse.json({ error: "Choose a time in the future." }, { status: 400 });
+      return NextResponse.json({
+        error: `${timeLabel} on ${date} has already passed. Evening times use 24-hour clock (e.g. 7:45 PM = 19:45).`,
+      }, { status: 400 });
     }
 
     const sched = (schedSnap.data() || null) as AvailabilitySchedule | null;
