@@ -846,17 +846,33 @@ function localDateInputValue(d = new Date()): string {
   return `${y}-${m}-${day}`;
 }
 
-/** Default book time: next half-hour from now (local), as HH:MM for <input type="time">. */
-function defaultBookTimeValue(from = new Date()): string {
+type Ampm = "AM" | "PM";
+
+const HOUR_OPTS = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+const MINUTE_OPTS = [0, 15, 30, 45];
+
+/** Default book time: next quarter-hour from now (local). */
+function defaultBookParts(from = new Date()): { hour12: number; minute: number; ampm: Ampm } {
   const d = new Date(from.getTime() + 30 * 60 * 1000);
-  d.setMinutes(Math.ceil(d.getMinutes() / 30) * 30, 0, 0);
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  const stepped = Math.ceil(d.getMinutes() / 15) * 15;
+  d.setMinutes(stepped, 0, 0);
+  const h24 = d.getHours();
+  const ampm: Ampm = h24 >= 12 ? "PM" : "AM";
+  let hour12 = h24 % 12;
+  if (hour12 === 0) hour12 = 12;
+  return { hour12, minute: d.getMinutes(), ampm };
 }
 
-function timeValueToLabel(hhmm: string): string {
-  const m = hhmm.trim().match(/^(\d{1,2}):(\d{2})$/);
-  if (!m) return hhmm;
-  return minutesToLabel(Number(m[1]) * 60 + Number(m[2]));
+function partsToHhmm(hour12: number, minute: number, ampm: Ampm): string {
+  let h = hour12 % 12;
+  if (ampm === "PM") h += 12;
+  return `${String(h).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
+function partsToLabel(hour12: number, minute: number, ampm: Ampm): string {
+  return minutesToLabel(
+    (ampm === "PM" ? (hour12 % 12) + 12 : hour12 % 12) * 60 + minute,
+  );
 }
 
 function BookForClientModal({
@@ -875,7 +891,9 @@ function BookForClientModal({
   const [clientId, setClientId] = useState("");
   const [serviceId, setServiceId] = useState(services[0]?.id || "");
   const [date, setDate] = useState(localDateInputValue);
-  const [time, setTime] = useState(defaultBookTimeValue);
+  const [hour12, setHour12] = useState(() => defaultBookParts().hour12);
+  const [minute, setMinute] = useState(() => defaultBookParts().minute);
+  const [ampm, setAmpm] = useState<Ampm>(() => defaultBookParts().ampm);
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -883,7 +901,8 @@ function BookForClientModal({
 
   const selectedClient = clients.find(c => c.uid === clientId) || null;
   const selectedService = services.find(s => s.id === serviceId) || services[0];
-  const timeLabelPreview = timeValueToLabel(time);
+  const timeLabelPreview = partsToLabel(hour12, minute, ampm);
+  const timeHhmm = partsToHhmm(hour12, minute, ampm);
 
   useEffect(() => {
     if (!user) return;
@@ -920,7 +939,7 @@ function BookForClientModal({
   }, [user]);
 
   async function submit() {
-    if (!clientId || !selectedService || !date || !time) {
+    if (!clientId || !selectedService || !date || !timeHhmm) {
       setError("Pick a client, service, date, and time.");
       return;
     }
@@ -933,7 +952,7 @@ function BookForClientModal({
         body: JSON.stringify({
           clientId,
           date,
-          time,
+          time: timeLabelPreview,
           type: selectedService.name,
           duration: selectedService.duration,
           amount: selectedService.price,
@@ -1090,25 +1109,65 @@ function BookForClientModal({
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <label className="block space-y-1">
-                <span className="text-xs font-medium" style={{ color: "#4A5568" }}>Date</span>
-                <input type="date" value={date} min={localDateInputValue()}
-                  onChange={e => setDate(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                  style={{ border: "1px solid rgba(30,56,16,0.12)", color: "#1E3810" }} />
-              </label>
-              <label className="block space-y-1">
-                <span className="text-xs font-medium" style={{ color: "#4A5568" }}>Time</span>
-                <input type="time" value={time} onChange={e => setTime(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                  style={{ border: "1px solid rgba(30,56,16,0.12)", color: "#1E3810" }} />
-              </label>
+            <label className="block space-y-1">
+              <span className="text-xs font-medium" style={{ color: "#4A5568" }}>Date</span>
+              <input type="date" value={date} min={localDateInputValue()}
+                onChange={e => setDate(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                style={{ border: "1px solid rgba(30,56,16,0.12)", color: "#1E3810" }} />
+            </label>
+
+            <div className="space-y-2">
+              <span className="text-xs font-medium" style={{ color: "#4A5568" }}>Time</span>
+              <div className="grid grid-cols-[1fr_1fr_auto] gap-2 items-stretch">
+                <label className="block">
+                  <span className="sr-only">Hour</span>
+                  <select
+                    value={hour12}
+                    onChange={e => setHour12(Number(e.target.value))}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm font-semibold outline-none"
+                    style={{ border: "1px solid rgba(30,56,16,0.12)", color: "#1E3810", background: "white" }}
+                  >
+                    {HOUR_OPTS.map(h => (
+                      <option key={h} value={h}>{h}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="sr-only">Minute</span>
+                  <select
+                    value={minute}
+                    onChange={e => setMinute(Number(e.target.value))}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm font-semibold outline-none"
+                    style={{ border: "1px solid rgba(30,56,16,0.12)", color: "#1E3810", background: "white" }}
+                  >
+                    {MINUTE_OPTS.map(m => (
+                      <option key={m} value={m}>{String(m).padStart(2, "0")}</option>
+                    ))}
+                  </select>
+                </label>
+                <div className="flex rounded-xl overflow-hidden flex-shrink-0"
+                  style={{ border: "1px solid rgba(30,56,16,0.12)" }}>
+                  {(["AM", "PM"] as const).map(p => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setAmpm(p)}
+                      className="px-3.5 py-2.5 text-sm font-bold"
+                      style={{
+                        background: ampm === p ? "#2A4A1A" : "white",
+                        color: ampm === p ? "white" : "#4A5568",
+                      }}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <p className="text-xs" style={{ color: "#8A9BA8" }}>
+                Session starts at <strong style={{ color: "#1E3810" }}>{timeLabelPreview}</strong>
+              </p>
             </div>
-            <p className="text-xs -mt-2" style={{ color: "#8A9BA8" }}>
-              Starts at <strong style={{ color: "#1E3810" }}>{timeLabelPreview}</strong>
-              {" "}(24-hour clock: evening 7:45 = <strong style={{ color: "#1E3810" }}>19:45</strong>).
-            </p>
 
             <label className="block space-y-1">
               <span className="text-xs font-medium" style={{ color: "#4A5568" }}>Note (optional)</span>
